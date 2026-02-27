@@ -468,9 +468,14 @@ const ASSETS = {
 
   function runAnalysis(){
   /* базовый glow на кнопке */
-.btn-primary{
-  position:relative;
-  overflow:hidden;
+function runAnalysis(){
+
+   const analyzeText = document.getElementById("analyzeText");
+
+   btnAnalyze.classList.add("scanning");
+   analyzeText.textContent = "AI SCANNING...";
+
+   // дальше твоя логика
 }
 
 /* пульсирующий glow */
