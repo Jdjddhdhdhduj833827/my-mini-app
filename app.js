@@ -394,7 +394,16 @@ const ASSETS = {
   const marketSelect = $("marketSelect");
   const btnAnalyze = $("btnAnalyze");
   const btnReset = $("btnReset");
+const btnAnalyze = document.getElementById("btnGenerate2"); // или твой id
+const analyzeLine = document.getElementById("analyzingLine");
+const analyzingText = document.getElementById("analyzingText");
+const scanSfx = document.getElementById("scanSfx");
 
+const holoFill = document.getElementById("holoFill");
+const holoText = document.getElementById("holoText");
+
+const chartWrap = document.querySelector(".chartWrap"); // важно: чтобы класс существовал
+  
   const metaLine = $("metaLine");
   const conf = $("conf");
   const dir = $("dir");
@@ -465,6 +474,66 @@ const ASSETS = {
     if (elV) elV.textContent = `${value}%`;
     if (elM) elM.style.width = `${value}%`;
   }
+let dotsTimer = null;
+
+function startScanUI(){ const ASSETS = {startScanUI();
+ 
+  btnAnalyze.classList.add("scanning","glowPulse");
+  btnAnalyze.disabled = true;
+
+  if (chartWrap) chartWrap.classList.add("gridOn");
+
+  if (analyzeLine){
+    analyzeLine.hidden = false;
+  }
+
+  // статус бар
+  if (holoText) holoText.textContent = "ANALYZING LIQUIDITY…";
+  if (holoFill) holoFill.style.width = "18%";
+
+  // анимация точек
+  let dots = 0;
+  if (dotsTimer) clearInterval(dotsTimer);
+  dotsTimer = setInterval(() => {
+    dots = (dots + 1) % 4;
+    if (analyzingText) analyzingText.textContent = "Analyzing liquidity" + ".".repeat(dots);
+  }, 280);
+
+  // звук
+  if (scanSfx){
+    scanSfx.currentTime = 0;
+    scanSfx.volume = 0.55;
+    scanSfx.play().catch(()=>{});
+  }
+}
+function stopScanUI(){stopScanUI();
+  btnAnalyze.classList.remove("scanning","glowPulse");
+  btnAnalyze.disabled = false;
+
+  if (chartWrap) chartWrap.classList.remove("gridOn");
+
+  if (analyzeLine){
+    analyzeLine.hidden = true;
+  }
+
+  if (holoText) holoText.textContent = "SIGNAL READY";
+  if (holoFill) holoFill.style.width = "100%";
+
+  if (dotsTimer){
+    clearInterval(dotsTimer);
+    dotsTimer = null;
+  }
+
+  if (scanSfx){
+    scanSfx.pause();
+  }
+
+  // через секунду аккуратно вернуть статус в “готов”
+  setTimeout(() => {
+    if (holoText) holoText.textContent = "SYSTEM READY";
+    if (holoFill) holoFill.style.width = "0%";
+  }, 900);
+}
 
   function runAnalysis(){
   /* базовый glow на кнопке */
