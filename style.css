@@ -284,3 +284,11 @@ body{
 }
 .anTitle{ font-weight: 900; letter-spacing:.03em; }
 .anSub{ font-size: 12px; opacity: .75; margin-top: 4px; }
+.tvWrap{
+  height: 220px;
+  width: 100%;
+}
+#tvChart{
+  height: 220px;
+  width: 100%;
+}
