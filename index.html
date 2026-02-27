@@ -3,13 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Market Pulse</title>
+  <title>NEXORA — AI Trade Signal</title>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-  <!-- 100% рабочий график (без iframe) -->
-  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
-
   <link rel="stylesheet" href="./style.css" />
 </head>
 
@@ -17,74 +13,70 @@
   <div class="app">
     <header class="topbar">
       <div class="brand">
-        <div class="brand__title">MARKET PULSE</div>
-        <div class="brand__sub">мини-приложение</div>
+        <div class="brand__title">NEXORA</div>
+        <div class="brand__sub">trading intelligence</div>
       </div>
       <button class="iconBtn" id="btnMenu" aria-label="Menu">⋯</button>
     </header>
 
     <main class="content">
-      <h1 class="title">MARKET ANALYSIS</h1>
+      <h1 class="title">TRADE SIGNAL</h1>
 
       <!-- Controls -->
       <section class="panel">
         <div class="row">
-          <!-- Pair -->
-          <div class="select" id="pairSelect">
-            <div class="select__left">
-              <span class="badge" id="pairBadge">🌍</span>
+          <button class="select" id="pairSelect" type="button">
+            <span class="select__left">
+              <span class="badge" id="pairBadge">🇪🇺🇺🇸</span>
               <span class="select__value" id="pairValue">EUR/USD</span>
-            </div>
+            </span>
             <span class="chev">▾</span>
             <div class="dropdown" id="pairDrop"></div>
-          </div>
+          </button>
 
-          <!-- TF -->
-          <div class="select compact" id="tfSelect">
-            <div class="select__left">
+          <button class="select compact" id="tfSelect" type="button">
+            <span class="select__left">
               <span class="badge">⏱</span>
               <span class="select__value" id="tfValue">10s</span>
-            </div>
+            </span>
             <span class="chev">▾</span>
             <div class="dropdown" id="tfDrop"></div>
-          </div>
+          </button>
 
-          <!-- Market -->
           <button class="select compact btnGhost" id="marketBtn" type="button" title="Рынок">
-            <span class="badge">🌐</span>
-            <span class="select__value" id="marketValue">OTC</span>
-            <span class="chev">▾</span>
+            <span class="select__left">
+              <span class="badge">🌐</span>
+              <span class="select__value" id="marketValue">OTC</span>
+            </span>
+            <span class="chev">↻</span>
           </button>
         </div>
 
         <div class="hint" id="hintText">
-          Нажмите кнопку <b>«Новый анализ»</b>, чтобы сформировать результат.
+          Нажми <b>«Получить сигнал»</b> — появится блок анализа и результат.
         </div>
 
         <div class="actions">
-          <button class="btn btnPrimary" id="btnGenerate">НОВЫЙ АНАЛИЗ</button>
+          <button class="btn btnPrimary" id="btnGenerate" type="button">ПОЛУЧИТЬ НОВЫЙ СИГНАЛ</button>
         </div>
       </section>
 
       <!-- Result -->
       <section class="panel panelResult hidden" id="resultPanel">
-        <div class="panel__title">Результат анализа</div>
+        <div class="panel__titleRow">
+          <div class="panel__title">Сигнал</div>
+          <div class="panel__meta" id="chartMeta">EUR/USD • OTC</div>
+        </div>
 
         <!-- Chart -->
         <div class="chartCard">
-          <div class="chartHead">
-            <div class="chartTitle">График</div>
-            <div class="chartMeta" id="chartMeta">EUR/USD • OTC</div>
-          </div>
-          <div class="chartBox" id="chartBox"></div>
-
-          <!-- Анализ-оверлей -->
-          <div class="analyzeOverlay hidden" id="analyzeOverlay">
+          <div class="chart" id="chart"></div>
+          <div class="analyzing hidden" id="analyzeOverlay">
             <div class="scanGlow"></div>
             <div class="scanLine"></div>
             <div class="anText">
-              <div class="anTitle">Идёт анализ рынка…</div>
-              <div class="anSub">считываем волатильность и импульсы</div>
+              <div class="anTitle">Анализ рынка…</div>
+              <div class="anSub" id="anSub">Сканируем волатильность и импульсы</div>
             </div>
           </div>
         </div>
@@ -102,42 +94,39 @@
 
           <div class="card">
             <div class="label">Уверенность</div>
-            <div class="value" id="rAcc">—%</div>
+            <div class="value" id="rAcc">—</div>
           </div>
 
           <div class="card wide">
             <div class="label">Направление</div>
             <div class="dir" id="rDir">
-              <span class="dirDot up" id="dirDot"></span>
-              <span class="dirText" id="dirText">—</span>
+              <span class="dirDot up"></span>
+              <span class="dirText">—</span>
               <span class="dirUntil">до <b id="rUntil">—</b></span>
             </div>
           </div>
 
           <div class="card wide">
             <div class="label">Время до конца</div>
-            <div class="progress">
-              <div class="progress__bar" id="progressBar"></div>
-            </div>
+            <div class="progress"><div class="progress__bar" id="progressBar"></div></div>
             <div class="timer" id="timerText">00:00 / 00:00</div>
           </div>
         </div>
 
         <div class="actions two">
-          <button class="btn btnLight" id="btnGenerate2">НОВЫЙ АНАЛИЗ</button>
-          <button class="btn btnOutline" id="btnReset">СБРОСИТЬ</button>
+          <button class="btn btnLight" id="btnGenerate2" type="button">ЕЩЁ СИГНАЛ</button>
+          <button class="btn btnOutline" id="btnReset" type="button">СБРОС</button>
         </div>
 
-        <div class="footnote">
-          Демо-интерфейс. Не является финансовым советом.
-        </div>
+        <div class="footnote">Демо-интерфейс. Не является финансовым советом.</div>
       </section>
     </main>
   </div>
 
-  <!-- Backdrop (для закрытия dropdown по клику снаружи) -->
-  <div class="backdrop" id="backdrop"></div>
+  <div class="backdrop hidden" id="backdrop"></div>
 
+  <!-- График (если CDN доступен) -->
+  <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
