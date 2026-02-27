@@ -43,8 +43,7 @@ const API_BASE = "https://hidden-fog-c1f2craft-analytics-api.ashirkhanlogubekov-
   /* =========================
      Config
   ========================== */
-  const REG_LINK = "https://example.com"; // <-- вставь свою ссылку
-
+ 
   const MARKETS = ["OTC", "REAL"];
 
   const TIMEFRAMES = [
