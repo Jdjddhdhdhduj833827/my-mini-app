@@ -9,7 +9,17 @@ console.log("TG ID:", tgId);
 const API_BASE = "https://hidden-fog-c1f2craft-analytics-api.ashirkhanlogubekov-833.workers.dev";
 (() => {
   "use strict";
+document.addEventListener("DOMContentLoaded", () => {
 
+  const baseLink = "ВСТАВЬ_СЮДА_ССЫЛКУ_РЕГИСТРАЦИИ_БЕЗ_click_id";
+
+  const regBtn = document.getElementById("regBtn");
+
+  if (tgId && regBtn) {
+    regBtn.href = baseLink + "&click_id=" + encodeURIComponent(String(tgId));
+  }
+
+});
   /* =========================
      Ultra Helpers
   ========================== */
