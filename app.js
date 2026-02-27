@@ -1274,29 +1274,20 @@ document.addEventListener("DOMContentLoaded", () => {
   opacity:.55;
   pointer-events:none;
 }
-document.getElementById("regBtn").addEventListener("click", () => {
-  const link = "https://u3.shortink.io/register?utm_campaign=838492&utm_source=affiliate&utm_medium=sr&a=M2nsxBfYsujho1&ac=craft_academy&code=WELCOME50"; //
-  if (window.Telegram?.WebApp) {
-    window.Telegram.WebApp.openLink(link);
-  } else {
-    window.open(link, "_blank");
-  }
-});
+  
 // === OPEN REGISTRATION LINK ===
 const openBtn = document.getElementById("btnOpenLink");
 
 if (openBtn) {
   openBtn.addEventListener("click", () => {
-
     const link = "https://u3.shortink.io/register?utm_campaign=838492&utm_source=affiliate&utm_medium=sr&a=M2nsxBfYsujho1&ac=craft_academy&code=WELCOME50"; 
-    // 👆 ВСТАВЬ СВОЮ РЕАЛЬНУЮ ССЫЛКУ
 
-    if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.ready();
-      window.Telegram.WebApp.openLink(link, { try_instant_view: false });
+    if (window.Telegram && window.Telegram.WebApp) {
+      window.Telegram.WebApp.openLink(link);
     } else {
-      window.location.href = link;
+      window.open(link, "_blank");
     }
-
+  });
+}
   });
 }
