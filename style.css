@@ -334,3 +334,96 @@ body{
 }
 
 .dropdown.open{ display: block; }
+/* ===== Chart (premium) ===== */
+.chartWrap{
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(18,20,28,.55);
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: 0 30px 70px rgba(0,0,0,.55);
+}
+
+.chartHead{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom: 10px;
+}
+
+.chartTitle{
+  font-weight: 900;
+  letter-spacing: .08em;
+  opacity: .95;
+}
+
+.chartMeta{
+  font-size: 12px;
+  opacity: .7;
+}
+
+.chartBox{
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(10,12,18,.75);
+}
+
+.chart{
+  height: 220px;
+  width: 100%;
+}
+
+/* ===== Analyze overlay (scan + shimmer) ===== */
+.analyzeOverlay{
+  position:absolute;
+  inset:0;
+  background: rgba(0,0,0,.45);
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  padding: 14px;
+  z-index: 50;
+}
+
+.analyzeOverlay.hidden{ display:none; }
+
+.analyzeText{
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(18,20,28,.55);
+  border: 1px solid rgba(255,255,255,.10);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.analyzeTitle{
+  font-weight: 900;
+  letter-spacing: .04em;
+}
+
+.analyzeSub{
+  font-size: 12px;
+  opacity: .75;
+  margin-top: 4px;
+}
+
+/* scan line */
+.scanLine{
+  position:absolute;
+  left:-30%;
+  top:0;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(124,160,255,.18), transparent);
+  transform: skewX(-18deg);
+  animation: scanMove 1.15s linear infinite;
+  pointer-events:none;
+}
+
+@keyframes scanMove{
+  from{ transform: translateX(-30%) skewX(-18deg); }
+  to{ transform: translateX(220%) skewX(-18deg); }
+}
