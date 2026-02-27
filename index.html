@@ -2,117 +2,186 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Analytics Mini App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Trade Analytics</title>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="./style.css" />
 </head>
 
 <body>
   <div class="app">
-    <header class="topbar">
+
+    <header class="header">
       <div class="brand">
-        <div class="logo">A</div>
-        <div>
-          <div class="brand__title">Analytics Console</div>
-          <div class="brand__sub" id="subtitle">market • setups • risk</div>
-        </div>
+        <div class="brand__title">TRADE ANALYTICS</div>
+        <div class="brand__sub">mini-app • research mode</div>
       </div>
-      <button class="btn btn--ghost" id="btnTheme">Тема</button>
+      <button class="iconBtn" id="btnLang" title="Locale">🌐</button>
     </header>
 
-    <nav class="tabs">
-      <button class="tab tab--active" data-tab="dashboard">Главная</button>
-      <button class="tab" data-tab="setups">Сетапы</button>
-      <button class="tab" data-tab="market">Обзор</button>
-      <button class="tab" data-tab="risk">Риск</button>
-      <button class="tab" data-tab="profile">Профиль</button>
-    </nav>
+    <main class="main">
 
-    <main class="content">
-      <section class="panel panel--active" id="dashboard">
-        <div class="card">
-          <div class="card__title">Статус</div>
-          <div class="grid2">
-            <div class="mini">
-              <div class="mini__label">Сетапов</div>
-              <div class="mini__value" id="statSetups">—</div>
-            </div>
-            <div class="mini">
-              <div class="mini__label">Обновлено</div>
-              <div class="mini__value" id="statUpdated">—</div>
-            </div>
-          </div>
-          <div class="sep"></div>
-          <div class="muted" id="disclaimer">
-            ⚠️ Это образовательный аналитический инструмент. Не является финансовым советом.
-          </div>
+      <!-- STEP 1: Instrument -->
+      <section class="card" id="screen-instrument">
+        <div class="h1">Выберите инструмент</div>
+
+        <div class="search">
+          <div class="search__icon">⌕</div>
+          <input id="qInstrument" class="search__input" placeholder="Search..." autocomplete="off" />
         </div>
 
-        <div class="card">
-          <div class="card__title">Быстрые действия</div>
-          <div class="row">
-            <button class="btn" id="goSetups">Открыть сетапы</button>
-            <button class="btn btn--ghost" id="goMarket">Обзор рынка</button>
+        <div class="label">КАТЕГОРИИ</div>
+        <div class="chips" id="catChips"></div>
+
+        <div class="list" id="instrumentList"></div>
+      </section>
+
+      <!-- STEP 2: Model + Expiry + Start -->
+      <section class="card hidden" id="screen-setup">
+        <div class="row">
+          <div>
+            <div class="label">Выберите инструмент</div>
+            <button class="select" id="selInstrument">—</button>
           </div>
+          <button class="iconBtn" id="btnBackToInstruments" title="Назад">←</button>
+        </div>
+
+        <div class="spacer"></div>
+
+        <div class="label">Выберите модель</div>
+        <button class="select" id="selModel">—</button>
+
+        <div class="spacer"></div>
+
+        <div class="label">Время экспирации</div>
+        <button class="select" id="selExpiry">—</button>
+
+        <div class="spacer"></div>
+
+        <button class="primary" id="btnStart" disabled>Запустить анализ</button>
+
+        <div class="note">
+          ⚠️ Образовательный режим: результат — оценка вероятностного сценария, не гарантия.
         </div>
       </section>
 
-      <section class="panel" id="setups">
-        <div class="card">
-          <div class="card__title">Сетапы</div>
-          <div class="muted">Идеи/условия. Без обещаний и “гарантий”.</div>
+      <!-- STEP 3: Pipeline -->
+      <section class="card hidden" id="screen-pipeline">
+        <div class="row between">
+          <div class="row gap">
+            <div class="dot"></div>
+            <div class="h2">Сигнал</div>
+          </div>
+          <div class="muted">Модель: <span id="pipeModel">—</span></div>
         </div>
 
-        <div id="setupsList" class="list"></div>
-      </section>
-
-      <section class="panel" id="market">
-        <div class="card">
-          <div class="card__title">Обзор рынка</div>
-          <div class="muted" id="marketTime">—</div>
-          <div class="sep"></div>
-          <div id="marketText">Задай текст обзора в файле <code>data/setups.json</code>.</div>
-        </div>
-      </section>
-
-      <section class="panel" id="risk">
-        <div class="card">
-          <div class="card__title">Риск-менеджмент</div>
-          <div class="sep"></div>
-          <ul class="ul">
-            <li>Нет условий — нет сделки.</li>
-            <li>Риск фиксированный (например 1–2% от банка).</li>
-            <li>После минуса риск не увеличиваем.</li>
-            <li>Всегда есть “инвалидация” — где идея ломается.</li>
-          </ul>
-        </div>
-      </section>
-
-      <section class="panel" id="profile">
-        <div class="card">
-          <div class="card__title">Профиль</div>
-          <div class="sep"></div>
-          <div class="profile">
-            <div class="avatar" id="avatar">U</div>
-            <div>
-              <div class="profile__name" id="pName">Гость</div>
-              <div class="muted" id="pUser">@username</div>
-            </div>
+        <div class="pipeline" id="pipeline">
+          <div class="pipeStep" data-step="0">
+            <div class="pipeTitle">Технический анализ</div>
+            <div class="pipeSub">Индикаторы и уровни S/R</div>
+            <div class="pipeState" aria-label="state"></div>
+          </div>
+          <div class="pipeStep" data-step="1">
+            <div class="pipeTitle">Распознавание паттернов</div>
+            <div class="pipeSub">Тренды и фигуры</div>
+            <div class="pipeState"></div>
+          </div>
+          <div class="pipeStep" data-step="2">
+            <div class="pipeTitle">Математические расчёты</div>
+            <div class="pipeSub">Вероятности и риски</div>
+            <div class="pipeState"></div>
+          </div>
+          <div class="pipeStep" data-step="3">
+            <div class="pipeTitle">Генерация сигнала</div>
+            <div class="pipeSub">Финальная сборка</div>
+            <div class="pipeState"></div>
           </div>
         </div>
 
-        <div class="card">
-          <div class="card__title">Справка</div>
-          <div class="muted">
-            Mini App подстраивается под тему Telegram. Оформление меняется в <code>style.css</code>.
+        <div class="progressWrap">
+          <div class="progressBar"><div class="progressFill" id="progressFill"></div></div>
+          <div class="muted center" id="progressText">0% • Инициализация</div>
+        </div>
+      </section>
+
+      <!-- STEP 4: Result -->
+      <section class="card hidden" id="screen-result">
+        <div class="row between">
+          <div class="row gap">
+            <div class="dot"></div>
+            <div class="h2">Сигнал</div>
           </div>
+          <div class="muted">Модель: <span id="resModel">—</span></div>
+        </div>
+
+        <div class="signal">
+          <div class="signal__badge" id="signalDirBadge">—</div>
+          <div class="signal__dir" id="signalDir">—</div>
+        </div>
+
+        <div class="grid2">
+          <div class="kpi">
+            <div class="kpi__label">РЫНОК</div>
+            <div class="kpi__value" id="kMarket">OTC</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi__label">УВЕРЕННОСТЬ</div>
+            <div class="kpi__value" id="kConf">—</div>
+          </div>
+
+          <div class="kpi">
+            <div class="kpi__label">ВРЕМЯ</div>
+            <div class="kpi__value" id="kExpiry">—</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi__label">СИЛА</div>
+            <div class="kpi__value" id="kStrength">—</div>
+          </div>
+
+          <div class="kpi">
+            <div class="kpi__label">ПАРА</div>
+            <div class="kpi__value" id="kPair">—</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi__label">ДЕЙСТВУЕТ ДО</div>
+            <div class="kpi__value" id="kUntil">—</div>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="kpi big">
+            <div class="kpi__value" id="kAcc">—</div>
+            <div class="kpi__label">ТОЧНОСТЬ (оценка)</div>
+          </div>
+          <div class="kpi big">
+            <div class="kpi__value" id="kVol">—</div>
+            <div class="kpi__label">ОБЪЁМ</div>
+          </div>
+        </div>
+
+        <div class="row gap">
+          <button class="primary" id="btnRepeat">Повторить</button>
+          <button class="ghost" id="btnReset">Сбросить</button>
+        </div>
+
+        <div class="note">
+          ⚠️ Не является финансовым советом. Используй риск-менеджмент.
         </div>
       </section>
     </main>
+
+    <!-- Expiry modal -->
+    <div class="modal hidden" id="expiryModal">
+      <div class="modal__card">
+        <div class="h1">Время экспирации</div>
+        <div class="expiryGrid" id="expiryGrid"></div>
+        <button class="primary" id="btnCloseExpiry">Закрыть</button>
+      </div>
+    </div>
+
   </div>
 
-  <script src="app.js"></script>
+  <script src="./app.js"></script>
 </body>
 </html>
