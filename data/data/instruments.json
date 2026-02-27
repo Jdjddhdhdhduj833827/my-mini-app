@@ -1,0 +1,25 @@
+{
+  "categories": [
+    {"id":"fx","name":"Валюты"},
+    {"id":"crypto","name":"Криптовалюты"},
+    {"id":"stocks","name":"Акции"},
+    {"id":"commod","name":"Сырьё"},
+    {"id":"index","name":"Индексы"}
+  ],
+  "items": [
+    {"cat":"fx","symbol":"AUD/CAD OTC","market":"OTC"},
+    {"cat":"fx","symbol":"AUD/USD OTC","market":"OTC"},
+    {"cat":"fx","symbol":"EUR/CHF OTC","market":"OTC"},
+    {"cat":"fx","symbol":"EUR/NZD OTC","market":"OTC"},
+    {"cat":"fx","symbol":"EUR/USD","market":"FX"},
+    {"cat":"fx","symbol":"GBP/USD","market":"FX"},
+    {"cat":"crypto","symbol":"BTC/USD","market":"CRYPTO"},
+    {"cat":"crypto","symbol":"ETH/USD","market":"CRYPTO"},
+    {"cat":"commod","symbol":"XAU/USD (Gold)","market":"COMMOD"},
+    {"cat":"commod","symbol":"Brent Oil","market":"COMMOD"},
+    {"cat":"stocks","symbol":"AAPL","market":"STOCKS"},
+    {"cat":"stocks","symbol":"TSLA","market":"STOCKS"},
+    {"cat":"index","symbol":"S&P 500","market":"INDEX"},
+    {"cat":"index","symbol":"NASDAQ 100","market":"INDEX"}
+  ]
+}
