@@ -1,355 +1,347 @@
-/* Market Pulse — полностью рабочая логика (dropdown + график + таймер) */
+(() => {
+  const tg = window.Telegram?.WebApp;
+  if (tg) { try { tg.ready(); tg.expand(); } catch {} }
 
-const tg = window.Telegram?.WebApp;
-try{
-  tg?.ready();
-  tg?.expand();
-} catch(e){}
+  const $ = (id) => document.getElementById(id);
+  const pad2 = (n) => String(n).padStart(2, "0");
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
-/* ---------- ДАННЫЕ ---------- */
-const PAIRS = [
-  { name: "EUR/USD", badge: "🇪🇺🇺🇸" },
-  { name: "GBP/USD", badge: "🇬🇧🇺🇸" },
-  { name: "USD/JPY", badge: "🇺🇸🇯🇵" },
-  { name: "USD/CHF", badge: "🇺🇸🇨🇭" },
-  { name: "AUD/USD", badge: "🇦🇺🇺🇸" },
-  { name: "USD/CAD", badge: "🇺🇸🇨🇦" },
-  { name: "NZD/USD", badge: "🇳🇿🇺🇸" },
-  { name: "EUR/GBP", badge: "🇪🇺🇬🇧" },
-  { name: "EUR/JPY", badge: "🇪🇺🇯🇵" },
-  { name: "GBP/JPY", badge: "🇬🇧🇯🇵" }
-];
+  // ===== DATA =====
+  const PAIRS = [
+    { value: "EUR/USD", badge: "🇪🇺🇺🇸" },
+    { value: "GBP/USD", badge: "🇬🇧🇺🇸" },
+    { value: "USD/JPY", badge: "🇺🇸🇯🇵" },
+    { value: "EUR/JPY", badge: "🇪🇺🇯🇵" },
+    { value: "AUD/USD", badge: "🇦🇺🇺🇸" },
+    { value: "USD/CHF", badge: "🇺🇸🇨🇭" },
+    { value: "BTC/USD", badge: "₿" },
+    { value: "ETH/USD", badge: "Ξ" },
+  ];
 
-const TIMEFRAMES = [
-  { label: "10s", seconds: 10 },
-  { label: "15s", seconds: 15 },
-  { label: "30s", seconds: 30 },
-  { label: "1m",  seconds: 60 },
-  { label: "3m",  seconds: 180 },
-  { label: "5m",  seconds: 300 },
-  { label: "10m", seconds: 600 }
-];
+  const TFS = [
+    { label: "10s", sec: 10 },
+    { label: "15s", sec: 15 },
+    { label: "30s", sec: 30 },
+    { label: "1m",  sec: 60 },
+    { label: "3m",  sec: 180 },
+    { label: "5m",  sec: 300 },
+    { label: "7m",  sec: 420 },
+    { label: "10m", sec: 600 },
+  ];
 
-const state = {
-  pair: PAIRS[0].name,
-  pairBadge: PAIRS[0].badge,
-  tf: TIMEFRAMES[0].label,
-  tfSeconds: TIMEFRAMES[0].seconds,
-  market: "OTC"
-};
+  const state = {
+    pair: PAIRS[0].value,
+    badge: PAIRS[0].badge,
+    tf: TFS[0].label,
+    tfSec: TFS[0].sec,
+    market: "OTC",
+    timer: null,
+    total: 0,
+    left: 0,
+  };
 
-/* ---------- DOM ---------- */
-const $ = (id) => document.getElementById(id);
+  // ===== ELEMENTS =====
+  const pairSelect = $("pairSelect");
+  const pairDrop = $("pairDrop");
+  const pairValue = $("pairValue");
+  const pairBadge = $("pairBadge");
 
-const pairSelect = $("pairSelect");
-const pairDrop   = $("pairDrop");
-const pairValue  = $("pairValue");
-const pairBadge  = $("pairBadge");
+  const tfSelect = $("tfSelect");
+  const tfDrop = $("tfDrop");
+  const tfValue = $("tfValue");
 
-const tfSelect = $("tfSelect");
-const tfDrop   = $("tfDrop");
-const tfValue  = $("tfValue");
+  const marketBtn = $("marketBtn");
+  const marketValue = $("marketValue");
 
-const marketBtn   = $("marketBtn");
-const marketValue = $("marketValue");
+  const btnGenerate = $("btnGenerate");
+  const btnGenerate2 = $("btnGenerate2");
+  const btnReset = $("btnReset");
 
-const backdrop = $("backdrop");
+  const hintText = $("hintText");
+  const resultPanel = $("resultPanel");
 
-const btnGenerate  = $("btnGenerate");
-const btnGenerate2 = $("btnGenerate2");
-const btnReset     = $("btnReset");
+  const rPair = $("rPair");
+  const rTf = $("rTf");
+  const rAcc = $("rAcc");
+  const rDir = $("rDir");
+  const rUntil = $("rUntil");
 
-const resultPanel  = $("resultPanel");
+  const progressBar = $("progressBar");
+  const timerText = $("timerText");
 
-const rPair  = $("rPair");
-const rTf    = $("rTf");
-const rAcc   = $("rAcc");
-const dirDot = $("dirDot");
-const dirText= $("dirText");
-const rUntil = $("rUntil");
-const progressBar = $("progressBar");
-const timerText   = $("timerText");
+  const chartMeta = $("chartMeta");
+  const chartHost = $("chart");
 
-const chartMeta = $("chartMeta");
-const chartBox  = $("chartBox");
-const analyzeOverlay = $("analyzeOverlay");
+  const backdrop = $("backdrop");
+  const analyzeOverlay = $("analyzeOverlay");
+  const anSub = $("anSub");
 
-/* ---------- DROPDOWNS ---------- */
-function closeAllDropdowns(){
-  pairDrop.classList.remove("open");
-  tfDrop.classList.remove("open");
-  backdrop.classList.remove("show"); // <-- важно
-}
+  // ===== DROPDOWNS =====
+  function showBackdrop(on){
+    backdrop?.classList.toggle("hidden", !on);
+  }
 
-function toggleDropdown(drop){
-  const isOpen = drop.classList.contains("open");
-  closeAllDropdowns();
-  if(!isOpen){
+  function closeDrops(){
+    pairDrop?.classList.remove("open");
+    tfDrop?.classList.remove("open");
+    showBackdrop(false);
+  }
+
+  function openDrop(drop){
+    closeDrops();
     drop.classList.add("open");
-    backdrop.classList.add("show"); // <-- важно
+    showBackdrop(true);
   }
-}
 
-function buildDropdown(dropEl, items, onPick){
-  dropEl.innerHTML = "";
-  items.forEach((item) => {
-    const div = document.createElement("div");
-    div.className = "dropItem";
-    div.innerHTML = `
-      <div class="dropItem__left">
-        <span class="badge">${item.badge ?? "⏱"}</span>
-        <div class="dropItem__name">${item.name ?? item.label}</div>
-      </div>
-      <div class="dropItem__meta">${item.meta ?? ""}</div>
-    `;
-    div.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      onPick(item);
-      closeAllDropdowns();
+  backdrop?.addEventListener("click", closeDrops);
+
+  function renderPairs(){
+    pairDrop.innerHTML = "";
+    PAIRS.forEach(p => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "dropItem";
+      b.textContent = `${p.badge} ${p.value}`;
+      b.addEventListener("click", (e) => {
+        e.preventDefault();
+        state.pair = p.value;
+        state.badge = p.badge;
+        pairValue.textContent = state.pair;
+        pairBadge.textContent = state.badge;
+        closeDrops();
+        renderChart();
+      });
+      pairDrop.appendChild(b);
     });
-    dropEl.appendChild(div);
-  });
-}
-
-buildDropdown(pairDrop, PAIRS.map(p => ({ name: p.name, badge: p.badge })), (p) => {
-  state.pair = p.name;
-  state.pairBadge = p.badge;
-  pairValue.textContent = state.pair;
-  pairBadge.textContent = state.pairBadge;
-  renderChart();
-});
-
-buildDropdown(tfDrop, TIMEFRAMES.map(t => ({ label: t.label, meta: `${t.seconds}s` })), (t) => {
-  const found = TIMEFRAMES.find(x => x.label === t.label);
-  state.tf = found.label;
-  state.tfSeconds = found.seconds;
-  tfValue.textContent = state.tf;
-});
-
-pairSelect.addEventListener("click", (e) => { e.stopPropagation(); toggleDropdown(pairDrop); });
-tfSelect.addEventListener("click",   (e) => { e.stopPropagation(); toggleDropdown(tfDrop); });
-
-backdrop.addEventListener("click", closeAllDropdowns);
-document.addEventListener("click", closeAllDropdowns);
-
-/* Market toggle (OTC / REAL) */
-marketBtn.addEventListener("click", (e) => {
-  e.preventDefault();
-  state.market = (state.market === "OTC") ? "REAL" : "OTC";
-  marketValue.textContent = state.market;
-  renderChart();
-});
-
-/* ---------- CHART (100% рабочий, без iframe) ---------- */
-let chart, candleSeries;
-
-function ensureChart(){
-  if(chart) return;
-
-  // гарантируем, что контейнер видимый и с высотой
-  if(!chartBox) return;
-
-  chart = LightweightCharts.createChart(chartBox, {
-    autoSize: true,
-    layout: { background: { type: "solid", color: "transparent" }, textColor: "rgba(255,255,255,.85)" },
-    rightPriceScale: { borderVisible: false },
-    timeScale: { borderVisible: false, secondsVisible: true },
-    grid: {
-      vertLines: { color: "rgba(255,255,255,.06)" },
-      horzLines: { color: "rgba(255,255,255,.06)" }
-    },
-    crosshair: { mode: 0 }
-  });
-
-  candleSeries = chart.addCandlestickSeries({
-    upColor: "#2ecc71",
-    downColor: "#e74c3c",
-    wickUpColor: "#2ecc71",
-    wickDownColor: "#e74c3c",
-    borderVisible: false
-  });
-
-  // resize для Telegram/браузера
-  const ro = new ResizeObserver(() => {
-    try{ chart?.applyOptions({}); } catch(e){}
-  });
-  ro.observe(chartBox);
-}
-
-function seedFromText(text){
-  // простой стабильный seed из строки
-  let h = 2166136261;
-  for(let i=0;i<text.length;i++){
-    h ^= text.charCodeAt(i);
-    h = Math.imul(h, 16777619);
   }
-  return (h >>> 0);
-}
 
-function rng(seed){
-  let s = seed >>> 0;
-  return () => {
-    s = (s * 1664525 + 1013904223) >>> 0;
-    return s / 4294967296;
-  };
-}
-
-// Генерация свечей “как рынок”, зависит от пары/рынка => выглядит по-разному
-function makeCandles(pair, market){
-  const seed = seedFromText(pair + "|" + market);
-  const random = rng(seed);
-
-  const now = Math.floor(Date.now()/1000);
-  const bars = [];
-  const count = 80;
-
-  let t = now - count * 15; // шаг 15 секунд
-  let price = 1 + random()*0.8;
-
-  const volatility = market === "OTC" ? 0.010 : 0.006;
-
-  for(let i=0;i<count;i++){
-    const open = price;
-    const drift = (random() - 0.5) * volatility;
-    const close = open + drift;
-
-    const w = volatility * (0.7 + random()*0.8);
-    const high = Math.max(open, close) + random()*w;
-    const low  = Math.min(open, close) - random()*w;
-
-    bars.push({
-      time: t,
-      open: round(open),
-      high: round(high),
-      low:  round(low),
-      close:round(close)
+  function renderTfs(){
+    tfDrop.innerHTML = "";
+    TFS.forEach(t => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "dropItem";
+      b.textContent = t.label;
+      b.addEventListener("click", (e) => {
+        e.preventDefault();
+        state.tf = t.label;
+        state.tfSec = t.sec;
+        tfValue.textContent = state.tf;
+        closeDrops();
+      });
+      tfDrop.appendChild(b);
     });
-
-    t += 15;
-    price = close;
   }
-  return bars;
-}
 
-function round(x){
-  return Math.round(x * 100000) / 100000;
-}
+  pairSelect?.addEventListener("click", (e)=>{ e.preventDefault(); openDrop(pairDrop); });
+  tfSelect?.addEventListener("click", (e)=>{ e.preventDefault(); openDrop(tfDrop); });
 
-function renderChart(){
-  ensureChart();
-  if(!candleSeries) return;
+  // ===== MARKET =====
+  marketBtn?.addEventListener("click", () => {
+    state.market = (state.market === "OTC") ? "REAL" : "OTC";
+    marketValue.textContent = state.market;
+    renderChart();
+  });
 
-  if(chartMeta) chartMeta.textContent = `${state.pair} • ${state.market}`;
-  candleSeries.setData(makeCandles(state.pair, state.market));
-}
-
-/* ---------- ANALYSIS / TIMER ---------- */
-let timerInt = null;
-let endAtMs = 0;
-let totalMs = 0;
-
-function fmt(sec){
-  const s = Math.max(0, sec|0);
-  const mm = String(Math.floor(s/60)).padStart(2,"0");
-  const ss = String(s%60).padStart(2,"0");
-  return `${mm}:${ss}`;
-}
-
-function setDirection(isUp){
-  if(isUp){
-    dirDot.classList.remove("down");
-    dirText.textContent = "Вверх";
-  } else {
-    dirDot.classList.add("down");
-    dirText.textContent = "Вниз";
+  // ===== TIMER =====
+  function mmss(sec){
+    sec = Math.max(0, Math.ceil(sec));
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${pad2(m)}:${pad2(s)}`;
   }
-}
 
-function setUntilFromNow(seconds){
-  const d = new Date(Date.now() + seconds*1000);
-  const hh = String(d.getHours()).padStart(2,"0");
-  const mm = String(d.getMinutes()).padStart(2,"0");
-  const ss = String(d.getSeconds()).padStart(2,"0");
-  rUntil.textContent = `${hh}:${mm}:${ss}`;
-}
+  function stopTimer(){
+    if (state.timer) clearInterval(state.timer);
+    state.timer = null;
+  }
 
-function startTimer(seconds){
-  if(timerInt) clearInterval(timerInt);
+  function startTimer(totalSec){
+    stopTimer();
+    state.total = totalSec;
+    state.left = totalSec;
 
-  totalMs = seconds * 1000;
-  endAtMs = Date.now() + totalMs;
+    const tick = () => {
+      state.left -= 0.1;
+      if (state.left <= 0) { state.left = 0; stopTimer(); }
 
-  const tick = () => {
-    const leftMs = endAtMs - Date.now();
-    const leftSec = Math.ceil(leftMs / 1000);
+      const pct = state.total ? ((state.total - state.left) / state.total) * 100 : 100;
+      if (progressBar) progressBar.style.width = `${clamp(pct,0,100)}%`;
+      if (timerText) timerText.textContent = `${mmss(state.left)} / ${mmss(state.total)}`;
+    };
 
-    const done = leftMs <= 0;
-    const progress = done ? 100 : ( (1 - leftMs/totalMs) * 100 );
+    tick();
+    state.timer = setInterval(tick, 100);
+  }
 
-    progressBar.style.width = `${Math.min(100, Math.max(0, progress))}%`;
-    timerText.textContent = `${fmt(leftSec)} / ${fmt(seconds)}`;
+  // ===== ANALYZE OVERLAY =====
+  function setAnalyze(on, text){
+    if (!analyzeOverlay) return;
+    if (text && anSub) anSub.textContent = text;
+    analyzeOverlay.classList.toggle("hidden", !on);
+  }
 
-    if(done){
-      clearInterval(timerInt);
-      timerInt = null;
+  // ===== SIGNAL UI =====
+  function pickDir(){
+    return Math.random() < 0.52 ? "UP" : "DOWN";
+  }
+
+  function acc(){
+    return Math.floor(72 + Math.random() * 16); // 72..87
+  }
+
+  function untilTime(sec){
+    const d = new Date(Date.now() + sec * 1000);
+    return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  }
+
+  function showResult(show){
+    resultPanel?.classList.toggle("hidden", !show);
+    hintText?.classList.toggle("hidden", show);
+  }
+
+  function applyResult(dir){
+    rPair.textContent = state.pair;
+    rTf.textContent = state.tf;
+    rAcc.textContent = `${acc()}%`;
+    rUntil.textContent = untilTime(state.tfSec);
+
+    const dot = rDir.querySelector(".dirDot");
+    const text = rDir.querySelector(".dirText");
+
+    if (dir === "UP") {
+      dot.classList.remove("down"); dot.classList.add("up");
+      text.textContent = "Вверх";
+    } else {
+      dot.classList.remove("up"); dot.classList.add("down");
+      text.textContent = "Вниз";
     }
-  };
+  }
 
-  tick();
-  timerInt = setInterval(tick, 250);
-}
+  // ===== CHART =====
+  let chart = null;
+  let series = null;
 
-function runAnalysis(){
-  // показать панель
-  resultPanel.classList.remove("hidden");
+  function mockCandles(count = 70){
+    const now = Math.floor(Date.now()/1000);
+    let t = now - count * 60;
 
-  // обновить поля
-  rPair.textContent = state.pair;
-  rTf.textContent = state.tf;
+    const base = {
+      "EUR/USD": 1.085,
+      "GBP/USD": 1.265,
+      "USD/JPY": 148.2,
+      "EUR/JPY": 161.0,
+      "AUD/USD": 0.655,
+      "USD/CHF": 0.895,
+      "BTC/USD": 52000,
+      "ETH/USD": 2800,
+    }[state.pair] ?? 1.08;
 
-  // анимация анализа
-  analyzeOverlay.classList.remove("hidden");
+    let price = base;
+    const crypto = state.pair.includes("BTC") || state.pair.includes("ETH");
+    const k = crypto ? 0.004 : 0.001;
+    const vol = (state.market === "OTC") ? 1.25 : 1.0;
 
-  // график обновляем сразу (под оверлеем красиво)
-  renderChart();
+    const data = [];
+    for (let i=0;i<count;i++){
+      const open = price;
+      const delta = (Math.random()-0.5) * k * vol;
+      const close = open * (1 + delta);
+      const high = Math.max(open, close) * (1 + Math.random()*k*0.7);
+      const low  = Math.min(open, close) * (1 - Math.random()*k*0.7);
+      data.push({ time: t, open, high, low, close });
+      t += 60;
+      price = close;
+    }
+    return data;
+  }
 
-  // имитация “анализа”
-  setTimeout(() => {
-    const acc = 70 + Math.floor(Math.random()*16); // 70-85
-    rAcc.textContent = `${acc}%`;
+  function ensureChart(){
+    if (!chartHost) return false;
+    if (!window.LightweightCharts) return false;
+    if (chart) return true;
 
-    const isUp = Math.random() > 0.5;
-    setDirection(isUp);
+    chart = window.LightweightCharts.createChart(chartHost, {
+      layout: { background: { type:"solid", color:"transparent" }, textColor:"rgba(255,255,255,.82)" },
+      grid: { vertLines:{ color:"rgba(255,255,255,.06)" }, horzLines:{ color:"rgba(255,255,255,.06)" } },
+      rightPriceScale: { borderColor:"rgba(255,255,255,.10)" },
+      timeScale: { borderColor:"rgba(255,255,255,.10)", timeVisible:true, secondsVisible:true },
+      crosshair: { mode: 1 }
+    });
 
-    setUntilFromNow(state.tfSeconds);
-    startTimer(state.tfSeconds);
+    series = chart.addCandlestickSeries({
+      upColor: "#18d38b",
+      downColor: "#ff4d6d",
+      borderVisible: false,
+      wickUpColor: "#18d38b",
+      wickDownColor: "#ff4d6d",
+    });
 
-    analyzeOverlay.classList.add("hidden");
-  }, 1100);
-}
+    const ro = new ResizeObserver(() => {
+      chart.applyOptions({ width: chartHost.clientWidth, height: chartHost.clientHeight });
+    });
+    ro.observe(chartHost);
 
-function resetAll(){
-  if(timerInt) clearInterval(timerInt);
-  timerInt = null;
-  progressBar.style.width = "0%";
-  timerText.textContent = "00:00 / 00:00";
-  rAcc.textContent = "—%";
-  dirText.textContent = "—";
-  rUntil.textContent = "—";
-  resultPanel.classList.add("hidden");
-}
+    return true;
+  }
 
-/* ---------- BUTTONS ---------- */
-btnGenerate.addEventListener("click", (e) => { e.preventDefault(); runAnalysis(); });
-btnGenerate2.addEventListener("click", (e) => { e.preventDefault(); runAnalysis(); });
-btnReset.addEventListener("click", (e) => { e.preventDefault(); resetAll(); });
+  function renderChart(){
+    if (chartMeta) chartMeta.textContent = `${state.pair} • ${state.market}`;
 
-/* ---------- INIT ---------- */
-pairValue.textContent = state.pair;
-pairBadge.textContent = state.pairBadge;
-tfValue.textContent = state.tf;
-marketValue.textContent = state.market;
+    if (!ensureChart()) {
+      // если CDN недоступен — просто покажем текст
+      if (chartHost) chartHost.innerHTML = `<div style="padding:12px;font-size:12px;opacity:.7;text-align:center">
+        График недоступен (CDN). Открой в Telegram или поменяем на локальный файл.
+      </div>`;
+      return;
+    }
 
-// если результат уже открыт — график должен быть готов
-renderChart();
+    series.setData(mockCandles(70));
+    chart.timeScale().fitContent();
+  }
+
+  // ===== GENERATE =====
+  async function generate(){
+    closeDrops();
+
+    showResult(true);
+    setAnalyze(true, "Сканируем волатильность и импульсы…");
+    await new Promise(r => setTimeout(r, 1100));
+    setAnalyze(false);
+
+    const dir = pickDir();
+    applyResult(dir);
+    startTimer(state.tfSec);
+    renderChart();
+
+    tg?.HapticFeedback?.impactOccurred?.("medium");
+  }
+
+  btnGenerate?.addEventListener("click", generate);
+  btnGenerate2?.addEventListener("click", generate);
+
+  btnReset?.addEventListener("click", () => {
+    closeDrops();
+    stopTimer();
+    showResult(false);
+    if (progressBar) progressBar.style.width = "0%";
+    if (timerText) timerText.textContent = "00:00 / 00:00";
+  });
+
+  // ===== BOOT =====
+  function boot(){
+    // initial UI
+    pairValue.textContent = state.pair;
+    pairBadge.textContent = state.badge;
+    tfValue.textContent = state.tf;
+    marketValue.textContent = state.market;
+
+    renderPairs();
+    renderTfs();
+
+    showResult(false);
+    closeDrops();
+  }
+
+  document.addEventListener("DOMContentLoaded", boot);
+})();
