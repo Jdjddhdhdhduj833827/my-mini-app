@@ -344,8 +344,8 @@ function bindUI(){
 async function boot(){
   applyTelegram();
 
-  instrumentsData = await loadJson("./data/instruments.json");
-  modelsData = await loadJson("./data/models.json");
+  instrumentsData = await loadJson("data/instruments.json");
+modelsData = await loadJson("data/models.json");
 
   renderCategories(instrumentsData.categories);
   refreshInstrumentList();
