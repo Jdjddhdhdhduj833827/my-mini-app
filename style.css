@@ -214,7 +214,11 @@ body::after{
 .gateText{
   margin:0 0 14px;
   color:var(--muted);
-  line-height:1.5;
+  line-height:1.6;
+  text-align: center;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .gateActions{ display:flex; flex-direction:column; gap:12px; }
@@ -1034,3 +1038,16 @@ body::after{
     transition-duration: 0.001ms !important;
   }
 }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); filter: blur(4px); }
+  to   { opacity: 1; transform: translateY(0);  filter: blur(0); }
+}
+
+.fadeUp {
+  opacity: 0;
+  animation: fadeUp .6s ease-out forwards;
+}
+
+.fadeDelay1 { animation-delay: .06s; }
+.fadeDelay2 { animation-delay: .12s; }
+.fadeDelay3 { animation-delay: .18s; }
