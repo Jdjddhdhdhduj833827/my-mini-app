@@ -1,1 +1,336 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#050710" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
 
+  <title>CRAFT ANALYTICS</title>
+  <meta name="description" content="CRAFT ANALYTICS — premium AI market scanner interface (Telegram Mini App)" />
+
+  <link rel="preconnect" href="https://telegram.org" crossorigin />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <link rel="stylesheet" href="./style.css" />
+  <link rel="preload" as="audio" href="./scan.mp3" />
+</head>
+
+<body>
+  <!-- Premium background stack -->
+  <div class="bg" aria-hidden="true">
+    <div class="bgGlow"></div>
+    <div class="bgThreads"></div>
+    <div class="bgGrid"></div>
+  </div>
+
+  <!-- ======================
+       ACCESS GATE
+  ======================= -->
+  <section class="gate" id="gate">
+    <div class="gateCard" role="dialog" aria-modal="true" aria-label="Access gate">
+      <div class="brandRow">
+        <div class="brandLogo" aria-hidden="true">CA</div>
+        <div>
+          <div class="brandName">CRAFT ANALYTICS</div>
+          <div class="brandSub">Premium mini app • AI market scanner</div>
+        </div>
+      </div>
+
+      <div class="trendingBadge" aria-label="Hot trending">HOT TRENDING</div>
+
+      <h1 class="gateTitle" id="gateTitle">Доступ к интерфейсу</h1>
+      <p class="gateText" id="gateText">
+        CRAFT ANALYTICS — бесплатный интерфейс. Чтобы открыть доступ, зарегистрируйтесь по ссылке, затем вернитесь и нажмите “Открыть интерфейс”.
+      </p>
+
+      <div class="gateActions">
+        <button class="btn btnPrimary btnWide" id="btnOpenLink" type="button">
+          <span class="btnIcon">↗</span>
+          <span id="btnOpenLinkText">Открыть ссылку регистрации</span>
+          <span class="scan" aria-hidden="true"></span>
+        </button>
+
+        <label class="checkRow">
+          <input type="checkbox" id="chkRegistered" />
+          <span id="chkText">Я зарегистрировался</span>
+        </label>
+
+        <button class="btn btnGlass btnWide" id="btnEnter" type="button" disabled>
+          <span class="btnIcon">⟡</span>
+          <span id="btnEnterText">Открыть интерфейс</span>
+        </button>
+
+        <div class="tiny">
+          Интерфейс демонстрационный. Не является финансовой рекомендацией.
+        </div>
+      </div>
+
+      <!-- Gate footer (premium) -->
+      <div class="holoStatus" aria-label="Status bar">
+        <div class="holoFill" style="width:18%"></div>
+        <div class="holoText">ACCESS CHECK</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================
+       MAIN APP
+  ======================= -->
+  <div class="app hidden" id="app">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="brandMini">
+        <div class="brandLogo sm" aria-hidden="true">CA</div>
+        <div>
+          <div class="brandName sm">CRAFT ANALYTICS</div>
+          <div class="brandSub sm" id="subTitle">AI Market Scanner</div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; align-items:center;">
+        <button class="iconBtn" id="btnLang" aria-label="Language" type="button">🌐</button>
+        <button class="iconBtn" id="btnMenu" aria-label="Menu" type="button">⋯</button>
+      </div>
+    </header>
+
+    <main class="content">
+      <!-- PRODUCT STATUS STRIP -->
+      <section class="panel" aria-label="Status Strip">
+        <div class="panelTitle">SYSTEM STRIP</div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+          <span class="trendingBadge" aria-label="Trending">HOT TRENDING</span>
+
+          <!-- “chips” UI (optional) -->
+          <button class="select compact btnGhost" type="button" aria-label="Session">
+            <div class="selectLeft">
+              <span class="badge" aria-hidden="true">🧠</span>
+              <span class="selectValue">SESSION</span>
+            </div>
+            <span class="chev" aria-hidden="true">•</span>
+          </button>
+
+          <button class="select compact btnGhost" type="button" aria-label="Ping">
+            <div class="selectLeft">
+              <span class="badge" aria-hidden="true">⚡</span>
+              <span class="selectValue">PING</span>
+            </div>
+            <span class="chev" aria-hidden="true">OK</span>
+          </button>
+
+          <button class="select compact btnGhost" type="button" aria-label="Mode">
+            <div class="selectLeft">
+              <span class="badge" aria-hidden="true">🛰</span>
+              <span class="selectValue">MODE</span>
+            </div>
+            <span class="chev" aria-hidden="true">AI</span>
+          </button>
+
+          <button class="select compact btnGhost" type="button" aria-label="Risk">
+            <div class="selectLeft">
+              <span class="badge" aria-hidden="true">🧷</span>
+              <span class="selectValue">RISK</span>
+            </div>
+            <span class="chev" aria-hidden="true">AUTO</span>
+          </button>
+        </div>
+
+        <div class="holoStatus" aria-label="Status bar">
+          <div class="holoFill" id="holoFill"></div>
+          <div class="holoText" id="holoText">SYSTEM READY</div>
+        </div>
+
+        <div class="analyzingLine" id="analyzingLine" hidden>
+          <span class="analyzingDot" aria-hidden="true"></span>
+          <span id="analyzingText">Analyzing liquidity…</span>
+        </div>
+      </section>
+
+      <!-- CONTROL CENTER -->
+      <section class="panel" aria-label="Control Center">
+        <div class="panelTitle">CONTROL CENTER</div>
+
+        <div class="row">
+          <button class="select" id="assetBtn" type="button" aria-label="Select asset">
+            <div class="selectLeft">
+              <span class="badge" id="assetBadge" aria-hidden="true">🌍</span>
+              <span class="selectValue" id="assetValue">EUR/USD</span>
+            </div>
+            <span class="chev" aria-hidden="true">▾</span>
+          </button>
+
+          <button class="select compact" id="tfBtn" type="button" aria-label="Select timeframe">
+            <div class="selectLeft">
+              <span class="badge" aria-hidden="true">⏱</span>
+              <span class="selectValue" id="tfValue">30s</span>
+            </div>
+            <span class="chev" aria-hidden="true">▾</span>
+          </button>
+
+          <button class="select compact btnGhost" id="marketBtn" type="button" aria-label="Toggle market">
+            <div class="selectLeft">
+              <span class="badge" aria-hidden="true">🌐</span>
+              <span class="selectValue" id="marketValue">OTC</span>
+            </div>
+            <span class="chev" aria-hidden="true">↺</span>
+          </button>
+        </div>
+
+        <div class="hint" id="hintText">
+          Нажмите “Запустить анализ” — и получите результат.
+        </div>
+
+        <div class="actions">
+          <button class="btn btnPrimary btnWide" id="btnAnalyze" type="button">
+            <span class="btnIcon">⟡</span>
+            <span id="analyzeText">Запустить анализ</span>
+            <span class="scan" aria-hidden="true"></span>
+          </button>
+
+          <button class="btn btnGlass" id="btnReset" type="button">
+            <span class="btnIcon">⟲</span>
+            <span id="resetText">Сброс</span>
+          </button>
+        </div>
+
+        <!-- Quick actions (UI layer) -->
+        <div class="actions" aria-label="Quick actions">
+          <button class="btn btnGlass" type="button" aria-label="Copy result">⧉ COPY</button>
+          <button class="btn btnGlass" type="button" aria-label="Share">⇪ SHARE</button>
+          <button class="btn btnGlass" type="button" aria-label="Save preset">★ SAVE</button>
+        </div>
+      </section>
+
+      <!-- MARKET VISUAL -->
+      <section class="panel panelChart" aria-label="Market Visual">
+        <div class="panelTitle">MARKET VISUAL</div>
+
+        <div class="chartWrap" id="chartWrap">
+          <div class="scanline" aria-hidden="true"></div>
+          <canvas id="chart" width="900" height="420" aria-label="Chart"></canvas>
+
+          <div class="chartOverlay" id="chartOverlay" aria-hidden="true">
+            <div class="overlayTitle">AI SCANNER</div>
+            <div class="overlayLine" id="overlayLine">Collecting market micro-signals…</div>
+            <div class="overlayBar">
+              <div class="overlayFill" id="overlayFill"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Diagnostic grid -->
+        <div class="factors" aria-label="Diagnostics">
+          <div class="factor">
+            <div class="factorLabel">VOLATILITY</div>
+            <div class="factorValue" id="volFactor">--</div>
+          </div>
+          <div class="factor">
+            <div class="factorLabel">MOMENTUM</div>
+            <div class="factorValue" id="momFactor">--</div>
+          </div>
+          <div class="factor">
+            <div class="factorLabel">STRENGTH</div>
+            <div class="factorValue" id="strFactor">--</div>
+          </div>
+          <div class="factor">
+            <div class="factorLabel">LIQUIDITY</div>
+            <div class="factorValue" id="liqFactor">--</div>
+          </div>
+        </div>
+
+        <!-- Execution Console placeholder (AI log is injected by JS) -->
+        <div aria-label="Execution Console" style="margin-top:10px;">
+          <!-- app.js создаёт #aiLog здесь автоматически -->
+        </div>
+      </section>
+
+      <!-- RESULT PACKAGE -->
+      <section class="panel panelResult hidden" id="resultPanel" aria-label="Result Package">
+        <div class="panelTitle">RESULT PACKAGE</div>
+
+        <div class="cardGrid">
+          <div class="card wide">
+            <div class="label">ASSET</div>
+            <div class="value big" id="rAsset">EUR/USD</div>
+          </div>
+
+          <div class="card">
+            <div class="label">TIMEFRAME</div>
+            <div class="value" id="rTf">30s</div>
+          </div>
+
+          <div class="card">
+            <div class="label">CONFIDENCE</div>
+            <div class="value" id="rAcc">--%</div>
+          </div>
+
+          <div class="card wide">
+            <div class="label">DIRECTION</div>
+            <div class="dir">
+              <span class="dirDot up" id="dirDot" aria-hidden="true"></span>
+              <span class="value" id="dirText">UP</span>
+              <span class="dirUntil">
+                <span id="dirUntil">до </span><b id="rUntil">--:--</b>
+              </span>
+            </div>
+          </div>
+
+          <div class="card wide">
+            <div class="label">WINDOW</div>
+            <div class="progress">
+              <div class="progressBar" id="progressBar"></div>
+            </div>
+            <div class="timer" id="timerText">--:-- / --:--</div>
+          </div>
+        </div>
+
+        <div class="footnote">
+          Демо-интерфейс. Никакой финансовой рекомендации. Используйте на свой риск.
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Backdrop -->
+  <div class="backdrop hidden" id="backdrop" aria-hidden="true"></div>
+
+  <!-- MODAL: ASSETS -->
+  <section class="modal hidden" id="assetsModal" role="dialog" aria-modal="true" aria-label="Assets modal">
+    <div class="modalTop">
+      <div class="modalTitle" id="assetsTitle">Выбор актива</div>
+      <button class="iconBtn" id="closeAssets" aria-label="Close" type="button">✕</button>
+    </div>
+    <input class="search" id="assetSearch" placeholder="Поиск…" autocomplete="off" />
+    <div class="tabs" id="assetTabs" aria-label="Categories"></div>
+    <div class="list" id="assetList" aria-label="Assets list"></div>
+  </section>
+
+  <!-- MODAL: TIMEFRAMES -->
+  <section class="modal hidden" id="tfModal" role="dialog" aria-modal="true" aria-label="Timeframe modal">
+    <div class="modalTop">
+      <div class="modalTitle" id="tfTitle">Выбор таймфрейма</div>
+      <button class="iconBtn" id="closeTf" aria-label="Close" type="button">✕</button>
+    </div>
+    <div class="list" id="tfList" aria-label="Timeframes list"></div>
+  </section>
+
+  <!-- MODAL: LANGUAGE -->
+  <section class="modal hidden" id="langModal" role="dialog" aria-modal="true" aria-label="Language modal">
+    <div class="modalTop">
+      <div class="modalTitle" id="langTitle">Язык интерфейса</div>
+      <button class="iconBtn" id="closeLang" aria-label="Close" type="button">✕</button>
+    </div>
+    <div class="list" id="langList" aria-label="Languages list"></div>
+  </section>
+
+  <!-- Audio -->
+  <audio id="scanSfx" preload="auto" src="./scan.mp3"></audio>
+
+  <!-- App -->
+  <script src="./app.js"></script>
+</body>
+</html>
