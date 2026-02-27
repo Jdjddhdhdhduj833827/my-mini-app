@@ -269,13 +269,14 @@
       crosshair: { mode: 1 }
     });
 
-    series = chart.addCandlestickSeries({
-      upColor: "#18d38b",
-      downColor: "#ff4d6d",
-      borderVisible: false,
-      wickUpColor: "#18d38b",
-      wickDownColor: "#ff4d6d",
-    });
+    
+    series = chart.addLineSeries({
+  color: "#5aa2ff",      // цвет линии
+  lineWidth: 2,
+  crosshairMarkerVisible: true,
+  lastValueVisible: true,
+  priceLineVisible: true
+});
 
     const ro = new ResizeObserver(() => {
       chart.applyOptions({ width: chartHost.clientWidth, height: chartHost.clientHeight });
@@ -296,7 +297,14 @@
       return;
     }
 
-    series.setData(mockCandles(70));
+    const candles = mockCandles(70);
+
+const lineData = candles.map(c => ({
+  time: c.time,
+  value: c.close
+}));
+
+series.setData(lineData);
     chart.timeScale().fitContent();
   }
 
