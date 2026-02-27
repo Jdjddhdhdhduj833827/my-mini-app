@@ -1,8 +1,10 @@
-const tg = window.Telegram.WebApp;
-tg.ready();
+const tg = window.Telegram?.WebApp;
 
-const tgId = tg.initDataUnsafe?.user?.id;
+if (tg) {
+  tg.ready();
+}
 
+const tgId = tg?.initDataUnsafe?.user?.id;
 console.log("TG ID:", tgId);
 const API_BASE = "https://hidden-fog-c1f2craft-analytics-api.ashirkhanlogubekov-833.workers.dev";
 (() => {
