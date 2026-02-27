@@ -1248,3 +1248,61 @@ body::after{
   .luxeIn, .luxePulse, .gateCard::before, .gateCard::after{ animation: none !important; opacity: 1 !important; transform: none !important; filter: none !important; }
   .parallax{ transition: none !important; }
 }
+/* Бегающий свет (shimmer) */
+.logo{
+  position: relative;
+  overflow: hidden;
+}
+
+.logo::after{
+  content:"";
+  position:absolute;
+  inset:-40% -60%;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255,255,255,.15) 45%,
+    rgba(255,255,255,.55) 50%,
+    rgba(255,255,255,.15) 55%,
+    transparent 100%
+  );
+  transform: translateX(-60%) rotate(20deg);
+  animation: shimmer 1.6s linear infinite;
+  pointer-events:none;
+}
+
+@keyframes shimmer{
+  0%   { transform: translateX(-70%) rotate(20deg); }
+  100% { transform: translateX(70%) rotate(20deg); }
+}
+/* Кнопки всегда читаемые */
+.btn, .btn--ghost, .tab{
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn{
+  color: #fff !important;
+  background: var(--accent) !important;
+  opacity: 1 !important;
+}
+
+.btn--ghost{
+  color: var(--text) !important;
+  background: rgba(255,255,255,.08) !important;
+  border: 1px solid var(--border) !important;
+  opacity: 1 !important;
+}
+
+.btn:disabled, .tab:disabled{
+  opacity: .6 !important; /* только для disabled */
+}
+
+.tab{
+  color: var(--muted) !important;
+  opacity: 1 !important;
+}
+
+.tab--active{
+  color: var(--text) !important;
+  background: rgba(255,255,255,.10) !important;
+  border: 1px solid var(--border) !important;
+}
