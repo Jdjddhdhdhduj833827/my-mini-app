@@ -261,7 +261,39 @@ body{
   opacity:.45;
   cursor:not-allowed;
 }
+/* ===== AI Scanner Effect ===== */
 
+.btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn .scan {
+  position: absolute;
+  top: -50%;
+  left: -40%;
+  width: 60%;
+  height: 200%;
+  background: linear-gradient(
+    120deg,
+    transparent 30%,
+    rgba(255,255,255,0.35),
+    transparent 70%
+  );
+  transform: rotate(15deg);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.btn.scanning .scan {
+  opacity: 1;
+  animation: scanMove 1s ease-in-out infinite;
+}
+
+@keyframes scanMove {
+  0% { left: -60%; }
+  100% { left: 120%; }
+}
 /* AI scan animation (ONLY inside button; no overlay bugs) */
 .scan{
   position:absolute;
@@ -271,10 +303,7 @@ body{
   opacity: 0;
   pointer-events:none;
 }
-.btn--primary.isScanning .scan{
-  opacity: 1;
-  animation: scanMove 1.2s ease-in-out infinite;
-}
+
 @keyframes scanMove{
   0%{ transform: translateX(-55%) rotate(8deg); }
   100%{ transform: translateX(55%) rotate(8deg); }
