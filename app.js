@@ -1,3 +1,4 @@
+const API_BASE = "https://hidden-fog-c1f2craft-analytics-api.ashirkhanlogubekov-833.workers.dev";
 (() => {
   "use strict";
 
