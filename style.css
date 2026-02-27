@@ -285,3 +285,13 @@ body{
   border-color: rgba(58,166,216,.55);
   background: rgba(58,166,216,.12);
 }
+.pill, .chip, .item, .opt, .primarybtn, .ghostbtn, .iconbtn{
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button{
+  -webkit-appearance: none;
+  appearance: none;
+}
