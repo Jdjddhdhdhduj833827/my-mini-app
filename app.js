@@ -467,6 +467,11 @@ const ASSETS = {
   }
 
   function runAnalysis(){
+   const analyzeText = document.getElementById("analyzeText");
+
+btnAnalyze.classList.add("scanning");
+analyzeText.textContent = "AI SCANNING...";
+btnAnalyze.disabled = true;
     ensureChart();
     updateMeta();
 
@@ -504,6 +509,11 @@ const ASSETS = {
       }
 
       startTimer(tfS);
+     setTimeout(() => {
+  btnAnalyze.classList.remove("scanning");
+  analyzeText.textContent = "Запустить анализ";
+  btnAnalyze.disabled = false;
+}, 900);
       btnAnalyze?.classList.remove("isScanning");
     }, 650);
   }
