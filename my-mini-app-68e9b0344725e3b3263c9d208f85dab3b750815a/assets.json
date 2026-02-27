@@ -1,0 +1,237 @@
+[
+  {
+    "symbol": "EUR/USD",
+    "label": "Euro / US Dollar",
+    "category": "forex",
+    "group": "majors",
+    "rank": 1,
+    "badge": "🌍",
+    "base": "EUR",
+    "quote": "USD",
+    "currency": "USD",
+    "region": "EU/US",
+    "marketHours": "24/5",
+    "liquidity": 95,
+    "volatility": 38,
+    "riskClass": "A",
+    "tags": ["major", "liquid", "institutional", "24/5"],
+    "aliases": ["евро доллар", "евробакс", "eurusd", "eur/usd"],
+    "i18n": {
+      "ru": { "name": "EUR/USD", "desc": "Евро / Доллар США" },
+      "en": { "name": "EUR/USD", "desc": "Euro / US Dollar" },
+      "es": { "name": "EUR/USD", "desc": "Euro / Dólar estadounidense" },
+      "tr": { "name": "EUR/USD", "desc": "Euro / ABD Doları" }
+    }
+  },
+  {
+    "symbol": "GBP/USD",
+    "label": "British Pound / US Dollar",
+    "category": "forex",
+    "group": "majors",
+    "rank": 2,
+    "badge": "🌍",
+    "base": "GBP",
+    "quote": "USD",
+    "currency": "USD",
+    "region": "UK/US",
+    "marketHours": "24/5",
+    "liquidity": 92,
+    "volatility": 46,
+    "riskClass": "A",
+    "tags": ["major", "volatile", "24/5"],
+    "aliases": ["фунт доллар", "gbpusd", "cable", "gbp/usd"],
+    "i18n": {
+      "ru": { "name": "GBP/USD", "desc": "Фунт / Доллар США" },
+      "en": { "name": "GBP/USD", "desc": "British Pound / US Dollar" },
+      "es": { "name": "GBP/USD", "desc": "Libra esterlina / Dólar estadounidense" },
+      "tr": { "name": "GBP/USD", "desc": "Sterlin / ABD Doları" }
+    }
+  },
+  {
+    "symbol": "USD/JPY",
+    "label": "US Dollar / Japanese Yen",
+    "category": "forex",
+    "group": "majors",
+    "rank": 3,
+    "badge": "🌍",
+    "base": "USD",
+    "quote": "JPY",
+    "currency": "JPY",
+    "region": "US/JP",
+    "marketHours": "24/5",
+    "liquidity": 93,
+    "volatility": 34,
+    "riskClass": "A",
+    "tags": ["major", "asia", "24/5"],
+    "aliases": ["доллар йена", "usdjpy", "usd/jpy"],
+    "i18n": {
+      "ru": { "name": "USD/JPY", "desc": "Доллар / Йена" },
+      "en": { "name": "USD/JPY", "desc": "US Dollar / Japanese Yen" },
+      "es": { "name": "USD/JPY", "desc": "Dólar / Yen japonés" },
+      "tr": { "name": "USD/JPY", "desc": "ABD Doları / Japon Yeni" }
+    }
+  },
+  {
+    "symbol": "AUD/USD",
+    "label": "Australian Dollar / US Dollar",
+    "category": "forex",
+    "group": "majors",
+    "rank": 4,
+    "badge": "🌍",
+    "base": "AUD",
+    "quote": "USD",
+    "currency": "USD",
+    "region": "AU/US",
+    "marketHours": "24/5",
+    "liquidity": 84,
+    "volatility": 42,
+    "riskClass": "A",
+    "tags": ["major", "commodity", "24/5"],
+    "aliases": ["австралиец", "audusd", "aud/usd"],
+    "i18n": {
+      "ru": { "name": "AUD/USD", "desc": "Австралийский доллар / Доллар США" },
+      "en": { "name": "AUD/USD", "desc": "Australian Dollar / US Dollar" },
+      "es": { "name": "AUD/USD", "desc": "Dólar australiano / Dólar estadounidense" },
+      "tr": { "name": "AUD/USD", "desc": "Avustralya Doları / ABD Doları" }
+    }
+  },
+
+  {
+    "symbol": "BTC/USDT",
+    "label": "Bitcoin",
+    "category": "crypto",
+    "group": "top",
+    "rank": 1,
+    "badge": "₿",
+    "base": "BTC",
+    "quote": "USDT",
+    "currency": "USDT",
+    "region": "GLOBAL",
+    "marketHours": "24/7",
+    "liquidity": 88,
+    "volatility": 72,
+    "riskClass": "B",
+    "tags": ["24/7", "high-volatility", "top", "bluechip"],
+    "aliases": ["биткоин", "btc", "bitcoin", "btcusdt", "btc/usdt"],
+    "i18n": {
+      "ru": { "name": "BTC/USDT", "desc": "Bitcoin (к USDT)" },
+      "en": { "name": "BTC/USDT", "desc": "Bitcoin (vs USDT)" },
+      "es": { "name": "BTC/USDT", "desc": "Bitcoin (vs USDT)" },
+      "tr": { "name": "BTC/USDT", "desc": "Bitcoin (USDT)" }
+    }
+  },
+  {
+    "symbol": "ETH/USDT",
+    "label": "Ethereum",
+    "category": "crypto",
+    "group": "top",
+    "rank": 2,
+    "badge": "₿",
+    "base": "ETH",
+    "quote": "USDT",
+    "currency": "USDT",
+    "region": "GLOBAL",
+    "marketHours": "24/7",
+    "liquidity": 84,
+    "volatility": 68,
+    "riskClass": "B",
+    "tags": ["24/7", "top", "bluechip"],
+    "aliases": ["эфир", "ethereum", "eth", "ethusdt", "eth/usdt"],
+    "i18n": {
+      "ru": { "name": "ETH/USDT", "desc": "Ethereum (к USDT)" },
+      "en": { "name": "ETH/USDT", "desc": "Ethereum (vs USDT)" },
+      "es": { "name": "ETH/USDT", "desc": "Ethereum (vs USDT)" },
+      "tr": { "name": "ETH/USDT", "desc": "Ethereum (USDT)" }
+    }
+  },
+
+  {
+    "symbol": "XAU/USD",
+    "label": "Gold",
+    "category": "commodities",
+    "group": "metals",
+    "rank": 1,
+    "badge": "⛏",
+    "base": "XAU",
+    "quote": "USD",
+    "currency": "USD",
+    "region": "GLOBAL",
+    "marketHours": "24/5",
+    "liquidity": 86,
+    "volatility": 40,
+    "riskClass": "A",
+    "tags": ["metal", "safe-haven", "24/5"],
+    "aliases": ["золото", "gold", "xauusd", "xau/usd"],
+    "i18n": {
+      "ru": { "name": "XAU/USD", "desc": "Золото" },
+      "en": { "name": "XAU/USD", "desc": "Gold" },
+      "es": { "name": "XAU/USD", "desc": "Oro" },
+      "tr": { "name": "XAU/USD", "desc": "Altın" }
+    }
+  },
+
+  {
+    "symbol": "US500",
+    "label": "S&P 500",
+    "category": "indices",
+    "group": "usa",
+    "rank": 1,
+    "badge": "🧭",
+    "region": "US",
+    "marketHours": "24/5",
+    "liquidity": 82,
+    "volatility": 36,
+    "riskClass": "A",
+    "tags": ["index", "usa", "24/5"],
+    "aliases": ["sp500", "s&p", "us500"],
+    "i18n": {
+      "ru": { "name": "US500", "desc": "Индекс S&P 500" },
+      "en": { "name": "US500", "desc": "S&P 500 index" },
+      "es": { "name": "US500", "desc": "Índice S&P 500" },
+      "tr": { "name": "US500", "desc": "S&P 500 endeksi" }
+    }
+  },
+
+  {
+    "symbol": "AAPL",
+    "label": "Apple",
+    "category": "stocks",
+    "group": "mega-cap",
+    "rank": 1,
+    "badge": "📈",
+    "region": "US",
+    "marketHours": "US session",
+    "liquidity": 80,
+    "volatility": 44,
+    "riskClass": "A",
+    "tags": ["usa", "mega-cap", "tech"],
+    "aliases": ["эппл", "apple", "aapl"],
+    "i18n": {
+      "ru": { "name": "AAPL", "desc": "Apple Inc." },
+      "en": { "name": "AAPL", "desc": "Apple Inc." },
+      "es": { "name": "AAPL", "desc": "Apple Inc." },
+      "tr": { "name": "AAPL", "desc": "Apple Inc." }
+    }
+  },
+
+  {
+    "symbol": "EUR/USD OTC",
+    "label": "EUR/USD (OTC)",
+    "category": "otc",
+    "group": "weekend",
+    "rank": 1,
+    "badge": "🌙",
+    "marketHours": "weekend",
+    "liquidity": 60,
+    "volatility": 55,
+    "riskClass": "C",
+    "tags": ["otc", "weekend"],
+    "aliases": ["eurusd otc", "евро доллар otc"],
+    "i18n": {
+      "ru": { "name": "EUR/USD OTC", "desc": "EUR/USD (OTC)" },
+      "en": { "name": "EUR/USD OTC", "desc": "EUR/USD (OTC)" },
+      "es": { "name": "EUR/USD OTC", "desc": "EUR/USD (OTC)" },
+      "tr": { "name": "EUR/USD OTC", "desc": "EUR/USD (OTC)" }
+    }
+  }
+]
