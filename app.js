@@ -1,222 +1,270 @@
-// ====== Demo Trade Signal UI (stable) ======
-const tg = window.Telegram?.WebApp;
-
-const PAIRS = [
-  { value: "EUR/USD", badge: "🇪🇺" },
-  { value: "GBP/USD", badge: "🇬🇧" },
-  { value: "USD/JPY", badge: "🇺🇸" },
-  { value: "AUD/USD", badge: "🇦🇺" },
-  { value: "USD/CAD", badge: "🇨🇦" },
-];
-
-const TFS = ["3m", "5m", "7m", "10m"];
+// app.js
+const $ = (id) => document.getElementById(id);
 
 const state = {
-  pair: PAIRS[0].value,
-  pairBadge: PAIRS[0].badge,
-  tf: TFS[0],
+  pair: "EUR/USD",
+  pairBadge: "🌍",
+  tf: "3m",
   market: "OTC",
   timer: null,
   totalSec: 0,
   leftSec: 0,
 };
 
-function $(id){ return document.getElementById(id); }
+// Данные (можешь расширять)
+const PAIRS = [
+  { label: "EUR/USD", badge: "🇪🇺🇺🇸" },
+  { label: "GBP/USD", badge: "🇬🇧🇺🇸" },
+  { label: "USD/JPY", badge: "🇺🇸🇯🇵" },
+  { label: "AUD/CAD", badge: "🇦🇺🇨🇦" },
+  { label: "AUD/CAD OTC", badge: "🌙" },
+  { label: "EUR/USD OTC", badge: "🌙" },
+];
 
-function formatMMSS(sec){
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0");
-}
+const TFS = ["1m", "3m", "5m", "7m", "10m"];
 
-function closeDrops(){
-  $("pairDrop").classList.remove("open");
-  $("tfDrop").classList.remove("open");
-  $("backdrop").classList.add("hidden");
-}
+const els = {
+  pairSelect: $("pairSelect"),
+  pairDrop: $("pairDrop"),
+  pairValue: $("pairValue"),
+  pairBadge: $("pairBadge"),
 
-function openDrop(dropId){
-  closeDrops();
-  $(dropId).classList.add("open");
-  $("backdrop").classList.remove("hidden");
-}
+  tfSelect: $("tfSelect"),
+  tfDrop: $("tfDrop"),
+  tfValue: $("tfValue"),
 
-function setPair(pairObj){
-  state.pair = pairObj.value;
-  state.pairBadge = pairObj.badge;
+  marketBtn: $("marketBtn"),
+  marketValue: $("marketValue"),
 
-  $("pairValue").textContent = state.pair;
-  $("pairBadge").textContent = state.pairBadge;
-  closeDrops();
-}
+  backdrop: $("backdrop"),
 
-function setTf(tf){
-  state.tf = tf;
-  $("tfValue").textContent = state.tf;
-  closeDrops();
-}
+  btnGenerate: $("btnGenerate"),
+  btnGenerate2: $("btnGenerate2"),
+  btnReset: $("btnReset"),
 
-function toggleMarket(){
-  state.market = (state.market === "OTC") ? "Market" : "OTC";
-  $("marketValue").textContent = state.market;
-}
+  resultPanel: $("resultPanel"),
+  hintText: $("hintText"),
 
-function buildDropdowns(){
-  // pairs
-  const pd = $("pairDrop");
-  pd.innerHTML = "";
-  PAIRS.forEach(p=>{
-    const el = document.createElement("div");
-    el.className = "dropItem";
-    el.innerHTML = `<span>${p.badge} ${p.value}</span><span>→</span>`;
-    el.onclick = ()=>setPair(p);
-    pd.appendChild(el);
-  });
+  rPair: $("rPair"),
+  rTf: $("rTf"),
+  rAcc: $("rAcc"),
+  rUntil: $("rUntil"),
+  rDir: $("rDir"),
+  progressBar: $("progressBar"),
+  timerText: $("timerText"),
 
-  // tfs
-  const td = $("tfDrop");
-  td.innerHTML = "";
-  TFS.forEach(tf=>{
-    const el = document.createElement("div");
-    el.className = "dropItem";
-    el.innerHTML = `<span>${tf}</span><span>→</span>`;
-    el.onclick = ()=>setTf(tf);
-    td.appendChild(el);
-  });
-}
+  btnMenu: $("btnMenu"),
+};
 
-function stopTimer(){
-  if(state.timer){
-    clearInterval(state.timer);
-    state.timer = null;
+// ---------- Dropdown helpers ----------
+let opened = null; // "pair" | "tf" | null
+
+function openDropdown(which) {
+  closeDropdown();
+
+  opened = which;
+  els.backdrop.classList.remove("hidden");
+  els.backdrop.classList.add("show");
+
+  if (which === "pair") {
+    els.pairDrop.classList.add("open");
+  }
+  if (which === "tf") {
+    els.tfDrop.classList.add("open");
   }
 }
 
-function startTimer(totalSec){
+function closeDropdown() {
+  opened = null;
+  els.pairDrop.classList.remove("open");
+  els.tfDrop.classList.remove("open");
+
+  els.backdrop.classList.remove("show");
+  // оставляем hidden (чтобы не мешал)
+  els.backdrop.classList.add("hidden");
+}
+
+// ---------- Render dropdown lists ----------
+function renderPairs() {
+  els.pairDrop.innerHTML = PAIRS.map(
+    (p) => `
+    <div class="dropItem" data-pair="${p.label}" data-badge="${p.badge}">
+      <span class="badge">${p.badge}</span>
+      <span style="font-weight:800">${p.label}</span>
+    </div>`
+  ).join("");
+
+  els.pairDrop.querySelectorAll(".dropItem").forEach((item) => {
+    item.addEventListener("click", () => {
+      state.pair = item.dataset.pair;
+      state.pairBadge = item.dataset.badge || "🌍";
+      els.pairValue.textContent = state.pair;
+      els.pairBadge.textContent = state.pairBadge;
+      closeDropdown();
+    });
+  });
+}
+
+function renderTfs() {
+  els.tfDrop.innerHTML = TFS.map(
+    (t) => `<div class="dropItem" data-tf="${t}"><span style="font-weight:800">${t}</span></div>`
+  ).join("");
+
+  els.tfDrop.querySelectorAll(".dropItem").forEach((item) => {
+    item.addEventListener("click", () => {
+      state.tf = item.dataset.tf;
+      els.tfValue.textContent = state.tf;
+      closeDropdown();
+    });
+  });
+}
+
+// ---------- Signal generation (UI demo) ----------
+function tfToSeconds(tf) {
+  // "3m" -> 180
+  const m = parseInt(tf.replace("m", ""), 10);
+  return (Number.isFinite(m) ? m : 3) * 60;
+}
+
+function pad2(n) {
+  return String(n).padStart(2, "0");
+}
+
+function formatMMSS(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${pad2(m)}:${pad2(s)}`;
+}
+
+function stopTimer() {
+  if (state.timer) clearInterval(state.timer);
+  state.timer = null;
+}
+
+function startTimer() {
   stopTimer();
-  state.totalSec = totalSec;
-  state.leftSec = totalSec;
+  state.totalSec = tfToSeconds(state.tf);
+  state.leftSec = state.totalSec;
 
-  const bar = $("progressBar");
-  const timerText = $("timerText");
-
-  const tick = ()=>{
+  const tick = () => {
     const done = state.totalSec - state.leftSec;
-    const pct = Math.max(0, Math.min(100, (done / state.totalSec) * 100));
-    bar.style.width = pct.toFixed(2) + "%";
+    const pct = Math.min(100, Math.max(0, (done / state.totalSec) * 100));
+    els.progressBar.style.width = pct + "%";
+    els.timerText.textContent = `${formatMMSS(state.leftSec)} / ${formatMMSS(state.totalSec)}`;
 
-    timerText.textContent = `${formatMMSS(state.leftSec)} / ${formatMMSS(state.totalSec)}`;
-
-    if(state.leftSec <= 0){
+    if (state.leftSec <= 0) {
       stopTimer();
-    } else {
-      state.leftSec -= 1;
+      return;
     }
+    state.leftSec -= 1;
   };
 
   tick();
   state.timer = setInterval(tick, 1000);
 }
 
-function pickDirection(){
-  // демо-логика: чуть чаще "вверх", чтобы не выглядело случайно на 50/50
-  return (Math.random() < 0.56) ? "UP" : "DOWN";
+function generateSignal() {
+  closeDropdown();
+
+  // Рандом демо-параметров
+  const acc = Math.floor(70 + Math.random() * 16); // 70-85
+  const dirUp = Math.random() > 0.5;
+
+  // until time (локально)
+  const now = new Date();
+  const mins = tfToSeconds(state.tf) / 60;
+  const until = new Date(now.getTime() + mins * 60 * 1000);
+  const untilText = `${pad2(until.getHours())}:${pad2(until.getMinutes())}`;
+
+  // UI fill
+  els.rPair.textContent = state.pair;
+  els.rTf.textContent = state.tf;
+  els.rAcc.textContent = `${acc}%`;
+  els.rUntil.textContent = untilText;
+
+  // direction UI
+  const dirText = dirUp ? "Вверх" : "Вниз";
+  const dotClass = dirUp ? "dirDot up" : "dirDot down";
+  els.rDir.innerHTML = `
+    <span class="${dotClass}"></span>
+    <span class="dirText">${dirText}</span>
+    <span class="dirUntil">до <b id="rUntil">${untilText}</b></span>
+  `;
+
+  // show result
+  els.resultPanel.classList.remove("hidden");
+  startTimer();
 }
 
-function nowPlusMinutes(min){
-  const d = new Date(Date.now() + min*60*1000);
-  const hh = String(d.getHours()).padStart(2,"0");
-  const mm = String(d.getMinutes()).padStart(2,"0");
-  return `${hh}:${mm}`;
-}
-
-function tfToSeconds(tf){
-  const n = parseInt(tf.replace("m",""), 10);
-  return n * 60;
-}
-
-function genSignal(){
-  // UI: показать панель результата
-  $("resultPanel").classList.remove("hidden");
-
-  // демо "точность" как диапазон
-  const acc = 68 + Math.floor(Math.random()*18); // 68..85
-
-  const dir = pickDirection();
-  const until = nowPlusMinutes(parseInt(state.tf,10));
-
-  $("rPair").textContent = state.pair + (state.market === "OTC" ? " OTC" : "");
-  $("rTf").textContent = state.tf;
-  $("rAcc").textContent = `${acc}%`;
-  $("rUntil").textContent = until;
-
-  const dirEl = $("rDir");
-  const dot = dirEl.querySelector(".dirDot");
-  const text = dirEl.querySelector(".dirText");
-
-  if(dir === "UP"){
-    dot.classList.remove("down");
-    dot.classList.add("up");
-    text.textContent = "Вверх";
-  } else {
-    dot.classList.remove("up");
-    dot.classList.add("down");
-    text.textContent = "Вниз";
-  }
-
-  // таймер
-  startTimer(tfToSeconds(state.tf));
-
-  // В Телеграме можно чуть усилить эффект
-  if(tg){
-    tg.HapticFeedback?.impactOccurred?.("medium");
-  }
-}
-
-function resetSignal(){
+function resetSignal() {
+  closeDropdown();
   stopTimer();
-  $("resultPanel").classList.add("hidden");
-  $("progressBar").style.width = "0%";
-  $("timerText").textContent = "00:00 / 00:00";
-  if(tg){
-    tg.HapticFeedback?.impactOccurred?.("light");
-  }
+  els.resultPanel.classList.add("hidden");
+  els.progressBar.style.width = "0%";
 }
 
-function bindUI(){
-  $("pairSelect").addEventListener("click", ()=>openDrop("pairDrop"));
-  $("tfSelect").addEventListener("click", ()=>openDrop("tfDrop"));
-  $("marketBtn").addEventListener("click", toggleMarket);
+// ---------- Bind UI ----------
+function bindUI() {
+  // открытие dropdown
+  els.pairSelect.addEventListener("click", (e) => {
+    e.preventDefault();
+    openDropdown("pair");
+  });
 
-  $("backdrop").addEventListener("click", closeDrops);
+  els.tfSelect.addEventListener("click", (e) => {
+    e.preventDefault();
+    openDropdown("tf");
+  });
 
-  $("btnGenerate").addEventListener("click", genSignal);
-  $("btnGenerate2").addEventListener("click", genSignal);
-  $("btnReset").addEventListener("click", resetSignal);
+  // рынок (простая смена)
+  els.marketBtn.addEventListener("click", () => {
+    state.market = state.market === "OTC" ? "REAL" : "OTC";
+    els.marketValue.textContent = state.market;
+    closeDropdown();
+  });
 
-  $("btnMenu").addEventListener("click", ()=>{
-    alert("Меню: скоро добавим настройки (тема/язык/режим).");
+  // backdrop закрывает
+  els.backdrop.addEventListener("click", () => closeDropdown());
+
+  // esc закрывает
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeDropdown();
+  });
+
+  // генерация
+  els.btnGenerate.addEventListener("click", generateSignal);
+  els.btnGenerate2.addEventListener("click", generateSignal);
+  els.btnReset.addEventListener("click", resetSignal);
+
+  // меню
+  els.btnMenu.addEventListener("click", () => {
+    alert("Настройки: скоро добавим (тема/язык/режим).");
   });
 }
 
-function initTelegram(){
-  if(!tg) return;
-  tg.ready();
-  tg.expand();
-  try{
-    tg.setHeaderColor?.("#0a0d16");
-    tg.setBackgroundColor?.("#05060a");
-  }catch(_){}
-}
+function boot() {
+  // Telegram WebApp (если открыт в Telegram)
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    tg.ready();
+    tg.expand();
+  }
 
-document.addEventListener("DOMContentLoaded", ()=>{
-  initTelegram();
-  buildDropdowns();
+  // initial render
+  els.pairValue.textContent = state.pair;
+  els.pairBadge.textContent = "🇪🇺🇺🇸";
+  state.pairBadge = "🇪🇺🇺🇸";
+
+  els.tfValue.textContent = state.tf;
+  els.marketValue.textContent = state.market;
+
+  renderPairs();
+  renderTfs();
   bindUI();
 
-  // первичная подстановка
-  $("pairValue").textContent = state.pair;
-  $("pairBadge").textContent = state.pairBadge;
-  $("tfValue").textContent = state.tf;
-  $("marketValue").textContent = state.market;
-});
+  // backdrop изначально не должен блокировать клики
+  els.backdrop.classList.add("hidden");
+  els.backdrop.classList.remove("show");
+}
+
+document.addEventListener("DOMContentLoaded", boot);
