@@ -378,3 +378,34 @@ function renderTradingView(pair){
 
   el.appendChild(s);
 }
+
+function tvSymbol(pair){
+  // EUR/USD -> FX:EURUSD
+  return "FX:" + pair.replace("/", "");
+}
+
+function renderTradingView(pair){
+  const frame = document.getElementById("tvFrame");
+  if (!frame) return;
+
+  const symbol = encodeURIComponent(tvSymbol(pair));
+
+  // interval: 1=1m, 5=5m, 15=15m
+  // Для твоих 10s/15s/30s на графике будем показывать 1m (реально доступно)
+  const url =
+    "https://s.tradingview.com/widgetembed/?" +
+    "symbol=" + symbol +
+    "&interval=1" +
+    "&theme=dark" +
+    "&style=1" +
+    "&hideideas=1" +
+    "&hidesidetoolbar=1" +
+    "&symboledit=0" +
+    "&saveimage=0" +
+    "&toolbarbg=%23121724" +
+    "&studies=%5B%5D" +
+    "&details=0" +
+    "&calendar=0";
+
+  frame.src = url;
+}
