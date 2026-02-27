@@ -303,13 +303,18 @@ body{
 .backdrop{
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.35);
   z-index: 5000;
-}
-.backdrop.hidden{
+  background: rgba(0,0,0,.35);
+
+  /* ВАЖНО: по умолчанию НИКАКИХ кликов не перехватывает */
   opacity: 0;
   pointer-events: none;
-  background: transparent;
+}
+
+.backdrop.show{
+  /* когда открыт dropdown — подложка активна */
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* Chart */
