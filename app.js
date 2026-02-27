@@ -109,7 +109,8 @@
         pairValue.textContent = state.pair;
         pairBadge.textContent = state.badge;
         closeDrops();
-        renderChart();
+
+        renderTradingView(state.pair);
       });
       pairDrop.appendChild(b);
     });
@@ -312,9 +313,8 @@
     const dir = pickDir();
     applyResult(dir);
     startTimer(state.tfSec);
-    renderChart();
 
-    tg?.HapticFeedback?.impactOccurred?.("medium");
+    renderTradingView(state.pair);
   }
 
   btnGenerate?.addEventListener("click", generate);
@@ -345,3 +345,36 @@
 
   document.addEventListener("DOMContentLoaded", boot);
 })();
+function tvSymbolFor(pair){
+  // TradingView forex формат
+  // EUR/USD -> FX:EURUSD
+  const p = pair.replace("/", "");
+  return `FX:${p}`;
+}
+
+function renderTradingView(pair){
+  const el = document.getElementById("tvChart");
+  if (!el) return;
+
+  el.innerHTML = ""; // очищаем
+
+  const symbol = tvSymbolFor(pair);
+
+  // вставляем скрипт виджета
+  const s = document.createElement("script");
+  s.src = "https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js";
+  s.async = true;
+  s.innerHTML = JSON.stringify({
+    symbol,
+    width: "100%",
+    height: 220,
+    locale: "ru",
+    dateRange: "1D",
+    colorTheme: "dark",
+    isTransparent: true,
+    autosize: false,
+    largeChartUrl: ""
+  });
+
+  el.appendChild(s);
+}
