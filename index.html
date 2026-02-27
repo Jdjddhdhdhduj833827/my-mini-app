@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Analytics Mini App</title>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">A</div>
+        <div>
+          <div class="brand__title">Analytics Console</div>
+          <div class="brand__sub" id="subtitle">market • setups • risk</div>
+        </div>
+      </div>
+      <button class="btn btn--ghost" id="btnTheme">Тема</button>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab tab--active" data-tab="dashboard">Главная</button>
+      <button class="tab" data-tab="setups">Сетапы</button>
+      <button class="tab" data-tab="market">Обзор</button>
+      <button class="tab" data-tab="risk">Риск</button>
+      <button class="tab" data-tab="profile">Профиль</button>
+    </nav>
+
+    <main class="content">
+      <section class="panel panel--active" id="dashboard">
+        <div class="card">
+          <div class="card__title">Статус</div>
+          <div class="grid2">
+            <div class="mini">
+              <div class="mini__label">Сетапов</div>
+              <div class="mini__value" id="statSetups">—</div>
+            </div>
+            <div class="mini">
+              <div class="mini__label">Обновлено</div>
+              <div class="mini__value" id="statUpdated">—</div>
+            </div>
+          </div>
+          <div class="sep"></div>
+          <div class="muted" id="disclaimer">
+            ⚠️ Это образовательный аналитический инструмент. Не является финансовым советом.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card__title">Быстрые действия</div>
+          <div class="row">
+            <button class="btn" id="goSetups">Открыть сетапы</button>
+            <button class="btn btn--ghost" id="goMarket">Обзор рынка</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="setups">
+        <div class="card">
+          <div class="card__title">Сетапы</div>
+          <div class="muted">Идеи/условия. Без обещаний и “гарантий”.</div>
+        </div>
+
+        <div id="setupsList" class="list"></div>
+      </section>
+
+      <section class="panel" id="market">
+        <div class="card">
+          <div class="card__title">Обзор рынка</div>
+          <div class="muted" id="marketTime">—</div>
+          <div class="sep"></div>
+          <div id="marketText">Задай текст обзора в файле <code>data/setups.json</code>.</div>
+        </div>
+      </section>
+
+      <section class="panel" id="risk">
+        <div class="card">
+          <div class="card__title">Риск-менеджмент</div>
+          <div class="sep"></div>
+          <ul class="ul">
+            <li>Нет условий — нет сделки.</li>
+            <li>Риск фиксированный (например 1–2% от банка).</li>
+            <li>После минуса риск не увеличиваем.</li>
+            <li>Всегда есть “инвалидация” — где идея ломается.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="panel" id="profile">
+        <div class="card">
+          <div class="card__title">Профиль</div>
+          <div class="sep"></div>
+          <div class="profile">
+            <div class="avatar" id="avatar">U</div>
+            <div>
+              <div class="profile__name" id="pName">Гость</div>
+              <div class="muted" id="pUser">@username</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card__title">Справка</div>
+          <div class="muted">
+            Mini App подстраивается под тему Telegram. Оформление меняется в <code>style.css</code>.
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
