@@ -299,10 +299,11 @@
 
     const candles = mockCandles(70);
 
-const lineData = candles.map(c => ({
-  time: c.time,
-  value: c.close
-}));
+series = chart.addLineSeries({
+  color: "#5aa2ff",
+  lineWidth: 3,
+  lineStyle: 0,
+});
 
 series.setData(lineData);
     chart.timeScale().fitContent();
