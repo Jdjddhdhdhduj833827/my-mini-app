@@ -7,6 +7,7 @@
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="stylesheet" href="./style.css" />
+  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 
 <body>
@@ -61,6 +62,25 @@
 
       <!-- Result -->
       <section class="panel panelResult hidden" id="resultPanel">
+       <div class="chartWrap">
+  <div class="chartHead">
+    <div class="chartTitle">График</div>
+    <div class="chartMeta" id="chartMeta">EUR/USD • OTC</div>
+  </div>
+
+  <div class="chartBox">
+    <div id="chart" class="chart"></div>
+
+    <!-- Анимация анализа -->
+    <div class="analyzeOverlay hidden" id="analyzeOverlay">
+      <div class="scanLine"></div>
+      <div class="analyzeText">
+        <div class="analyzeTitle">Анализ рынка…</div>
+        <div class="analyzeSub" id="analyzeSub">Сканируем волатильность и импульсы</div>
+      </div>
+    </div>
+  </div>
+</div>
         <div class="panel__title">Сигнал</div>
 
         <div class="cardGrid">
