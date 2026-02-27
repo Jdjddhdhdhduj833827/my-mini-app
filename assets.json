@@ -1,461 +1,610 @@
-{
-  "version": "1.0.0",
-  "updatedAt": "2026-02-28",
-  "defaults": {
-    "assetId": "fx:eurusd",
-    "timeframeId": "tf:30s",
-    "market": "OTC"
-  },
-  "meta": {
-    "title": "CRAFT ANALYTICS • Asset Universe",
-    "note": "Каталог инструментов для интерфейса. Не является финансовой рекомендацией."
-  },
-  "categories": [
-    {
-      "id": "cat:fx",
-      "title": "FX • Majors/Minors",
-      "icon": "💱",
-      "order": 10
-    },
-    {
-      "id": "cat:crypto",
-      "title": "Crypto • Top Liquidity",
-      "icon": "₿",
-      "order": 20
-    },
-    {
-      "id": "cat:indices",
-      "title": "Indices • Global",
-      "icon": "📈",
-      "order": 30
-    },
-    {
-      "id": "cat:commodities",
-      "title": "Commodities • Metals/Energy",
-      "icon": "⛽",
-      "order": 40
-    },
-    {
-      "id": "cat:stocks",
-      "title": "Stocks • Mega Cap",
-      "icon": "🏛️",
-      "order": 50
-    },
-    {
-      "id": "cat:otc",
-      "title": "OTC • 24/7 Synthetic",
-      "icon": "🌙",
-      "order": 60
-    }
-  ],
-  "assets": [
-    {
-      "id": "fx:eurusd",
-      "categoryId": "cat:fx",
-      "symbol": "EUR/USD",
-      "name": { "ru": "Евро / Доллар", "en": "Euro / US Dollar" },
-      "type": "FX",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 5, "pip": 0.0001 },
-      "sessions": ["EU", "US"],
-      "tags": ["liquid", "major", "tightSpread"],
-      "popularity": 98,
-      "riskProfile": "balanced"
-    },
-    {
-      "id": "fx:gbpusd",
-      "categoryId": "cat:fx",
-      "symbol": "GBP/USD",
-      "name": { "ru": "Фунт / Доллар", "en": "British Pound / US Dollar" },
-      "type": "FX",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 5, "pip": 0.0001 },
-      "sessions": ["EU", "US"],
-      "tags": ["major", "volatile"],
-      "popularity": 92,
-      "riskProfile": "high"
-    },
-    {
-      "id": "fx:usdjpy",
-      "categoryId": "cat:fx",
-      "symbol": "USD/JPY",
-      "name": { "ru": "Доллар / Иена", "en": "US Dollar / Japanese Yen" },
-      "type": "FX",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 3, "pip": 0.01 },
-      "sessions": ["ASIA", "US"],
-      "tags": ["major", "newsSensitive"],
-      "popularity": 90,
-      "riskProfile": "balanced"
-    },
-    {
-      "id": "fx:usdchf",
-      "categoryId": "cat:fx",
-      "symbol": "USD/CHF",
-      "name": { "ru": "Доллар / Франк", "en": "US Dollar / Swiss Franc" },
-      "type": "FX",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 5, "pip": 0.0001 },
-      "sessions": ["EU", "US"],
-      "tags": ["major", "defensive"],
-      "popularity": 78,
-      "riskProfile": "low"
-    },
-    {
-      "id": "fx:audusd",
-      "categoryId": "cat:fx",
-      "symbol": "AUD/USD",
-      "name": { "ru": "Австралиец / Доллар", "en": "Australian Dollar / US Dollar" },
-      "type": "FX",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 5, "pip": 0.0001 },
-      "sessions": ["ASIA", "US"],
-      "tags": ["major", "commodityFX"],
-      "popularity": 74,
-      "riskProfile": "balanced"
-    },
-    {
-      "id": "fx:usdcad",
-      "categoryId": "cat:fx",
-      "symbol": "USD/CAD",
-      "name": { "ru": "Доллар / Канадец", "en": "US Dollar / Canadian Dollar" },
-      "type": "FX",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 5, "pip": 0.0001 },
-      "sessions": ["US"],
-      "tags": ["major", "oilLinked"],
-      "popularity": 70,
-      "riskProfile": "balanced"
-    },
-    {
-      "id": "fx:nzdusd",
-      "categoryId": "cat:fx",
-      "symbol": "NZD/USD",
-      "name": { "ru": "Новозеландец / Доллар", "en": "New Zealand Dollar / US Dollar" },
-      "type": "FX",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 5, "pip": 0.0001 },
-      "sessions": ["ASIA", "US"],
-      "tags": ["minor", "volatile"],
-      "popularity": 62,
-      "riskProfile": "high"
-    },
-    {
-      "id": "fx:eurjpy",
-      "categoryId": "cat:fx",
-      "symbol": "EUR/JPY",
-      "name": { "ru": "Евро / Иена", "en": "Euro / Japanese Yen" },
-      "type": "FX",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 3, "pip": 0.01 },
-      "sessions": ["ASIA", "EU"],
-      "tags": ["cross", "volatile"],
-      "popularity": 68,
-      "riskProfile": "high"
-    },
-    {
-      "id": "fx:gbpjpy",
-      "categoryId": "cat:fx",
-      "symbol": "GBP/JPY",
-      "name": { "ru": "Фунт / Иена", "en": "British Pound / Japanese Yen" },
-      "type": "FX",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 3, "pip": 0.01 },
-      "sessions": ["ASIA", "EU"],
-      "tags": ["cross", "veryVolatile"],
-      "popularity": 60,
-      "riskProfile": "veryHigh"
-    },
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#050710" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-    {
-      "id": "crypto:btcusdt",
-      "categoryId": "cat:crypto",
-      "symbol": "BTC/USDT",
-      "name": { "ru": "Биткоин", "en": "Bitcoin" },
-      "type": "CRYPTO",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 2, "pip": 0.01 },
-      "sessions": ["24/7"],
-      "tags": ["top", "liquid", "trend"],
-      "popularity": 99,
-      "riskProfile": "high"
-    },
-    {
-      "id": "crypto:ethusdt",
-      "categoryId": "cat:crypto",
-      "symbol": "ETH/USDT",
-      "name": { "ru": "Эфириум", "en": "Ethereum" },
-      "type": "CRYPTO",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 2, "pip": 0.01 },
-      "sessions": ["24/7"],
-      "tags": ["top", "liquid"],
-      "popularity": 95,
-      "riskProfile": "high"
-    },
-    {
-      "id": "crypto:solusdt",
-      "categoryId": "cat:crypto",
-      "symbol": "SOL/USDT",
-      "name": { "ru": "Солана", "en": "Solana" },
-      "type": "CRYPTO",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 3, "pip": 0.001 },
-      "sessions": ["24/7"],
-      "tags": ["alt", "volatile"],
-      "popularity": 82,
-      "riskProfile": "veryHigh"
-    },
-    {
-      "id": "crypto:xrpusdt",
-      "categoryId": "cat:crypto",
-      "symbol": "XRP/USDT",
-      "name": { "ru": "Рипл", "en": "XRP" },
-      "type": "CRYPTO",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 4, "pip": 0.0001 },
-      "sessions": ["24/7"],
-      "tags": ["alt", "newsSensitive"],
-      "popularity": 76,
-      "riskProfile": "high"
-    },
-    {
-      "id": "crypto:bnbusdt",
-      "categoryId": "cat:crypto",
-      "symbol": "BNB/USDT",
-      "name": { "ru": "Бинанс Коин", "en": "BNB" },
-      "type": "CRYPTO",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 2, "pip": 0.01 },
-      "sessions": ["24/7"],
-      "tags": ["top", "alt"],
-      "popularity": 72,
-      "riskProfile": "high"
-    },
+  <title>CRAFT COSMOS • Quantum Console</title>
+  <meta name="description" content="World-class cosmic console UI for Telegram Mini Apps" />
 
-    {
-      "id": "idx:spx",
-      "categoryId": "cat:indices",
-      "symbol": "S&P 500",
-      "name": { "ru": "S&P 500", "en": "S&P 500" },
-      "type": "INDEX",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 2, "pip": 0.01 },
-      "sessions": ["US"],
-      "tags": ["macro", "benchmark"],
-      "popularity": 94,
-      "riskProfile": "balanced"
-    },
-    {
-      "id": "idx:ndx",
-      "categoryId": "cat:indices",
-      "symbol": "NASDAQ 100",
-      "name": { "ru": "NASDAQ 100", "en": "NASDAQ 100" },
-      "type": "INDEX",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 2, "pip": 0.01 },
-      "sessions": ["US"],
-      "tags": ["tech", "volatile"],
-      "popularity": 92,
-      "riskProfile": "high"
-    },
-    {
-      "id": "idx:dax",
-      "categoryId": "cat:indices",
-      "symbol": "DAX 40",
-      "name": { "ru": "DAX 40", "en": "DAX 40" },
-      "type": "INDEX",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 2, "pip": 0.01 },
-      "sessions": ["EU"],
-      "tags": ["europe", "macro"],
-      "popularity": 74,
-      "riskProfile": "balanced"
-    },
-    {
-      "id": "idx:ftse",
-      "categoryId": "cat:indices",
-      "symbol": "FTSE 100",
-      "name": { "ru": "FTSE 100", "en": "FTSE 100" },
-      "type": "INDEX",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 2, "pip": 0.01 },
-      "sessions": ["EU"],
-      "tags": ["europe"],
-      "popularity": 62,
-      "riskProfile": "balanced"
-    },
+  <link rel="preconnect" href="https://telegram.org" crossorigin />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-    {
-      "id": "cmd:xauusd",
-      "categoryId": "cat:commodities",
-      "symbol": "XAU/USD",
-      "name": { "ru": "Золото", "en": "Gold" },
-      "type": "COMMODITY",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 2, "pip": 0.01 },
-      "sessions": ["EU", "US"],
-      "tags": ["safeHaven", "macro", "liquid"],
-      "popularity": 96,
-      "riskProfile": "balanced"
-    },
-    {
-      "id": "cmd:xagusd",
-      "categoryId": "cat:commodities",
-      "symbol": "XAG/USD",
-      "name": { "ru": "Серебро", "en": "Silver" },
-      "type": "COMMODITY",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 3, "pip": 0.001 },
-      "sessions": ["EU", "US"],
-      "tags": ["metal", "volatile"],
-      "popularity": 70,
-      "riskProfile": "high"
-    },
-    {
-      "id": "cmd:brent",
-      "categoryId": "cat:commodities",
-      "symbol": "BRENT",
-      "name": { "ru": "Нефть Brent", "en": "Brent Oil" },
-      "type": "COMMODITY",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 2, "pip": 0.01 },
-      "sessions": ["EU", "US"],
-      "tags": ["energy", "newsSensitive"],
-      "popularity": 88,
-      "riskProfile": "high"
-    },
-    {
-      "id": "cmd:wti",
-      "categoryId": "cat:commodities",
-      "symbol": "WTI",
-      "name": { "ru": "Нефть WTI", "en": "WTI Oil" },
-      "type": "COMMODITY",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 2, "pip": 0.01 },
-      "sessions": ["US"],
-      "tags": ["energy", "volatile"],
-      "popularity": 82,
-      "riskProfile": "high"
-    },
+  <!-- IMPORTANT:
+    Подключи style.css и app.js рядом с index.html.
+    Этот HTML — архитектура космического уровня: экраны, панели, модалки, командная палитра, dock, консоль, лог, график, настройки.
+  -->
+  <link rel="stylesheet" href="./style.css" />
+</head>
 
-    {
-      "id": "stk:aapl",
-      "categoryId": "cat:stocks",
-      "symbol": "AAPL",
-      "name": { "ru": "Apple", "en": "Apple" },
-      "type": "STOCK",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 2, "pip": 0.01 },
-      "sessions": ["US"],
-      "tags": ["megaCap", "tech"],
-      "popularity": 84,
-      "riskProfile": "balanced"
-    },
-    {
-      "id": "stk:tsla",
-      "categoryId": "cat:stocks",
-      "symbol": "TSLA",
-      "name": { "ru": "Tesla", "en": "Tesla" },
-      "type": "STOCK",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 2, "pip": 0.01 },
-      "sessions": ["US"],
-      "tags": ["megaCap", "veryVolatile"],
-      "popularity": 88,
-      "riskProfile": "veryHigh"
-    },
-    {
-      "id": "stk:msft",
-      "categoryId": "cat:stocks",
-      "symbol": "MSFT",
-      "name": { "ru": "Microsoft", "en": "Microsoft" },
-      "type": "STOCK",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 2, "pip": 0.01 },
-      "sessions": ["US"],
-      "tags": ["megaCap", "tech"],
-      "popularity": 80,
-      "riskProfile": "balanced"
-    },
-    {
-      "id": "stk:nvda",
-      "categoryId": "cat:stocks",
-      "symbol": "NVDA",
-      "name": { "ru": "NVIDIA", "en": "NVIDIA" },
-      "type": "STOCK",
-      "markets": ["REG", "OTC"],
-      "precision": { "decimals": 2, "pip": 0.01 },
-      "sessions": ["US"],
-      "tags": ["ai", "veryVolatile"],
-      "popularity": 86,
-      "riskProfile": "veryHigh"
-    },
+<body>
+  <!-- FX canvases / layers (ДОЛЖНЫ быть pointer-events:none в CSS) -->
+  <canvas id="fxStars" aria-hidden="true"></canvas>
+  <canvas id="fxParticles" aria-hidden="true"></canvas>
+  <div class="fx" aria-hidden="true">
+    <div class="fxAurora"></div>
+    <div class="fxGrid"></div>
+    <div class="fxNoise"></div>
+    <div class="fxVignette"></div>
+  </div>
 
-    {
-      "id": "otc:eurusd_otc",
-      "categoryId": "cat:otc",
-      "symbol": "EUR/USD OTC",
-      "name": { "ru": "EUR/USD OTC", "en": "EUR/USD OTC" },
-      "type": "OTC",
-      "markets": ["OTC"],
-      "precision": { "decimals": 5, "pip": 0.0001 },
-      "sessions": ["24/7"],
-      "tags": ["otc", "synthetic", "weekend"],
-      "popularity": 90,
-      "riskProfile": "high"
-    },
-    {
-      "id": "otc:btcusdt_otc",
-      "categoryId": "cat:otc",
-      "symbol": "BTC/USDT OTC",
-      "name": { "ru": "BTC/USDT OTC", "en": "BTC/USDT OTC" },
-      "type": "OTC",
-      "markets": ["OTC"],
-      "precision": { "decimals": 2, "pip": 0.01 },
-      "sessions": ["24/7"],
-      "tags": ["otc", "synthetic", "weekend"],
-      "popularity": 86,
-      "riskProfile": "veryHigh"
-    }
-  ],
+  <!-- ROOT -->
+  <div class="root" id="root">
+    <!-- TOPBAR -->
+    <header class="topbar" id="topbar">
+      <div class="topbarLeft">
+        <div class="brand">
+          <div class="brandMark" aria-hidden="true">
+            <span class="brandMarkText">CA</span>
+            <span class="brandMarkSheen" aria-hidden="true"></span>
+          </div>
+          <div class="brandText">
+            <div class="brandTitle">CRAFT COSMOS</div>
+            <div class="brandSub" id="brandSub">Quantum-grade analytical console</div>
+          </div>
+        </div>
 
-  "timeframes": [
-    { "id": "tf:5s",  "label": "5s",  "seconds": 5,  "tier": "pro" },
-    { "id": "tf:15s", "label": "15s", "seconds": 15, "tier": "free" },
-    { "id": "tf:30s", "label": "30s", "seconds": 30, "tier": "free" },
-    { "id": "tf:60s", "label": "1m",  "seconds": 60, "tier": "free" },
-    { "id": "tf:180s","label": "3m",  "seconds": 180, "tier": "pro" },
-    { "id": "tf:300s","label": "5m",  "seconds": 300, "tier": "vip" }
-  ],
+        <div class="topPills" aria-label="Status pills">
+          <div class="pill pillLive" role="status">
+            <span class="dot dotLive" aria-hidden="true"></span>
+            <span class="pillText">LIVE ENGINE</span>
+            <span class="pillShine" aria-hidden="true"></span>
+          </div>
+          <div class="pill pillHot" role="status">
+            <span class="dot dotHot" aria-hidden="true"></span>
+            <span class="pillText">HOT SIGNALS</span>
+            <span class="pillShine" aria-hidden="true"></span>
+          </div>
+        </div>
+      </div>
 
-  "tiers": [
-    {
-      "id": "tier:free",
-      "title": "FREE",
-      "features": [
-        "Запуск анализа (демо)",
-        "Базовые активы",
-        "3 таймфрейма"
-      ]
-    },
-    {
-      "id": "tier:pro",
-      "title": "PRO",
-      "features": [
-        "Расширенные таймфреймы",
-        "Сохранение пресетов",
-        "История последних анализов"
-      ]
-    },
-    {
-      "id": "tier:vip",
-      "title": "VIP",
-      "features": [
-        "VIP таймфреймы",
-        "Приоритетные модули интерфейса",
-        "Расширенная статистика"
-      ]
-    }
-  ]
-}
+      <div class="topbarRight" aria-label="Toolbar">
+        <button class="iconBtn" id="btnCmd" type="button" aria-label="Command palette">⌘</button>
+        <button class="iconBtn" id="btnHaptics" type="button" aria-label="Haptics">〰️</button>
+        <button class="iconBtn" id="btnTheme" type="button" aria-label="Theme">🌓</button>
+        <button class="iconBtn" id="btnSound" type="button" aria-label="Sound">🔊</button>
+        <button class="iconBtn" id="btnMenu" type="button" aria-label="Menu">⋯</button>
+      </div>
+    </header>
+
+    <!-- MAIN VIEWPORT -->
+    <main class="viewport" id="viewport">
+      <!-- =========================
+           SCREEN: GATE / ONBOARDING
+      ========================== -->
+      <section class="screen" id="screenGate" data-screen="gate" aria-label="Access gate">
+        <div class="centerWrap">
+          <div class="card gateCard" role="dialog" aria-modal="true">
+            <header class="gateHeader">
+              <div class="gateBadge">
+                <div class="ring" aria-hidden="true"></div>
+                <div class="gateBadgeText">
+                  <div class="gateBadgeTitle">ORBITAL ACCESS</div>
+                  <div class="gateBadgeSub">Secure launch sequence</div>
+                </div>
+              </div>
+
+              <div class="gateTitleBlock">
+                <h1 class="gateTitle" id="gateTitle">Доступ к космической консоли</h1>
+                <p class="gateText" id="gateText">
+                  Зарегистрируйся по ссылке ниже, активируй аккаунт пополнением баланса и вернись сюда.
+                  После этого нажми “Войти в интерфейс”.
+                </p>
+              </div>
+            </header>
+
+            <div class="gateGrid" aria-label="Launch controls">
+              <div class="miniCard">
+                <div class="miniLabel">SECURITY</div>
+                <div class="miniValue" id="secStatus">VERIFIED</div>
+                <div class="miniHint">Integrity check / token handshake</div>
+              </div>
+
+              <div class="miniCard">
+                <div class="miniLabel">LATENCY</div>
+                <div class="miniValue" id="latStatus">LOW</div>
+                <div class="miniHint">Realtime transport channel</div>
+              </div>
+
+              <div class="miniCard">
+                <div class="miniLabel">POWER</div>
+                <div class="miniValue" id="pwrStatus">READY</div>
+                <div class="miniHint">GPU-friendly render path</div>
+              </div>
+
+              <div class="miniCard">
+                <div class="miniLabel">MODE</div>
+                <div class="miniValue" id="modeStatus">COSMOS</div>
+                <div class="miniHint">Glass / Aurora / Holo UI</div>
+              </div>
+            </div>
+
+            <div class="gateActions" aria-label="Gate actions">
+              <button class="btn btnPrimary btnWide" id="btnReg" type="button">
+                <span class="btnIcon">↗</span>
+                <span class="btnText">Открыть регистрацию</span>
+                <span class="btnGlow" aria-hidden="true"></span>
+                <span class="btnSweep" aria-hidden="true"></span>
+              </button>
+
+              <label class="check" aria-label="Registration checkbox">
+                <input type="checkbox" id="chkReady" />
+                <span class="checkBox" aria-hidden="true"></span>
+                <span class="checkText">Я зарегистрировался</span>
+              </label>
+
+              <button class="btn btnGlass btnWide" id="btnEnter" type="button" disabled>
+                <span class="btnIcon">⟡</span>
+                <span class="btnText">Войти в интерфейс</span>
+              </button>
+
+              <div class="fineprint">
+                Демо-интерфейс. Не является финансовой рекомендацией.
+              </div>
+            </div>
+
+            <footer class="statusBar" aria-label="Launch status">
+              <div class="statusFill" id="gateFill"></div>
+              <div class="statusText" id="gateStatus">SYSTEM CHECK</div>
+              <div class="statusSheen" aria-hidden="true"></div>
+            </footer>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================
+           SCREEN: DASHBOARD
+      ========================== -->
+      <section class="screen hidden" id="screenDash" data-screen="dash" aria-label="Dashboard">
+        <div class="grid">
+          <!-- HERO CONSOLE -->
+          <section class="card heroCard" aria-label="Cosmos console">
+            <div class="heroTop">
+              <div class="pill pillLive">
+                <span class="dot dotLive"></span>
+                <span class="pillText">FLIGHT MODE</span>
+                <span class="pillShine"></span>
+              </div>
+              <div class="metaLine" id="metaLine">READY • LOW LATENCY • QUANTUM UI</div>
+            </div>
+
+            <div class="heroMain">
+              <div class="heroBig">Cosmos Scanner Console</div>
+              <div class="heroSmall">
+                Панель сканирования микросигналов. Чётко, быстро, визуально богато. Всё готово под расширение.
+              </div>
+            </div>
+
+            <div class="chips" aria-label="Selectors">
+              <button class="chip" id="chipAsset" type="button" aria-label="Select asset">
+                <span class="chipIco">🌍</span>
+                <span class="chipVal" id="assetVal">EUR/USD</span>
+                <span class="chipCar">▾</span>
+              </button>
+
+              <button class="chip" id="chipTf" type="button" aria-label="Select timeframe">
+                <span class="chipIco">⏱</span>
+                <span class="chipVal" id="tfVal">30s</span>
+                <span class="chipCar">▾</span>
+              </button>
+
+              <button class="chip" id="chipMarket" type="button" aria-label="Market mode">
+                <span class="chipIco">🌐</span>
+                <span class="chipVal" id="mktVal">OTC</span>
+                <span class="chipCar">↺</span>
+              </button>
+
+              <button class="chip chipGhost" id="chipRisk" type="button" aria-label="Risk">
+                <span class="chipIco">🧷</span>
+                <span class="chipVal" id="riskVal">AUTO</span>
+                <span class="chipCar">▾</span>
+              </button>
+            </div>
+
+            <div class="heroActions" aria-label="Primary actions">
+              <button class="btn btnPrimary btnWide" id="btnScan" type="button">
+                <span class="btnIcon">⟡</span>
+                <span class="btnText">Запустить сканирование</span>
+                <span class="btnGlow" aria-hidden="true"></span>
+                <span class="btnSweep" aria-hidden="true"></span>
+              </button>
+
+              <div class="row2">
+                <button class="btn btnGlass" id="btnReset" type="button">
+                  <span class="btnIcon">⟲</span><span class="btnText">Сброс</span>
+                </button>
+                <button class="btn btnGlass" id="btnCopy" type="button">
+                  <span class="btnIcon">⧉</span><span class="btnText">Copy</span>
+                </button>
+              </div>
+
+              <div class="row3">
+                <button class="btn btnGlass" id="btnShare" type="button">⇪ Share</button>
+                <button class="btn btnGlass" id="btnSave" type="button">★ Save</button>
+                <button class="btn btnGlass" id="btnExport" type="button">⤓ Export</button>
+              </div>
+            </div>
+
+            <div class="microStatus" aria-label="Mini status">
+              <div class="microFill" id="microFill"></div>
+              <div class="microText" id="microText">IDLE</div>
+              <div class="microSheen" aria-hidden="true"></div>
+            </div>
+          </section>
+
+          <!-- MARKET VISUAL -->
+          <section class="card chartCard" aria-label="Market visual">
+            <div class="cardHeader">
+              <div class="cardTitle">MARKET VISUAL</div>
+              <div class="cardRight">
+                <button class="miniBtn" id="btnGrid" type="button">GRID</button>
+                <button class="miniBtn" id="btnGlow" type="button">GLOW</button>
+                <button class="miniBtn" id="btnFocus" type="button">FOCUS</button>
+              </div>
+            </div>
+
+            <div class="chartWrap" id="chartWrap">
+              <canvas id="chart" width="1200" height="540" aria-label="Chart"></canvas>
+              <div class="scanline" aria-hidden="true"></div>
+
+              <div class="chartOverlay" id="chartOverlay" aria-hidden="true">
+                <div class="overlayTitle">AI SCANNER</div>
+                <div class="overlayText" id="overlayText">Collecting micro-signals…</div>
+                <div class="bar"><div class="barFill" id="barFill"></div></div>
+                <div class="overlayHint">Не закрывает клики • pointer-events:none</div>
+              </div>
+
+              <div class="hud" aria-hidden="true">
+                <div class="hudItem">SNR <b id="hudSnr">—</b></div>
+                <div class="hudItem">ΔVOL <b id="hudVol">—</b></div>
+                <div class="hudItem">TPS <b id="hudTps">—</b></div>
+              </div>
+            </div>
+
+            <div class="metricsGrid" aria-label="Diagnostics">
+              <div class="metric">
+                <div class="mLabel">VOLATILITY</div>
+                <div class="mValue" id="mVol">—</div>
+                <div class="mBar"><div class="mFill" id="mVolFill"></div></div>
+              </div>
+              <div class="metric">
+                <div class="mLabel">MOMENTUM</div>
+                <div class="mValue" id="mMom">—</div>
+                <div class="mBar"><div class="mFill" id="mMomFill"></div></div>
+              </div>
+              <div class="metric">
+                <div class="mLabel">STRENGTH</div>
+                <div class="mValue" id="mStr">—</div>
+                <div class="mBar"><div class="mFill" id="mStrFill"></div></div>
+              </div>
+              <div class="metric">
+                <div class="mLabel">LIQUIDITY</div>
+                <div class="mValue" id="mLiq">—</div>
+                <div class="mBar"><div class="mFill" id="mLiqFill"></div></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- RESULT PACKAGE -->
+          <section class="card resultCard hidden" id="resultCard" aria-label="Result package">
+            <div class="cardHeader">
+              <div class="cardTitle">RESULT PACKAGE</div>
+              <div class="cardRight">
+                <div class="pill pillHot">
+                  <span class="dot dotHot"></span>
+                  <span class="pillText">CONFIRMED</span>
+                  <span class="pillShine"></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="resultGrid">
+              <div class="rCard wide">
+                <div class="rLabel">ASSET</div>
+                <div class="rValue big" id="rAsset">EUR/USD</div>
+              </div>
+
+              <div class="rCard">
+                <div class="rLabel">TIMEFRAME</div>
+                <div class="rValue" id="rTf">30s</div>
+              </div>
+
+              <div class="rCard">
+                <div class="rLabel">CONFIDENCE</div>
+                <div class="rValue" id="rAcc">—%</div>
+              </div>
+
+              <div class="rCard wide">
+                <div class="rLabel">DIRECTION</div>
+                <div class="dirRow">
+                  <span class="dirDot" id="dirDot" aria-hidden="true"></span>
+                  <span class="rValue" id="dirText">—</span>
+                  <span class="rHint">до <b id="rUntil">—:—</b></span>
+                </div>
+              </div>
+
+              <div class="rCard wide">
+                <div class="rLabel">WINDOW</div>
+                <div class="prog"><div class="progFill" id="progFill"></div></div>
+                <div class="rHint" id="timerText">— / —</div>
+              </div>
+            </div>
+
+            <div class="fineprint">
+              Демо-интерфейс. Никакой финансовой рекомендации.
+            </div>
+          </section>
+
+          <!-- AI CONSOLE LOG -->
+          <section class="card logCard" aria-label="Console log">
+            <div class="cardHeader">
+              <div class="cardTitle">EXECUTION LOG</div>
+              <div class="cardRight">
+                <button class="miniBtn" id="btnClearLog" type="button">CLEAR</button>
+                <button class="miniBtn" id="btnPinLog" type="button">PIN</button>
+              </div>
+            </div>
+
+            <div class="log" id="log" role="log" aria-live="polite">
+              <div class="logItem"><span class="logTag ok">OK</span><span class="logText">Console ready.</span><span class="logTime">00:00</span></div>
+              <div class="logItem"><span class="logTag info">INFO</span><span class="logText">Waiting for scan…</span><span class="logTime">00:00</span></div>
+            </div>
+
+            <div class="logInputRow" aria-label="Quick command">
+              <input class="logInput" id="logInput" placeholder="Type command… (ex: /scan, /reset)" autocomplete="off" />
+              <button class="btn btnGlass" id="btnSendCmd" type="button">SEND</button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- =========================
+           SCREEN: SIGNALS (HISTORY)
+      ========================== -->
+      <section class="screen hidden" id="screenSignals" data-screen="signals" aria-label="Signals history">
+        <div class="screenHeader">
+          <div class="screenTitle">Signals</div>
+          <div class="screenSub">История и “пакеты” результатов (готово под подключение).</div>
+        </div>
+
+        <div class="card">
+          <div class="cardHeader">
+            <div class="cardTitle">HISTORY FEED</div>
+            <div class="cardRight">
+              <button class="miniBtn" id="btnFilter" type="button">FILTER</button>
+              <button class="miniBtn" id="btnSort" type="button">SORT</button>
+            </div>
+          </div>
+
+          <div class="feed" id="feed">
+            <!-- cards injected by JS -->
+            <article class="feedItem">
+              <div class="feedTop">
+                <div class="pill pillHot"><span class="dot dotHot"></span><span class="pillText">SIGNAL</span><span class="pillShine"></span></div>
+                <div class="feedMeta">EUR/USD • 30s • OTC</div>
+              </div>
+              <div class="feedMain">
+                <div class="feedDir up">UP</div>
+                <div class="feedAcc">88%</div>
+                <div class="feedTime">until 12:48</div>
+              </div>
+              <div class="feedActions">
+                <button class="btn btnGlass" type="button">OPEN</button>
+                <button class="btn btnGlass" type="button">COPY</button>
+                <button class="btn btnGlass" type="button">PIN</button>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================
+           SCREEN: SETTINGS
+      ========================== -->
+      <section class="screen hidden" id="screenSettings" data-screen="settings" aria-label="Settings">
+        <div class="screenHeader">
+          <div class="screenTitle">Settings</div>
+          <div class="screenSub">Тонкая настройка UI/FX/Performance/Telegram.</div>
+        </div>
+
+        <div class="gridSettings">
+          <section class="card">
+            <div class="cardHeader">
+              <div class="cardTitle">VISUAL</div>
+            </div>
+
+            <div class="settingsList">
+              <label class="toggleRow">
+                <span class="toggleText">Starfield</span>
+                <input type="checkbox" id="setStars" checked />
+                <span class="toggleUi" aria-hidden="true"></span>
+              </label>
+
+              <label class="toggleRow">
+                <span class="toggleText">Aurora</span>
+                <input type="checkbox" id="setAurora" checked />
+                <span class="toggleUi" aria-hidden="true"></span>
+              </label>
+
+              <label class="toggleRow">
+                <span class="toggleText">Noise</span>
+                <input type="checkbox" id="setNoise" checked />
+                <span class="toggleUi" aria-hidden="true"></span>
+              </label>
+
+              <label class="toggleRow">
+                <span class="toggleText">Scanline</span>
+                <input type="checkbox" id="setScanline" checked />
+                <span class="toggleUi" aria-hidden="true"></span>
+              </label>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="cardHeader">
+              <div class="cardTitle">PERFORMANCE</div>
+            </div>
+
+            <div class="settingsList">
+              <label class="toggleRow">
+                <span class="toggleText">60 FPS mode</span>
+                <input type="checkbox" id="set60fps" checked />
+                <span class="toggleUi" aria-hidden="true"></span>
+              </label>
+
+              <label class="toggleRow">
+                <span class="toggleText">Battery saver</span>
+                <input type="checkbox" id="setSaver" />
+                <span class="toggleUi" aria-hidden="true"></span>
+              </label>
+
+              <div class="sliderRow">
+                <div class="sliderText">FX intensity</div>
+                <input type="range" id="setFx" min="0" max="100" value="70" />
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="cardHeader">
+              <div class="cardTitle">TELEGRAM</div>
+            </div>
+
+            <div class="settingsList">
+              <label class="toggleRow">
+                <span class="toggleText">Haptics</span>
+                <input type="checkbox" id="setHaptics" checked />
+                <span class="toggleUi" aria-hidden="true"></span>
+              </label>
+
+              <label class="toggleRow">
+                <span class="toggleText">Expand</span>
+                <input type="checkbox" id="setExpand" checked />
+                <span class="toggleUi" aria-hidden="true"></span>
+              </label>
+
+              <div class="hintBox">
+                Поддержка: openLink, safe-area, haptics, MainButton (подключается в JS).
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <!-- DOCK NAV -->
+    <nav class="dock" id="dock" aria-label="Dock navigation">
+      <button class="dockBtn active" id="navDash" type="button">
+        <span class="dockIco">⌂</span><span class="dockTxt">Console</span>
+      </button>
+      <button class="dockBtn" id="navSignals" type="button">
+        <span class="dockIco">⚡</span><span class="dockTxt">Signals</span>
+      </button>
+      <button class="dockBtn" id="navSettings" type="button">
+        <span class="dockIco">⚙</span><span class="dockTxt">Settings</span>
+      </button>
+    </nav>
+
+    <!-- BACKDROP -->
+    <div class="backdrop hidden" id="backdrop" aria-hidden="true"></div>
+
+    <!-- COMMAND PALETTE -->
+    <section class="modal hidden" id="cmdPalette" role="dialog" aria-modal="true" aria-label="Command palette">
+      <div class="modalTop">
+        <div class="modalTitle">COMMAND PALETTE</div>
+        <button class="iconBtn" id="closeCmd" type="button" aria-label="Close">✕</button>
+      </div>
+
+      <input class="search" id="cmdSearch" placeholder="Search commands… (scan, reset, open reg, theme)" autocomplete="off" />
+
+      <div class="cmdList" id="cmdList" aria-label="Commands">
+        <button class="cmdItem" type="button" data-cmd="scan">
+          <span class="cmdLeft">
+            <span class="cmdName">Run scan</span>
+            <span class="cmdHint">Start cosmic analysis sequence</span>
+          </span>
+          <span class="cmdKey">⏎</span>
+        </button>
+
+        <button class="cmdItem" type="button" data-cmd="reset">
+          <span class="cmdLeft">
+            <span class="cmdName">Reset</span>
+            <span class="cmdHint">Clear results & return to idle</span>
+          </span>
+          <span class="cmdKey">R</span>
+        </button>
+
+        <button class="cmdItem" type="button" data-cmd="reg">
+          <span class="cmdLeft">
+            <span class="cmdName">Open registration</span>
+            <span class="cmdHint">Open external link via Telegram.WebApp</span>
+          </span>
+          <span class="cmdKey">↗</span>
+        </button>
+
+        <button class="cmdItem" type="button" data-cmd="theme">
+          <span class="cmdLeft">
+            <span class="cmdName">Toggle theme</span>
+            <span class="cmdHint">Switch vibe & contrast profiles</span>
+          </span>
+          <span class="cmdKey">T</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- MODAL: ASSET SELECT -->
+    <section class="modal hidden" id="assetModal" role="dialog" aria-modal="true" aria-label="Assets">
+      <div class="modalTop">
+        <div class="modalTitle">ASSETS</div>
+        <button class="iconBtn" id="closeAsset" type="button" aria-label="Close">✕</button>
+      </div>
+
+      <input class="search" id="assetSearch" placeholder="Search asset…" autocomplete="off" />
+
+      <div class="tabs" id="assetTabs" aria-label="Categories">
+        <button class="tab active" type="button" data-tab="fx">FX</button>
+        <button class="tab" type="button" data-tab="crypto">CRYPTO</button>
+        <button class="tab" type="button" data-tab="stocks">STOCKS</button>
+        <button class="tab" type="button" data-tab="otc">OTC</button>
+      </div>
+
+      <div class="list" id="assetList" aria-label="List">
+        <button class="listItem" type="button" data-value="EUR/USD">
+          <span class="liLeft"><span class="liName">EUR/USD</span><span class="liSub">FX Major</span></span>
+          <span class="liTag">HOT</span>
+        </button>
+        <button class="listItem" type="button" data-value="GBP/USD">
+          <span class="liLeft"><span class="liName">GBP/USD</span><span class="liSub">FX Major</span></span>
+          <span class="liTag">LIVE</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- MODAL: TF SELECT -->
+    <section class="modal hidden" id="tfModal" role="dialog" aria-modal="true" aria-label="Timeframes">
+      <div class="modalTop">
+        <div class="modalTitle">TIMEFRAMES</div>
+        <button class="iconBtn" id="closeTf" type="button" aria-label="Close">✕</button>
+      </div>
+
+      <div class="list" id="tfList" aria-label="Timeframes list">
+        <button class="listItem" type="button" data-value="5s"><span class="liLeft"><span class="liName">5s</span><span class="liSub">Ultra scalping</span></span><span class="liTag">FAST</span></button>
+        <button class="listItem" type="button" data-value="15s"><span class="liLeft"><span class="liName">15s</span><span class="liSub">Quick</span></span><span class="liTag">HOT</span></button>
+        <button class="listItem" type="button" data-value="30s"><span class="liLeft"><span class="liName">30s</span><span class="liSub">Default</span></span><span class="liTag">PRO</span></button>
+        <button class="listItem" type="button" data-value="60s"><span class="liLeft"><span class="liName">60s</span><span class="liSub">Stable</span></span><span class="liTag">SAFE</span></button>
+      </div>
+    </section>
+  </div>
+
+  <!-- AUDIO placeholders -->
+  <audio id="sfxScan" preload="auto" src="./scan.mp3"></audio>
+
+  <!-- SCRIPT -->
+  <script src="./app.js" defer></script>
+</body>
+</html>
