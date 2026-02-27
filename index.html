@@ -2,133 +2,253 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>NEXORA — AI Trade Signal</title>
-
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#070A13" />
+  <title>CRAFT ANALYTICS</title>
   <link rel="stylesheet" href="./style.css" />
 </head>
 
 <body>
-  <div class="app">
-    <header class="topbar">
-      <div class="brand">
-        <div class="brand__title">NEXORA</div>
-        <div class="brand__sub">trading intelligence</div>
+  <div class="bg" aria-hidden="true">
+    <div class="bg__blob bg__blob--a"></div>
+    <div class="bg__blob bg__blob--b"></div>
+    <div class="bg__noise"></div>
+  </div>
+
+  <!-- GATE -->
+  <section class="gate" id="gate">
+    <div class="gate__card">
+      <div class="gate__top">
+        <div class="logo">CA</div>
+        <div class="gate__brand">
+          <div class="brand__name">CRAFT ANALYTICS</div>
+          <div class="brand__sub" data-i18n="tagline">Premium Market Intelligence</div>
+        </div>
+
+        <div class="lang">
+          <button class="lang__btn" id="langBtn" type="button">
+            <span id="langLabel">RU</span><span class="lang__chev">▾</span>
+          </button>
+          <div class="lang__menu" id="langMenu" hidden>
+            <button class="lang__item" type="button" data-lang="ru">Русский</button>
+            <button class="lang__item" type="button" data-lang="en">English</button>
+            <button class="lang__item" type="button" data-lang="es">Español</button>
+            <button class="lang__item" type="button" data-lang="de">Deutsch</button>
+          </div>
+        </div>
       </div>
-      <button class="iconBtn" id="btnMenu" aria-label="Menu">⋯</button>
+
+      <h1 class="gate__title" data-i18n="gateTitle">Открыть доступ к платформе</h1>
+      <p class="gate__text" data-i18n="gateText">
+        Для доступа к инструментам анализа необходимо зарегистрироваться на платформе по ссылке.
+        Это бесплатно. Депозит не требуется.
+      </p>
+
+      <div class="gate__chips">
+        <div class="chip" data-i18n="chip1">График + уровни</div>
+        <div class="chip" data-i18n="chip2">Market Factors</div>
+        <div class="chip" data-i18n="chip3">Confidence-оценка</div>
+        <div class="chip" data-i18n="chip4">Премиальный UI</div>
+      </div>
+
+      <div class="gate__actions">
+        <a class="btn btn--primary" id="btnRegister" href="PASTE_YOUR_LINK_HERE" target="_blank" rel="noopener">
+          <span data-i18n="registerBtn">Зарегистрироваться</span><span class="btn__icon">↗</span>
+        </a>
+        <button class="btn btn--ghost" id="btnUnlock" disabled>
+          <span data-i18n="unlockBtn">Открыть доступ</span>
+        </button>
+      </div>
+
+      <label class="check">
+        <input type="checkbox" id="chkDone" />
+        <span data-i18n="checkText">Я перешёл по ссылке и завершил регистрацию</span>
+      </label>
+
+      <div class="gate__note" data-i18n="note">
+        Демо-режим интерфейса. Не является финансовой рекомендацией.
+      </div>
+    </div>
+  </section>
+
+  <!-- APP -->
+  <div class="app" id="app" hidden>
+    <header class="topbar">
+      <div class="topbar__left">
+        <div class="logo logo--sm">CA</div>
+        <div class="topbar__brand">
+          <div class="brand__name">CRAFT ANALYTICS</div>
+          <div class="brand__sub" data-i18n="appSub">Market Intelligence Dashboard</div>
+        </div>
+      </div>
+
+      <div class="topbar__right">
+        <div class="pill">
+          <span class="pill__dot"></span><span data-i18n="demo">DEMO</span>
+        </div>
+        <button class="iconBtn" id="btnAssets" type="button" data-i18n-title="assetsTitle" title="Assets">📈</button>
+        <button class="iconBtn" id="openLang" type="button" aria-label="Language">🌐</button>
+      </div>
     </header>
 
-    <main class="content">
-      <h1 class="title">TRADE SIGNAL</h1>
-
-      <!-- Controls -->
+    <main class="layout">
+      <!-- LEFT -->
       <section class="panel">
+        <div class="panel__title" data-i18n="params">Параметры</div>
+
         <div class="row">
-          <button class="select" id="pairSelect" type="button">
-            <span class="select__left">
-              <span class="badge" id="pairBadge">🇪🇺🇺🇸</span>
-              <span class="select__value" id="pairValue">EUR/USD</span>
-            </span>
-            <span class="chev">▾</span>
-            <div class="dropdown" id="pairDrop"></div>
-          </button>
-
-          <button class="select compact" id="tfSelect" type="button">
-            <span class="select__left">
-              <span class="badge">⏱</span>
-              <span class="select__value" id="tfValue">10s</span>
-            </span>
-            <span class="chev">▾</span>
-            <div class="dropdown" id="tfDrop"></div>
-          </button>
-
-          <button class="select compact btnGhost" id="marketBtn" type="button" title="Рынок">
-            <span class="select__left">
-              <span class="badge">🌐</span>
-              <span class="select__value" id="marketValue">OTC</span>
-            </span>
-            <span class="chev">↻</span>
+          <label class="lbl" data-i18n="asset">Актив</label>
+          <button class="selBtn" id="assetBtn" type="button">
+            <span id="assetValue">EUR/USD</span>
+            <span class="selBtn__chev">▾</span>
           </button>
         </div>
 
-        <div class="hint" id="hintText">
-          Нажми <b>«Получить сигнал»</b> — появится блок анализа и результат.
+        <div class="row two">
+          <div>
+            <label class="lbl" data-i18n="tf">Таймфрейм</label>
+            <select id="tfSelect" class="sel">
+              <option value="10">10s</option>
+              <option value="15">15s</option>
+              <option value="30">30s</option>
+              <option value="60" selected>1m</option>
+              <option value="180">3m</option>
+            </select>
+          </div>
+          <div>
+            <label class="lbl" data-i18n="market">Режим</label>
+            <select id="marketSelect" class="sel">
+              <option value="REAL" selected>REAL</option>
+              <option value="OTC">OTC</option>
+            </select>
+          </div>
         </div>
 
-        <div class="actions">
-          <button class="btn btnPrimary" id="btnGenerate" type="button">ПОЛУЧИТЬ НОВЫЙ СИГНАЛ</button>
+        <button class="btn btn--primary btn--wide" id="btnAnalyze">
+          <span data-i18n="analyze">Запустить анализ</span>
+          <span class="scan" aria-hidden="true"></span>
+          <span class="btn__icon">⚡</span>
+        </button>
+
+        <button class="btn btn--ghost btn--wide" id="btnReset">
+          <span data-i18n="reset">Сброс</span>
+        </button>
+
+        <div class="hint" data-i18n="hint">
+          Демо-интерфейс: данные локальные, чтобы всё работало стабильно. Активы берутся из assets.json.
         </div>
       </section>
 
-      <!-- Result -->
-      <section class="panel panelResult hidden" id="resultPanel">
-        <div class="panel__titleRow">
-          <div class="panel__title">Сигнал</div>
-          <div class="panel__meta" id="chartMeta">EUR/USD • OTC</div>
+      <!-- CENTER -->
+      <section class="panel panel--chart">
+        <div class="panel__head">
+          <div class="panel__title" data-i18n="chart">График</div>
+          <div class="meta" id="metaLine">EUR/USD • REAL • 1m</div>
         </div>
 
-        <!-- Chart -->
-        <div class="chartCard">
-          <div class="chart" id="chart"></div>
-          <div class="analyzing hidden" id="analyzeOverlay">
-            <div class="scanGlow"></div>
-            <div class="scanLine"></div>
-            <div class="anText">
-              <div class="anTitle">Анализ рынка…</div>
-              <div class="anSub" id="anSub">Сканируем волатильность и импульсы</div>
+        <div class="chartWrap">
+          <div id="chart" class="chart"></div>
+          <div class="wm">CRAFT</div>
+        </div>
+
+        <div class="cards">
+          <div class="card">
+            <div class="k" data-i18n="confidence">Confidence</div>
+            <div class="v" id="conf">—</div>
+          </div>
+          <div class="card">
+            <div class="k" data-i18n="direction">Направление</div>
+            <div class="v" id="dir">—</div>
+          </div>
+          <div class="card">
+            <div class="k" data-i18n="valid">Действует до</div>
+            <div class="v" id="until">—</div>
+          </div>
+        </div>
+
+        <div class="factors">
+          <div class="factors__head">
+            <div class="panel__title" data-i18n="factors">Market Factors</div>
+            <div class="meta" id="factorHint" data-i18n="factorsHint">AI-оценка состояния рынка</div>
+          </div>
+          <div class="factors__grid">
+            <div class="factor">
+              <div class="factor__k" data-i18n="vol">Volatility</div>
+              <div class="factor__v" id="fVol">—</div>
+              <div class="meter"><div class="meter__fill" id="mVol"></div></div>
+            </div>
+            <div class="factor">
+              <div class="factor__k" data-i18n="trend">Trend Strength</div>
+              <div class="factor__v" id="fTrend">—</div>
+              <div class="meter"><div class="meter__fill" id="mTrend"></div></div>
+            </div>
+            <div class="factor">
+              <div class="factor__k" data-i18n="risk">Risk</div>
+              <div class="factor__v" id="fRisk">—</div>
+              <div class="meter"><div class="meter__fill" id="mRisk"></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT -->
+      <section class="panel">
+        <div class="panel__title" data-i18n="result">Результат</div>
+
+        <div class="result">
+          <div class="result__top">
+            <div class="badge" id="badge">—</div>
+            <div class="pair" id="pairOut">EUR/USD</div>
+          </div>
+          <div class="big" id="big">—</div>
+          <div class="sub" id="sub" data-i18n="sub">
+            Нажми «Запустить анализ», чтобы получить результат.
+          </div>
+
+          <div class="timerBox">
+            <div class="timerBox__row">
+              <div class="timerBg" id="timerBg"></div>
+              <div class="timerText" id="timerText">00:00 / 00:00</div>
             </div>
           </div>
         </div>
 
-        <div class="cardGrid">
-          <div class="card wide">
-            <div class="label">Инструмент</div>
-            <div class="value big" id="rPair">EUR/USD</div>
-          </div>
-
-          <div class="card">
-            <div class="label">Таймфрейм</div>
-            <div class="value" id="rTf">10s</div>
-          </div>
-
-          <div class="card">
-            <div class="label">Уверенность</div>
-            <div class="value" id="rAcc">—</div>
-          </div>
-
-          <div class="card wide">
-            <div class="label">Направление</div>
-            <div class="dir" id="rDir">
-              <span class="dirDot up"></span>
-              <span class="dirText">—</span>
-              <span class="dirUntil">до <b id="rUntil">—</b></span>
-            </div>
-          </div>
-
-          <div class="card wide">
-            <div class="label">Время до конца</div>
-           <div class="timer-card">
-  <div class="timer-bg"></div>
-  <div class="timer-content">
-    <div id="timerText">00:00 / 00:00</div>
-  </div>
-</div>
-
-        <div class="actions two">
-          <button class="btn btnLight" id="btnGenerate2" type="button">НОВЫЙ АНАЛИЗ</button>
-          <button class="btn btnOutline" id="btnReset" type="button">СБРОС</button>
+        <div class="note" data-i18n="disc">
+          Демо-режим интерфейса. Не является финансовым советом.
         </div>
-
-        <div class="footnote">Демо-интерфейс. Не является финансовым советом.</div>
       </section>
     </main>
   </div>
 
-  <div class="backdrop hidden" id="backdrop"></div>
+  <!-- ASSETS MODAL -->
+  <div class="modal" id="assetsModal" hidden>
+    <div class="modal__card">
+      <div class="modal__head">
+        <div class="panel__title" data-i18n="assetsTitle">Assets</div>
+        <button class="iconBtn" id="closeAssets" type="button" aria-label="Close">✕</button>
+      </div>
 
-  <!-- График (если CDN доступен) -->
-  <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
+      <div class="modal__tools">
+        <input class="input" id="assetSearch" type="search" placeholder="Search..." />
+        <select class="sel" id="assetCategory">
+          <option value="all">All</option>
+          <option value="forex">Forex</option>
+          <option value="crypto">Crypto</option>
+          <option value="stocks">Stocks</option>
+          <option value="indices">Indices</option>
+          <option value="commodities">Commodities</option>
+        </select>
+      </div>
+
+      <div class="assetList" id="assetList"></div>
+
+      <div class="modal__foot">
+        <span class="meta" data-i18n="assetsFoot">Список берётся из assets.json. Можно расширять без переписывания кода.</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
