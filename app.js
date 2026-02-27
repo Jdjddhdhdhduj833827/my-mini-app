@@ -353,6 +353,15 @@ function tvSymbolFor(pair){
 }
 
 function renderTradingView(pair){
+  const frame = document.getElementById("tvFrame");
+  if (!frame) return;
+
+  const symbol = pair.replace("/", "");
+
+  const url = `https://www.tradingview.com/chart/?symbol=FX:${symbol}&interval=1&theme=dark`;
+
+  frame.src = url;
+}
   const el = document.getElementById("tvChart");
   if (!el) return;
 
