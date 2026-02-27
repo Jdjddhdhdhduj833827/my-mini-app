@@ -1,15 +1,1 @@
-{
-  "updated": "2026-02-27",
-  "market": { "text": "Текст обзора рынка" },
-  "setups": [
-    {
-      "title": "Название",
-      "asset": "EURUSD",
-      "timeframe": "M5",
-      "bias": "Контекст",
-      "conditions": "1) ...\n2) ...",
-      "invalidation": "Когда идея ломается",
-      "risk": "Риск 1%"
-    }
-  ]
-}
+
