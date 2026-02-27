@@ -476,3 +476,11 @@ body{
   35%{ opacity:1; }
   100%{ transform: translateY(190px); opacity:.2; }
 }
+/* 1) hidden должен РЕАЛЬНО убирать элемент со страницы */
+.hidden {
+  display: none !important;
+}/* 2) backdrop не должен ловить клики когда скрыт */
+.backdrop.hidden {
+  display: none !important;
+  pointer-events: none !important;
+}
