@@ -583,3 +583,82 @@ body{
   0%{transform:translateX(-65%) rotate(8deg)}
   100%{transform:translateX(65%) rotate(8deg)}
 }
+.analyzingLine{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:10px;
+  color:rgba(255,255,255,.88);
+  font-size:13px;
+  letter-spacing:.02em;
+}
+
+.analyzingDot{
+  width:10px;height:10px;border-radius:50%;
+  background:rgba(124,92,255,.95);
+  box-shadow:0 0 18px rgba(124,92,255,.7);
+  animation:dotPulse 1s ease-in-out infinite;
+}
+
+@keyframes dotPulse{
+  0%,100%{transform:scale(1); opacity:.65}
+  50%{transform:scale(1.55); opacity:1}
+}
+.holoStatus{
+  position:relative;
+  height:34px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.12);
+  background:linear-gradient(90deg,
+    rgba(124,92,255,.12),
+    rgba(0,178,255,.10),
+    rgba(124,92,255,.12)
+  );
+  overflow:hidden;
+  box-shadow:0 18px 40px rgba(0,0,0,.25);
+  margin-top:10px;
+}
+
+.holoFill{
+  position:absolute;
+  inset:0;
+  width:0%;
+  background:linear-gradient(90deg,
+    rgba(124,92,255,.35),
+    rgba(0,178,255,.22),
+    rgba(124,92,255,.35)
+  );
+  filter:blur(.0px);
+  transition:width .25s ease;
+}
+
+.holoText{
+  position:relative;
+  z-index:2;
+  height:34px;
+  display:flex;
+  align-items:center;
+  padding:0 12px;
+  font-weight:800;
+  font-size:12px;
+  letter-spacing:.12em;
+  color:rgba(255,255,255,.86);
+  text-transform:uppercase;
+}
+
+/* “голографический блик” */
+.holoStatus::after{
+  content:"";
+  position:absolute;
+  inset:-60%;
+  background:linear-gradient(120deg, transparent 40%, rgba(255,255,255,.16), transparent 60%);
+  transform:translateX(-60%) rotate(10deg);
+  animation:holoSweep 2.4s linear infinite;
+  pointer-events:none;
+  opacity:.8;
+}
+
+@keyframes holoSweep{
+  0%{transform:translateX(-70%) rotate(10deg)}
+  100%{transform:translateX(70%) rotate(10deg)}
+}
