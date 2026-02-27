@@ -1,6 +1,35 @@
 (() => {
   const $ = (id) => document.getElementById(id);
-
+const ASSETS = {
+  forex: [
+    "EUR/USD","GBP/USD","USD/JPY","USD/CHF","AUD/USD","USD/CAD","NZD/USD",
+    "EUR/GBP","EUR/JPY","EUR/CHF","EUR/AUD","EUR/CAD","EUR/NZD",
+    "GBP/JPY","GBP/CHF","GBP/AUD","GBP/CAD","GBP/NZD",
+    "AUD/JPY","AUD/CHF","AUD/CAD","AUD/NZD",
+    "CHF/JPY","CAD/JPY","NZD/JPY",
+    "USD/TRY","USD/ZAR","USD/MXN","USD/BRL","USD/SEK","USD/NOK"
+  ],
+  crypto: [
+    "BTC/USDT","ETH/USDT","BNB/USDT","SOL/USDT","XRP/USDT","ADA/USDT",
+    "DOGE/USDT","TRX/USDT","MATIC/USDT","LTC/USDT","DOT/USDT",
+    "AVAX/USDT","LINK/USDT","ATOM/USDT","BCH/USDT","ETC/USDT"
+  ],
+  stocks: [
+    "AAPL","MSFT","GOOGL","AMZN","TSLA","NVDA","META",
+    "NFLX","AMD","INTC","BABA","DIS","V","MA","PYPL",
+    "KO","PEP","NKE","WMT","XOM"
+  ],
+  commodities: [
+    "XAU/USD","XAG/USD","WTI","BRENT","NATGAS","COPPER"
+  ],
+  indices: [
+    "US500","US100","US30","GER40","UK100","JP225","FR40","SPAIN35"
+  ],
+  otc: [
+    "EUR/USD OTC","GBP/USD OTC","USD/JPY OTC",
+    "BTC/USDT OTC","ETH/USDT OTC"
+  ]
+};
   // -------- i18n --------
   const I18N = {
     ru: {
