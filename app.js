@@ -49,15 +49,24 @@ function applyTelegram(){
 function renderCategories(cats){
   const row = $("categoryRow");
   row.innerHTML = "";
+
   cats.forEach(c=>{
     const b = document.createElement("button");
+    b.type = "button";
     b.className = "pill" + (c.id === state.category ? " active":"");
     b.textContent = c.name;
-    b.addEventListener("click", ()=>{
+
+    const handler = (e)=>{
+      e.preventDefault();
       state.category = c.id;
       renderCategories(cats);
       refreshInstrumentList();
-    });
+    };
+
+    b.addEventListener("pointerup", handler, { passive: false });
+    b.addEventListener("touchend", handler, { passive: false });
+    b.addEventListener("click", handler);
+
     row.appendChild(b);
   });
 }
