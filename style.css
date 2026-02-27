@@ -167,7 +167,7 @@ body{
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 
-  z-index: 60;
+  z-index: 9999;
   display:none;
 }
 
@@ -300,18 +300,37 @@ body{
   color: rgba(234,240,255,.45);
   font-size: 12px;
 }
-
+/* Backdrop: только затемнение, НЕ перекрывает меню */
 .backdrop{
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.05);
-
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-
-  z-index: 50;
+  background: rgba(0,0,0,.45);
+  opacity: 0;
+  pointer-events: none;   /* ключевое */
+  transition: opacity .18s ease;
+  z-index: 40;            /* ниже dropdown */
 }
 
-.backdrop.hidden{
+.backdrop.show{
+  opacity: 1;
+  pointer-events: auto;   /* кликается только когда показан */
+}
+
+.select{ position: relative; } /* обязательно */
+
+/* Dropdown поверх backdrop */
+.dropdown{
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 8px);
+  padding: 8px;
+  border-radius: 16px;
+  background: rgba(18,20,28,.98);
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow: 0 30px 70px rgba(0,0,0,.65);
+  z-index: 60;            /* выше backdrop */
   display: none;
 }
+
+.dropdown.open{ display: block; }
