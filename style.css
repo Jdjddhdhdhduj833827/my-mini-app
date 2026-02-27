@@ -1274,10 +1274,7 @@ body::after{
   0%   { transform: translateX(-70%) rotate(20deg); }
   100% { transform: translateX(70%) rotate(20deg); }
 }
-/* Кнопки всегда читаемые */
-.btn, .btn--ghost, .tab{
-  -webkit-tap-highlight-color: transparent;
-}
+
 
 .btn{
   color: #fff !important;
@@ -1305,4 +1302,80 @@ body::after{
   color: var(--text) !important;
   background: rgba(255,255,255,.10) !important;
   border: 1px solid var(--border) !important;
+}
+
+.btn, .btn:visited, .btn:active, .btn:focus,
+.btn--ghost, .btn--ghost:visited, .btn--ghost:active, .btn--ghost:focus,
+.tab, .tab:visited, .tab:active, .tab:focus {
+  opacity: 1 !important;
+  filter: none !important;
+  transform: none !important;
+  mix-blend-mode: normal !important;
+  visibility: visible !important;
+}
+
+.btn {
+  background: var(--accent, #3390ec) !important;
+  color: #ffffff !important;
+  border: 0 !important;
+}
+
+.btn--ghost {
+  background: rgba(255,255,255,.12) !important;
+  color: var(--text, #e5e7eb) !important;
+  border: 1px solid rgba(255,255,255,.18) !important;
+}
+
+.tab {
+  background: rgba(255,255,255,.08) !important;
+  color: var(--text, #e5e7eb) !important;
+  border: 1px solid rgba(255,255,255,.14) !important;
+}
+
+.tab--active {
+  background: rgba(255,255,255,.16) !important;
+  color: var(--text, #e5e7eb) !important;
+  border: 1px solid rgba(255,255,255,.22) !important;
+}
+
+/* Убиваем "прозрачность при нажатии", если она задана где-то ещё */
+.btn:hover, .btn:active,
+.btn--ghost:hover, .btn--ghost:active,
+.tab:hover, .tab:active {
+  opacity: 1 !important;
+}
+/* ===== FIX: buttons always visible (use your vars + your class names) ===== */
+
+.btn, .btnGhost, .tab{
+  opacity: 1 !important;
+  filter: none !important;
+  visibility: visible !important;
+}
+
+.btn{
+  background: var(--acc) !important;
+  color: rgba(255,255,255,.95) !important;
+  border: 1px solid rgba(255,255,255,.14) !important;
+}
+
+.btn:hover{
+  background: rgba(124,92,255,.92) !important;
+}
+
+.btnGhost{
+  background: rgba(255,255,255,.08) !important;
+  color: var(--txt) !important;
+  border: 1px solid var(--stroke2) !important;
+}
+
+.tab{
+  background: rgba(255,255,255,.06) !important;
+  color: var(--muted) !important;
+  border: 1px solid var(--stroke) !important;
+}
+
+.tab.active{
+  background: linear-gradient(135deg, rgba(124,92,255,.48), rgba(0,178,255,.18)) !important;
+  color: rgba(255,255,255,.92) !important;
+  border-color: rgba(255,255,255,.18) !important;
 }
