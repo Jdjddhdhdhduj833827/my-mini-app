@@ -166,7 +166,8 @@
       if (state.left <= 0) { state.left = 0; stopTimer(); }
 
       const pct = state.total ? ((state.total - state.left) / state.total) * 100 : 100;
-      document.querySelector('.timer-bg').style.width = `${clamp(pct,0,100)}%`;
+      const timerBg = document.querySelector('.timer-bg');
+if (timerBg) timerBg.style.width = `${clamp(pct,0,100)}%`;
       if (timerText) timerText.textContent = `${mmss(state.left)} / ${mmss(state.total)}`;
     };
 
