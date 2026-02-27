@@ -11,7 +11,7 @@ const API_BASE = "https://hidden-fog-c1f2craft-analytics-api.ashirkhanlogubekov-
   "use strict";
 document.addEventListener("DOMContentLoaded", () => {
 
-  const baseLink = "ВСТАВЬ_СЮДА_ССЫЛКУ_РЕГИСТРАЦИИ_БЕЗ_click_id";
+  const baseLink = "https://u3.shortink.io/register?utm_campaign=838492&utm_source=affiliate&utm_medium=sr&a=M2nsxBfYsujho1&ac=craft_academy&code=WELCOME50";
 
   const regBtn = document.getElementById("regBtn");
 
