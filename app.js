@@ -1266,3 +1266,14 @@ on(btnOpenLink, "click", (e) => {
 
   init();
 })();
+(() => {
+  const reg = document.getElementById("regBtn");
+  if (!reg) return;
+
+  reg.addEventListener("click", (e) => {
+    // если Telegram доступен — откроем через tg.openLink
+    if (window.Telegram && Telegram.WebApp && Telegram.WebApp.openLink) {
+      e.preventDefault();
+      Telegram.WebApp.openLink(reg.href);
+    }
+  })}
