@@ -133,7 +133,23 @@
           <span class="scan" aria-hidden="true"></span>
           <span class="btn__icon">⚡</span>
         </button>
+<!-- HOT TRENDING badge -->
+<div class="trendingBadge" id="trendingBadge">HOT TRENDING</div>
 
+<!-- Holographic status bar -->
+<div class="holoStatus" id="holoStatus">
+  <div class="holoFill" id="holoFill"></div>
+  <div class="holoText" id="holoText">SYSTEM READY</div>
+</div>
+
+<!-- Analyzing liquidity… line -->
+<div class="analyzingLine" id="analyzingLine" hidden>
+  <span class="analyzingDot"></span>
+  <span id="analyzingText">Analyzing liquidity</span>
+</div>
+
+<!-- AI scan sound (положи файл scan.mp3 рядом с index.html или поправь путь) -->
+<audio id="scanSfx" preload="auto" src="scan.mp3"></audio>
         <button class="btn btn--ghost btn--wide" id="btnReset">
           <span data-i18n="reset">Сброс</span>
         </button>
