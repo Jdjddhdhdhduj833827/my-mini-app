@@ -21,8 +21,21 @@ const PAIRS = [
   { label: "EUR/USD OTC", badge: "🌙" },
 ];
 
-const TFS = ["1m", "3m", "5m", "7m", "10m"];
-
+const TF_LIST = [
+  { label: "10s", seconds: 10 },
+  { label: "15s", seconds: 15 },
+  { label: "30s", seconds: 30 },
+  { label: "1m",  seconds: 60 },
+  { label: "3m",  seconds: 180 },
+  { label: "5m",  seconds: 300 },
+  { label: "7m",  seconds: 420 },
+  { label: "10m", seconds: 600 }
+];
+let state = {
+  pair: "EUR/USD",
+  market: "OTC",
+  tf: TF_LIST[0] // по умолчанию 10s
+};
 const els = {
   pairSelect: $("pairSelect"),
   pairDrop: $("pairDrop"),
@@ -268,3 +281,93 @@ function boot() {
 }
 
 document.addEventListener("DOMContentLoaded", boot);
+let chart, candleSeries;
+
+function initChart() {
+  const el = document.getElementById("chart");
+  if (!el || chart) return;
+
+  chart = LightweightCharts.createChart(el, {
+    layout: { background: { type: 'solid', color: 'transparent' }, textColor: 'rgba(255,255,255,.75)' },
+    grid: {
+      vertLines: { color: 'rgba(255,255,255,.06)' },
+      horzLines: { color: 'rgba(255,255,255,.06)' },
+    },
+    rightPriceScale: { borderColor: 'rgba(255,255,255,.10)' },
+    timeScale: { borderColor: 'rgba(255,255,255,.10)' },
+    crosshair: { mode: 1 }
+  });
+
+  candleSeries = chart.addCandlestickSeries({
+    upColor: 'rgba(124,160,255,1)',
+    downColor: 'rgba(140,140,140,.9)',
+    borderUpColor: 'rgba(124,160,255,1)',
+    borderDownColor: 'rgba(140,140,140,.9)',
+    wickUpColor: 'rgba(124,160,255,.9)',
+    wickDownColor: 'rgba(140,140,140,.75)',
+  });
+
+  // ресайз
+  const ro = new ResizeObserver(() => {
+    chart.applyOptions({ width: el.clientWidth, height: el.clientHeight });
+  });
+  ro.observe(el);
+}
+function setAnalyze(on, text) {
+  const overlay = document.getElementById("analyzeOverlay");
+  const sub = document.getElementById("analyzeSub");
+  if (!overlay) return;
+
+  if (on) {
+    if (text && sub) sub.textContent = text;
+    overlay.classList.remove("hidden");
+  } else {
+    overlay.classList.add("hidden");
+  }
+}
+
+// демо-свечи (без реального API) — выглядят как живые
+function genDemoCandles(count = 60) {
+  const now = Math.floor(Date.now() / 1000);
+  let price = 1.1000 + Math.random() * 0.01;
+
+  const data = [];
+  for (let i = count - 1; i >= 0; i--) {
+    const t = now - i * 60;
+    const open = price;
+    const delta = (Math.random() - 0.5) * 0.003;
+    const close = open + delta;
+    const high = Math.max(open, close) + Math.random() * 0.0015;
+    const low  = Math.min(open, close) - Math.random() * 0.0015;
+    price = close;
+
+    data.push({ time: t, open, high, low, close });
+  }
+  return data;
+}
+
+async function refreshChartForState() {
+  initChart();
+  const meta = document.getElementById("chartMeta");
+  if (meta) meta.textContent = `${state.pair} • ${state.market}`;
+
+  setAnalyze(true, "Сканируем волатильность и импульсы…");
+
+  // небольшая “пауза”, чтобы выглядело как анализ
+  await new Promise(r => setTimeout(r, 900));
+
+  // пока демо (чтобы работало на GitHub Pages без ключей)
+  const candles = genDemoCandles(70);
+  candleSeries.setData(candles);
+
+  setAnalyze(false);
+}
+// после выбора пары:
+state.pair = выбранное_значение;
+document.getElementById("pairValue").textContent = state.pair;
+refreshChartForState();
+
+// после выбора tf:
+state.tf = выбранный_tf_obj;
+document.getElementById("tfValue").textContent = state.tf.label;
+refreshChartForState();
