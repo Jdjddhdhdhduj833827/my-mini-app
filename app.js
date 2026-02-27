@@ -485,6 +485,47 @@ function runAnalysis(){
 btnAnalyze.classList.add("scanning");
 analyzeText.textContent = "AI SCANNING...";
 btnAnalyze.disabled = true;
+  .chartWrap{
+  position:relative;
+  overflow:hidden;
+  border-radius:16px;
+}
+
+/* сетка скрыта по умолчанию */
+.chartWrap::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .25s ease;
+  z-index:1; /* поверх графика, но ниже текста */
+  background:
+    repeating-linear-gradient(0deg,
+      rgba(255,255,255,.06) 0px,
+      rgba(255,255,255,.06) 1px,
+      transparent 1px,
+      transparent 18px
+    ),
+    repeating-linear-gradient(90deg,
+      rgba(255,255,255,.05) 0px,
+      rgba(255,255,255,.05) 1px,
+      transparent 1px,
+      transparent 22px
+    );
+  mix-blend-mode:screen;
+}
+
+/* включаем сетку только когда идет анализ */
+.chartWrap.gridOn::before{
+  opacity:.35;
+}
+
+/* чтобы текст/карточки были выше сетки */
+.chartWrap > *{
+  position:relative;
+  z-index:2;
+}
     ensureChart();
     updateMeta();
 
