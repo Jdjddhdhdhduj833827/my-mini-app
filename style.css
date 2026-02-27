@@ -202,22 +202,6 @@ body{
 .dirText{ font-size: 16px; }
 .dirUntil{ color: rgba(234,240,255,.70); font-weight: 800; margin-left:auto; }
 
-.progress{
-  height: 12px;
-  border-radius: 999px;
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.12);
-  overflow:hidden;
-}
-.progress__bar{
-  height: 100%;
-  width: 0%;
-  border-radius: 999px;
-  background: linear-gradient(90deg, rgba(74,125,255,.95), rgba(122,60,255,.95));
-  box-shadow: 0 0 20px rgba(74,125,255,.22);
-  transition: width .12s linear;
-}
-
 .timer{ margin-top: 8px; text-align:center; color: rgba(234,240,255,.68); font-weight: 800; }
 .footnote{ margin-top: 10px; text-align:center; color: rgba(234,240,255,.45); font-size: 12px; }
 
@@ -284,3 +268,34 @@ body{
 }
 .anTitle{ font-weight: 900; letter-spacing:.03em; }
 .anSub{ font-size: 12px; opacity: .75; margin-top: 4px; }
+
+/* === NEW TIMER BACKGROUND === */
+
+.timerRow{
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+.timer-bg{
+  position: absolute;
+  left: -20%;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 180%;
+  width: 0%;
+  z-index: 0;
+  border-radius: 999px;
+  opacity: .35;
+  filter: blur(20px);
+  background: radial-gradient(circle at 30% 50%,
+      rgba(120,90,255,.9),
+      rgba(120,90,255,.4),
+      rgba(120,90,255,0));
+  transition: width .4s ease;
+}
+
+.timerRow *{
+  position: relative;
+  z-index: 2;
+}
