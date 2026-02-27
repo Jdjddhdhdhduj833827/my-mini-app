@@ -343,7 +343,7 @@
     closeDrops();
   }
 
-  document.addEventListener("DOMContentLoaded", boot);
+  renderTradingView(state.pair);
 })();
 function tvSymbolFor(pair){
   // TradingView forex формат
