@@ -427,3 +427,52 @@ body{
   from{ transform: translateX(-30%) skewX(-18deg); }
   to{ transform: translateX(220%) skewX(-18deg); }
 }
+.chartWrap { margin-bottom: 14px; }
+
+.chartHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin: 14px 2px 10px;
+}
+.chartTitle{ font-weight: 800; }
+.chartMeta{ font-size:12px; opacity:.8; }
+
+.chartBox{
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  background: rgba(18,20,28,.70);
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+.chart{
+  height: 190px;   /* КЛЮЧ: без этого будет пусто */
+  width: 100%;
+}
+
+/* overlay анализа */
+.analyzeOverlay{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  padding: 14px;
+  pointer-events:none;
+  background: rgba(0,0,0,.15);
+}
+.scanLine{
+  position:absolute;
+  left:0; right:0;
+  height:2px;
+  top:0;
+  background: rgba(124,160,255,.9);
+  box-shadow: 0 0 18px rgba(124,160,255,.8);
+  animation: scan 1.2s linear infinite;
+}
+@keyframes scan{
+  0%{ transform: translateY(0); opacity:.2; }
+  35%{ opacity:1; }
+  100%{ transform: translateY(190px); opacity:.2; }
+}
