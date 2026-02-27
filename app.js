@@ -1276,18 +1276,22 @@ document.addEventListener("DOMContentLoaded", () => {
 }
   
 // === OPEN REGISTRATION LINK ===
-const openBtn = document.getElementById("btnOpenLink");
+document.addEventListener("DOMContentLoaded", function () {
 
-if (openBtn) {
-  openBtn.addEventListener("click", () => {
-    const link = "https://u3.shortink.io/register?utm_campaign=838492&utm_source=affiliate&utm_medium=sr&a=M2nsxBfYsujho1&ac=craft_academy&code=WELCOME50"; 
+  const openBtn = document.getElementById("btnOpenLink");
 
-    if (window.Telegram && window.Telegram.WebApp) {
-      window.Telegram.WebApp.openLink(link);
-    } else {
-      window.open(link, "_blank");
-    }
-  });
-}
-  });
-}
+  if (openBtn) {
+    openBtn.addEventListener("click", function () {
+
+      const link = "https://u3.shortink.io/register?utm_campaign=838492&utm_source=affiliate&utm_medium=sr&a=M2nsxBfYsujho1&ac=craft_academy&code=WELCOME50";
+
+      if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.openLink(link);
+      } else {
+        window.open(link, "_blank");
+      }
+
+    });
+  }
+
+});
