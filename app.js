@@ -9,17 +9,7 @@ console.log("TG ID:", tgId);
 const API_BASE = "https://hidden-fog-c1f2craft-analytics-api.ashirkhanlogubekov-833.workers.dev";
 (() => {
   "use strict";
-document.addEventListener("DOMContentLoaded", () => {
 
-  const baseLink = "https://u3.shortink.io/register?utm_campaign=838492&utm_source=affiliate&utm_medium=sr&a=M2nsxBfYsujho1&ac=craft_academy&code=WELCOME50";
-
-  const regBtn = document.getElementById("regBtn");
-
-  if (tgId && regBtn) {
-    regBtn.href = baseLink + "&click_id=" + encodeURIComponent(String(tgId));
-  }
-
-});
   /* =========================
      Ultra Helpers
   ========================== */
@@ -1260,38 +1250,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
   init();
 })();
-#aiLog{
-  position:relative;
-  overflow:hidden;
-}
-#aiLog::after{
-  content:"";
-  position:absolute;
-  inset:-70%;
-  background:linear-gradient(120deg, transparent 42%, rgba(255,255,255,.10), transparent 62%);
-  transform:translateX(-70%) rotate(12deg);
-  animation:holoSweep 3.2s linear infinite;
-  opacity:.55;
-  pointer-events:none;
-}
-  
-// === OPEN REGISTRATION LINK ===
-document.addEventListener("DOMContentLoaded", function () {
 
+  // === OPEN REGISTRATION LINK (FINAL) ===
+document.addEventListener("DOMContentLoaded", () => {
   const openBtn = document.getElementById("btnOpenLink");
+  if (!openBtn) return;
 
-  if (openBtn) {
-    openBtn.addEventListener("click", function () {
+  openBtn.addEventListener("click", (e) => {
+    e.preventDefault();
 
-      const link = "https://u3.shortink.io/register?utm_campaign=838492&utm_source=affiliate&utm_medium=sr&a=M2nsxBfYsujho1&ac=craft_academy&code=WELCOME50";
+    const tg = window.Telegram?.WebApp;
+    const tgId = tg?.initDataUnsafe?.user?.id;
 
-      if (window.Telegram && window.Telegram.WebApp) {
-        window.Telegram.WebApp.openLink(link);
+    const baseLink =
+      "https://u3.shortink.io/register?utm_campaign=838492&utm_source=affiliate&utm_medium=sr&a=M2nsxBfYsujho1&ac=craft_academy&code=WELCOME50";
+
+    const finalLink = tgId
+      ? baseLink + "&click_id=" + encodeURIComponent(String(tgId))
+      : baseLink;
+
+    try {
+      if (tg?.openLink) {
+        tg.openLink(finalLink);
       } else {
-        window.open(link, "_blank");
+        window.open(finalLink, "_blank");
       }
-
-    });
-  }
-
+    } catch (err) {
+      window.open(finalLink, "_blank");
+    }
+  });
 });
