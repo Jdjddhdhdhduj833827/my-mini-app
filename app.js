@@ -43,7 +43,7 @@ const API_BASE = "https://hidden-fog-c1f2craft-analytics-api.ashirkhanlogubekov-
   /* =========================
      Config
   ========================== */
- 
+ const REG_LINK = "https://u3.shortink.io/register?utm_campaign=838492&utm_source=affiliate&utm_medium=sr&a=M2nsxBfYsujho1&ac=craft_academy&code=WELCOME50";
   const MARKETS = ["OTC", "REAL"];
 
   const TIMEFRAMES = [
@@ -892,10 +892,26 @@ const API_BASE = "https://hidden-fog-c1f2craft-analytics-api.ashirkhanlogubekov-
     btnEnter.disabled = !chkRegistered.checked;
   });
 
-  on(btnOpenLink, "click", () => {
-    haptic("light");
-    try { tg?.openLink?.(REG_LINK); } catch { window.open(REG_LINK, "_blank"); }
-  });
+on(btnOpenLink, "click", (e) => {
+  e?.preventDefault?.();
+  haptic("light");
+
+  const tgId = tg?.initDataUnsafe?.user?.id;
+
+  const finalLink = tgId
+    ? REG_LINK + "&click_id=" + encodeURIComponent(String(tgId))
+    : REG_LINK;
+
+  try {
+    if (tg?.openLink) {
+      tg.openLink(finalLink);
+    } else {
+      window.open(finalLink, "_blank");
+    }
+  } catch {
+    window.open(finalLink, "_blank");
+  }
+});
 
   on(btnEnter, "click", () => {
     if (!chkRegistered || !chkRegistered.checked) return;
@@ -1249,33 +1265,3 @@ const API_BASE = "https://hidden-fog-c1f2craft-analytics-api.ashirkhanlogubekov-
 
   init();
 })();
-
-  // === OPEN REGISTRATION LINK (FINAL) ===
-document.addEventListener("DOMContentLoaded", () => {
-  const openBtn = document.getElementById("btnOpenLink");
-  if (!openBtn) return;
-
-  openBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-
-    const tg = window.Telegram?.WebApp;
-    const tgId = tg?.initDataUnsafe?.user?.id;
-
-    const baseLink =
-      "https://u3.shortink.io/register?utm_campaign=838492&utm_source=affiliate&utm_medium=sr&a=M2nsxBfYsujho1&ac=craft_academy&code=WELCOME50";
-
-    const finalLink = tgId
-      ? baseLink + "&click_id=" + encodeURIComponent(String(tgId))
-      : baseLink;
-
-    try {
-      if (tg?.openLink) {
-        tg.openLink(finalLink);
-      } else {
-        window.open(finalLink, "_blank");
-      }
-    } catch (err) {
-      window.open(finalLink, "_blank");
-    }
-  });
-});
