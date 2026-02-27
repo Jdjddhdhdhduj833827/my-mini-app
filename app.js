@@ -1,357 +1,523 @@
 (() => {
-  const tg = window.Telegram?.WebApp;
-  if (tg) { try { tg.ready(); tg.expand(); } catch {} }
-
   const $ = (id) => document.getElementById(id);
-  const pad2 = (n) => String(n).padStart(2, "0");
-  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
-  // ===== DATA =====
-  const PAIRS = [
-    { value: "EUR/USD", badge: "🇪🇺🇺🇸" },
-    { value: "GBP/USD", badge: "🇬🇧🇺🇸" },
-    { value: "USD/JPY", badge: "🇺🇸🇯🇵" },
-    { value: "EUR/JPY", badge: "🇪🇺🇯🇵" },
-    { value: "AUD/USD", badge: "🇦🇺🇺🇸" },
-    { value: "USD/CHF", badge: "🇺🇸🇨🇭" },
-    { value: "BTC/USD", badge: "₿" },
-    { value: "ETH/USD", badge: "Ξ" },
-  ];
+  // -------- i18n --------
+  const I18N = {
+    ru: {
+      tagline: "Premium Market Intelligence",
+      gateTitle: "Открыть доступ к платформе",
+      gateText: "Для доступа к инструментам анализа необходимо зарегистрироваться на платформе по ссылке. Это бесплатно. Депозит не требуется.",
+      chip1: "График + уровни",
+      chip2: "Market Factors",
+      chip3: "Confidence-оценка",
+      chip4: "Премиальный UI",
+      registerBtn: "Зарегистрироваться",
+      unlockBtn: "Открыть доступ",
+      checkText: "Я перешёл по ссылке и завершил регистрацию",
+      note: "Демо-режим интерфейса. Не является финансовой рекомендацией.",
 
-  const TFS = [
-    { label: "10s", sec: 10 },
-    { label: "15s", sec: 15 },
-    { label: "30s", sec: 30 },
-    { label: "1m",  sec: 60 },
-    { label: "3m",  sec: 180 },
-    { label: "5m",  sec: 300 },
-    { label: "7m",  sec: 420 },
-    { label: "10m", sec: 600 },
-  ];
+      appSub: "Market Intelligence Dashboard",
+      demo: "DEMO",
+      params: "Параметры",
+      asset: "Актив",
+      tf: "Таймфрейм",
+      market: "Режим",
+      analyze: "Запустить анализ",
+      reset: "Сброс",
+      hint: "Демо-интерфейс: данные локальные, чтобы всё работало стабильно. Активы берутся из assets.json.",
+      chart: "График",
+      confidence: "Confidence",
+      direction: "Направление",
+      valid: "Действует до",
+      result: "Результат",
+      sub: "Нажми «Запустить анализ», чтобы получить результат.",
+      disc: "Демо-режим интерфейса. Не является финансовым советом.",
+      factors: "Market Factors",
+      factorsHint: "AI-оценка состояния рынка",
+      vol: "Volatility",
+      trend: "Trend Strength",
+      risk: "Risk",
+      assetsTitle: "Assets",
+      assetsFoot: "Список берётся из assets.json. Можно расширять без переписывания кода."
+    },
+    en: {
+      tagline: "Premium Market Intelligence",
+      gateTitle: "Unlock Platform Access",
+      gateText: "To access analytics tools, register via the link. It's free. No deposit required.",
+      chip1: "Chart + levels",
+      chip2: "Market Factors",
+      chip3: "Confidence score",
+      chip4: "Premium UI",
+      registerBtn: "Register",
+      unlockBtn: "Unlock access",
+      checkText: "I opened the link and completed registration",
+      note: "Demo UI. Not financial advice.",
 
-  const state = {
-    pair: PAIRS[0].value,
-    badge: PAIRS[0].badge,
-    tf: TFS[0].label,
-    tfSec: TFS[0].sec,
-    market: "OTC",
-    timer: null,
-    total: 0,
-    left: 0,
+      appSub: "Market Intelligence Dashboard",
+      demo: "DEMO",
+      params: "Parameters",
+      asset: "Asset",
+      tf: "Timeframe",
+      market: "Mode",
+      analyze: "Run analysis",
+      reset: "Reset",
+      hint: "Demo UI: data is local for stability. Assets are loaded from assets.json.",
+      chart: "Chart",
+      confidence: "Confidence",
+      direction: "Direction",
+      valid: "Valid until",
+      result: "Result",
+      sub: "Press “Run analysis” to generate the output.",
+      disc: "Demo UI. Not financial advice.",
+      factors: "Market Factors",
+      factorsHint: "AI market snapshot",
+      vol: "Volatility",
+      trend: "Trend Strength",
+      risk: "Risk",
+      assetsTitle: "Assets",
+      assetsFoot: "The list is loaded from assets.json. You can extend it anytime."
+    },
+    es: {
+      tagline: "Inteligencia de Mercado Premium",
+      gateTitle: "Desbloquear acceso",
+      gateText: "Para acceder a las herramientas, regístrate mediante el enlace. Es gratis. No se requiere depósito.",
+      chip1: "Gráfico + niveles",
+      chip2: "Market Factors",
+      chip3: "Confianza",
+      chip4: "UI premium",
+      registerBtn: "Registrarse",
+      unlockBtn: "Abrir acceso",
+      checkText: "Abrí el enlace y completé el registro",
+      note: "Interfaz demo. No es consejo financiero.",
+
+      appSub: "Panel de Inteligencia",
+      demo: "DEMO",
+      params: "Parámetros",
+      asset: "Activo",
+      tf: "Marco temporal",
+      market: "Modo",
+      analyze: "Iniciar análisis",
+      reset: "Reiniciar",
+      hint: "Modo demo: datos locales. La lista de activos viene de assets.json.",
+      chart: "Gráfico",
+      confidence: "Confianza",
+      direction: "Dirección",
+      valid: "Válido hasta",
+      result: "Resultado",
+      sub: "Pulsa “Iniciar análisis” para generar el resultado.",
+      disc: "Interfaz demo. No es consejo financiero.",
+      factors: "Market Factors",
+      factorsHint: "Resumen del mercado",
+      vol: "Volatilidad",
+      trend: "Fuerza de tendencia",
+      risk: "Riesgo",
+      assetsTitle: "Activos",
+      assetsFoot: "La lista se carga desde assets.json. Puedes ampliarla cuando quieras."
+    },
+    de: {
+      tagline: "Premium Markt-Intelligenz",
+      gateTitle: "Zugang freischalten",
+      gateText: "Für den Zugriff bitte über den Link registrieren. Kostenlos. Kein Deposit erforderlich.",
+      chip1: "Chart + Levels",
+      chip2: "Market Factors",
+      chip3: "Confidence",
+      chip4: "Premium UI",
+      registerBtn: "Registrieren",
+      unlockBtn: "Zugang öffnen",
+      checkText: "Ich habe den Link geöffnet und mich registriert",
+      note: "Demo-UI. Keine Finanzberatung.",
+
+      appSub: "Market-Intelligence Dashboard",
+      demo: "DEMO",
+      params: "Parameter",
+      asset: "Asset",
+      tf: "Zeitrahmen",
+      market: "Modus",
+      analyze: "Analyse starten",
+      reset: "Zurücksetzen",
+      hint: "Demo UI: lokale Daten. Assets werden aus assets.json geladen.",
+      chart: "Chart",
+      confidence: "Confidence",
+      direction: "Richtung",
+      valid: "Gültig bis",
+      result: "Ergebnis",
+      sub: "Klicke „Analyse starten“, um das Ergebnis zu erzeugen.",
+      disc: "Demo-UI. Keine Finanzberatung.",
+      factors: "Market Factors",
+      factorsHint: "Markt-Snapshot",
+      vol: "Volatilität",
+      trend: "Trendstärke",
+      risk: "Risiko",
+      assetsTitle: "Assets",
+      assetsFoot: "Liste wird aus assets.json geladen. Du kannst sie jederzeit erweitern."
+    }
   };
 
-  // ===== ELEMENTS =====
-  const pairSelect = $("pairSelect");
-  const pairDrop = $("pairDrop");
-  const pairValue = $("pairValue");
-  const pairBadge = $("pairBadge");
-
-  const tfSelect = $("tfSelect");
-  const tfDrop = $("tfDrop");
-  const tfValue = $("tfValue");
-
-  const marketBtn = $("marketBtn");
-  const marketValue = $("marketValue");
-
-  const btnGenerate = $("btnGenerate");
-  const btnGenerate2 = $("btnGenerate2");
-  const btnReset = $("btnReset");
-
-  const hintText = $("hintText");
-  const resultPanel = $("resultPanel");
-
-  const rPair = $("rPair");
-  const rTf = $("rTf");
-  const rAcc = $("rAcc");
-  const rDir = $("rDir");
-  const rUntil = $("rUntil");
-
-  const progressBar = $("progressBar");
-  const timerText = $("timerText");
-
-  const chartMeta = $("chartMeta");
-  const chartHost = $("chart");
-
-  const backdrop = $("backdrop");
-  const analyzeOverlay = $("analyzeOverlay");
-  const anSub = $("anSub");
-
-  // ===== DROPDOWNS =====
-  function showBackdrop(on){
-    backdrop?.classList.toggle("hidden", !on);
-  }
-
-  function closeDrops(){
-    pairDrop?.classList.remove("open");
-    tfDrop?.classList.remove("open");
-    showBackdrop(false);
-  }
-
-  function openDrop(drop){
-    closeDrops();
-    drop.classList.add("open");
-    showBackdrop(true);
-  }
-
-  backdrop?.addEventListener("click", closeDrops);
-
-  function renderPairs(){
-    pairDrop.innerHTML = "";
-    PAIRS.forEach(p => {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "dropItem";
-      b.textContent = `${p.badge} ${p.value}`;
-      b.addEventListener("click", (e) => {
-        e.preventDefault();
-        state.pair = p.value;
-        state.badge = p.badge;
-        pairValue.textContent = state.pair;
-        pairBadge.textContent = state.badge;
-        closeDrops();
-        renderChart();
-      });
-      pairDrop.appendChild(b);
+  function applyLang(lang){
+    const dict = I18N[lang] || I18N.ru;
+    document.documentElement.lang = lang;
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+      const key = el.getAttribute("data-i18n");
+      if (dict[key]) el.textContent = dict[key];
     });
+    localStorage.setItem("ca_lang", lang);
+    const label = $("langLabel");
+    if (label) label.textContent = lang.toUpperCase();
   }
 
-  function renderTfs(){
-    tfDrop.innerHTML = "";
-    TFS.forEach(t => {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "dropItem";
-      b.textContent = t.label;
-      b.addEventListener("click", (e) => {
-        e.preventDefault();
-        state.tf = t.label;
-        state.tfSec = t.sec;
-        tfValue.textContent = state.tf;
-        closeDrops();
-      });
-      tfDrop.appendChild(b);
-    });
-  }
+  // -------- Gate --------
+  const gate = $("gate");
+  const app = $("app");
+  const chkDone = $("chkDone");
+  const btnUnlock = $("btnUnlock");
+  const btnRegister = $("btnRegister");
 
-  pairSelect?.addEventListener("click", (e)=>{ e.preventDefault(); openDrop(pairDrop); });
-  tfSelect?.addEventListener("click", (e)=>{ e.preventDefault(); openDrop(tfDrop); });
+  function setUnlockEnabled(on){ btnUnlock.disabled = !on; }
 
-  // ===== MARKET =====
-  marketBtn?.addEventListener("click", () => {
-    state.market = (state.market === "OTC") ? "REAL" : "OTC";
-    marketValue.textContent = state.market;
-    renderChart();
+  chkDone?.addEventListener("change", () => setUnlockEnabled(!!chkDone.checked));
+  btnRegister?.addEventListener("click", () => setTimeout(() => setUnlockEnabled(true), 600));
+
+  btnUnlock?.addEventListener("click", () => {
+    gate.hidden = true;
+    app.hidden = false;
+    ensureChart();
   });
 
-  // ===== TIMER =====
-  function mmss(sec){
-    sec = Math.max(0, Math.ceil(sec));
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    return `${pad2(m)}:${pad2(s)}`;
+  // -------- Language menu --------
+  const langBtn = $("langBtn");
+  const langMenu = $("langMenu");
+  const openLang = $("openLang");
+
+  function toggleLangMenu(){
+    const isHidden = langMenu.hasAttribute("hidden");
+    if (isHidden) langMenu.removeAttribute("hidden");
+    else langMenu.setAttribute("hidden", "");
   }
+  function closeLangMenu(){ langMenu.setAttribute("hidden", ""); }
 
-  function stopTimer(){
-    if (state.timer) clearInterval(state.timer);
-    state.timer = null;
-  }
+  langBtn?.addEventListener("click", (e) => { e.stopPropagation(); toggleLangMenu(); });
+  openLang?.addEventListener("click", (e) => { e.stopPropagation(); toggleLangMenu(); });
+  langMenu?.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-lang]");
+    if (!btn) return;
+    applyLang(btn.getAttribute("data-lang"));
+    closeLangMenu();
+    renderAssets(); // перерисуем категории/подписи
+  });
+  document.addEventListener("click", () => closeLangMenu());
 
-  function startTimer(totalSec){
-    stopTimer();
-    state.total = totalSec;
-    state.left = totalSec;
+  // -------- Assets (from assets.json) --------
+  let ASSETS = [];
+  let selectedAsset = { symbol: "EUR/USD", category: "forex", label: "EUR/USD" };
 
-    const tick = () => {
-      state.left -= 0.1;
-      if (state.left <= 0) { state.left = 0; stopTimer(); }
+  const assetBtn = $("assetBtn");
+  const assetValue = $("assetValue");
 
-      const pct = state.total ? ((state.total - state.left) / state.total) * 100 : 100;
-      const timerBg = document.querySelector('.timer-bg');
-if (timerBg) timerBg.style.width = `${clamp(pct,0,100)}%`;
-      if (timerText) timerText.textContent = `${mmss(state.left)} / ${mmss(state.total)}`;
-    };
+  const assetsModal = $("assetsModal");
+  const btnAssets = $("btnAssets");
+  const closeAssets = $("closeAssets");
+  const assetSearch = $("assetSearch");
+  const assetCategory = $("assetCategory");
+  const assetList = $("assetList");
 
-    tick();
-    state.timer = setInterval(tick, 100);
-  }
-
-  // ===== ANALYZE OVERLAY =====
-  function setAnalyze(on, text){
-    if (!analyzeOverlay) return;
-    if (text && anSub) anSub.textContent = text;
-    analyzeOverlay.classList.toggle("hidden", !on);
-  }
-
-  // ===== SIGNAL UI =====
-  function pickDir(){
-    return Math.random() < 0.52 ? "UP" : "DOWN";
-  }
-
-  function acc(){
-    return Math.floor(72 + Math.random() * 16); // 72..87
-  }
-
-  function untilTime(sec){
-    const d = new Date(Date.now() + sec * 1000);
-    return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
-  }
-
-  function showResult(show){
-    resultPanel?.classList.toggle("hidden", !show);
-    hintText?.classList.toggle("hidden", show);
-  }
-
-  function applyResult(dir){
-    rPair.textContent = state.pair;
-    rTf.textContent = state.tf;
-    rAcc.textContent = `${acc()}%`;
-    rUntil.textContent = untilTime(state.tfSec);
-
-    const dot = rDir.querySelector(".dirDot");
-    const text = rDir.querySelector(".dirText");
-
-    if (dir === "UP") {
-      dot.classList.remove("down"); dot.classList.add("up");
-      text.textContent = "Вверх";
-    } else {
-      dot.classList.remove("up"); dot.classList.add("down");
-      text.textContent = "Вниз";
+  function showModal(on){
+    assetsModal.hidden = !on;
+    if (on){
+      assetSearch.value = "";
+      assetCategory.value = "all";
+      renderAssets();
+      assetSearch.focus();
     }
   }
 
-  // ===== CHART =====
+  btnAssets?.addEventListener("click", () => showModal(true));
+  assetBtn?.addEventListener("click", () => showModal(true));
+  closeAssets?.addEventListener("click", () => showModal(false));
+  assetsModal?.addEventListener("click", (e) => {
+    if (e.target === assetsModal) showModal(false);
+  });
+
+  assetSearch?.addEventListener("input", renderAssets);
+  assetCategory?.addEventListener("change", renderAssets);
+
+  async function loadAssets(){
+    try{
+      const res = await fetch("./assets.json", { cache: "no-store" });
+      if (!res.ok) throw new Error("assets.json not found");
+      const data = await res.json();
+      ASSETS = Array.isArray(data) ? data : (data.assets || []);
+    }catch(_e){
+      // fallback (если assets.json забыли добавить)
+      ASSETS = [
+        {symbol:"EUR/USD", category:"forex", label:"EUR/USD"},
+        {symbol:"GBP/USD", category:"forex", label:"GBP/USD"},
+        {symbol:"USD/JPY", category:"forex", label:"USD/JPY"},
+        {symbol:"BTC/USDT", category:"crypto", label:"BTC/USDT"},
+        {symbol:"ETH/USDT", category:"crypto", label:"ETH/USDT"},
+        {symbol:"AAPL", category:"stocks", label:"Apple"},
+        {symbol:"SPX", category:"indices", label:"SP500"},
+        {symbol:"XAUUSD", category:"commodities", label:"Gold"}
+      ];
+    }
+  }
+
+  function renderAssets(){
+    if (!assetList) return;
+
+    const q = (assetSearch?.value || "").trim().toLowerCase();
+    const cat = assetCategory?.value || "all";
+
+    const filtered = ASSETS.filter(a => {
+      const inCat = (cat === "all") || (a.category === cat);
+      if (!inCat) return false;
+      if (!q) return true;
+      const hay = `${a.symbol} ${a.label || ""}`.toLowerCase();
+      return hay.includes(q);
+    });
+
+    assetList.innerHTML = filtered.slice(0, 300).map(a => `
+      <div class="assetItem">
+        <div>
+          <div class="assetName">${escapeHtml(a.label || a.symbol)}</div>
+          <div class="assetMeta">${escapeHtml(a.symbol)} • ${escapeHtml(a.category)}</div>
+        </div>
+        <button class="assetBtn" data-symbol="${escapeAttr(a.symbol)}">SELECT</button>
+      </div>
+    `).join("");
+
+    assetList.querySelectorAll(".assetBtn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const sym = btn.getAttribute("data-symbol");
+        const asset = ASSETS.find(x => x.symbol === sym);
+        if (!asset) return;
+        selectedAsset = asset;
+        if (assetValue) assetValue.textContent = asset.symbol;
+        if ($("pairOut")) $("pairOut").textContent = asset.symbol;
+        updateMeta();
+        showModal(false);
+        // обновим график под новый актив (демо-данные)
+        if (series){ series.setData(mockLinePoints(90)); chart.timeScale().fitContent(); }
+      });
+    });
+  }
+
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+  function escapeAttr(s){ return escapeHtml(s).replace(/"/g,'&quot;'); }
+
+  // -------- Chart --------
+  const chartHost = $("chart");
   let chart = null;
   let series = null;
 
-  function mockCandles(count = 70){
+  function mockLinePoints(n=80){
     const now = Math.floor(Date.now()/1000);
-    let t = now - count * 60;
-
-    const base = {
-      "EUR/USD": 1.085,
-      "GBP/USD": 1.265,
-      "USD/JPY": 148.2,
-      "EUR/JPY": 161.0,
-      "AUD/USD": 0.655,
-      "USD/CHF": 0.895,
-      "BTC/USD": 52000,
-      "ETH/USD": 2800,
-    }[state.pair] ?? 1.08;
-
-    let price = base;
-    const crypto = state.pair.includes("BTC") || state.pair.includes("ETH");
-    const k = crypto ? 0.004 : 0.001;
-    const vol = (state.market === "OTC") ? 1.25 : 1.0;
-
-    const data = [];
-    for (let i=0;i<count;i++){
-      const open = price;
-      const delta = (Math.random()-0.5) * k * vol;
-      const close = open * (1 + delta);
-      const high = Math.max(open, close) * (1 + Math.random()*k*0.7);
-      const low  = Math.min(open, close) * (1 - Math.random()*k*0.7);
-      data.push({ time: t, open, high, low, close });
-      t += 60;
-      price = close;
+    let price = 100 + Math.random()*10;
+    const out = [];
+    for (let i=n-1; i>=0; i--){
+      const t = now - i*60;
+      price += (Math.random()-0.5)*1.2;
+      out.push({ time: t, value: +price.toFixed(4) });
     }
-    return data;
+    return out;
   }
 
   function ensureChart(){
-    if (!chartHost) return false;
-    if (!window.LightweightCharts) return false;
-    if (chart) return true;
+    if (!window.LightweightCharts || !chartHost) return;
+    if (chart) return;
 
     chart = window.LightweightCharts.createChart(chartHost, {
-      layout: { background: { type:"solid", color:"transparent" }, textColor:"rgba(255,255,255,.82)" },
-      grid: { vertLines:{ color:"rgba(255,255,255,.06)" }, horzLines:{ color:"rgba(255,255,255,.06)" } },
-      rightPriceScale: { borderColor:"rgba(255,255,255,.10)" },
-      timeScale: { borderColor:"rgba(255,255,255,.10)", timeVisible:true, secondsVisible:true },
-      crosshair: { mode: 1 }
+      layout: {
+        background: { type: "solid", color: "rgba(0,0,0,0)" },
+        textColor: "rgba(255,255,255,.65)",
+        fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial",
+        fontSize: 12
+      },
+      grid: {
+        vertLines: { color: "rgba(255,255,255,.06)" },
+        horzLines: { color: "rgba(255,255,255,.06)" }
+      },
+      rightPriceScale: { borderColor: "rgba(255,255,255,.10)" },
+      timeScale: { borderColor: "rgba(255,255,255,.10)" },
+      crosshair: { mode: 0 },
+      handleScroll: false,
+      handleScale: false,
     });
 
-    
     series = chart.addLineSeries({
-  color: "#5aa2ff",      // цвет линии
-  lineWidth: 2,
-  crosshairMarkerVisible: true,
-  lastValueVisible: true,
-  priceLineVisible: true
-});
+      color: "rgba(124,92,255,.95)",
+      lineWidth: 3,
+      crosshairMarkerVisible: true,
+      lastValueVisible: true,
+      priceLineVisible: true,
+    });
+
+    series.setData(mockLinePoints(90));
+    chart.timeScale().fitContent();
 
     const ro = new ResizeObserver(() => {
       chart.applyOptions({ width: chartHost.clientWidth, height: chartHost.clientHeight });
     });
     ro.observe(chartHost);
-
-    return true;
   }
 
-  function renderChart(){
-    if (chartMeta) chartMeta.textContent = `${state.pair} • ${state.market}`;
+  // -------- Analysis + Premium factors --------
+  const tfSelect = $("tfSelect");
+  const marketSelect = $("marketSelect");
+  const btnAnalyze = $("btnAnalyze");
+  const btnReset = $("btnReset");
 
-    if (!ensureChart()) {
-      // если CDN недоступен — просто покажем текст
-      if (chartHost) chartHost.innerHTML = `<div style="padding:12px;font-size:12px;opacity:.7;text-align:center">
-        График недоступен (CDN). Открой в Telegram или поменяем на локальный файл.
-      </div>`;
-      return;
-    }
+  const metaLine = $("metaLine");
+  const conf = $("conf");
+  const dir = $("dir");
+  const until = $("until");
 
-    const candles = mockCandles(70);
+  const badge = $("badge");
+  const pairOut = $("pairOut");
+  const big = $("big");
+  const sub = $("sub");
 
-series = chart.addLineSeries({
-  color: "#5aa2ff",
-  lineWidth: 3,
-  lineStyle: 0,
-});
+  const timerBg = $("timerBg");
+  const timerText = $("timerText");
 
-series.setData(lineData);
-    chart.timeScale().fitContent();
+  const fVol = $("fVol"), fTrend = $("fTrend"), fRisk = $("fRisk");
+  const mVol = $("mVol"), mTrend = $("mTrend"), mRisk = $("mRisk");
+
+  let timerId = null;
+
+  const pad2 = (n) => String(n).padStart(2,"0");
+  function mmss(sec){
+    sec = Math.max(0, Math.ceil(sec));
+    const m = Math.floor(sec/60);
+    const s = sec%60;
+    return `${pad2(m)}:${pad2(s)}`;
   }
 
-  // ===== GENERATE =====
-  async function generate(){
-    closeDrops();
-
-    showResult(true);
-    setAnalyze(true, "Сканируем волатильность и импульсы…");
-    await new Promise(r => setTimeout(r, 1100));
-    setAnalyze(false);
-
-    const dir = pickDir();
-    applyResult(dir);
-    startTimer(state.tfSec);
-    renderChart();
-
-    tg?.HapticFeedback?.impactOccurred?.("medium");
+  function stopTimer(){
+    if (timerId) clearInterval(timerId);
+    timerId = null;
   }
 
-  btnGenerate?.addEventListener("click", generate);
-  btnGenerate2?.addEventListener("click", generate);
-
-  btnReset?.addEventListener("click", () => {
-    closeDrops();
+  function startTimer(seconds){
     stopTimer();
-    showResult(false);
-    document.querySelector('.timer-bg').style.width = "0%";
-    if (timerText) timerText.textContent = "00:00 / 00:00";
-  });
+    const start = Date.now();
+    const end = start + seconds*1000;
 
-  // ===== BOOT =====
-  function boot(){
-    // initial UI
-    pairValue.textContent = state.pair;
-    pairBadge.textContent = state.badge;
-    tfValue.textContent = state.tf;
-    marketValue.textContent = state.market;
+    const tick = () => {
+      const now = Date.now();
+      const left = (end - now)/1000;
+      const pct = Math.min(100, Math.max(0, ((now - start) / (end - start)) * 100));
 
-    renderPairs();
-    renderTfs();
+      if (timerBg) timerBg.style.width = `${pct}%`;
+      if (timerText) timerText.textContent = `${mmss(left)} / ${mmss(seconds)}`;
+      if (now >= end) stopTimer();
+    };
 
-    showResult(false);
-    closeDrops();
+    tick();
+    timerId = setInterval(tick, 120);
   }
 
-  document.addEventListener("DOMContentLoaded", boot);
+  function randomDir(){ return Math.random() > 0.5 ? "UP" : "DOWN"; }
+  function formatUntil(sec){
+    const d = new Date(Date.now() + sec*1000);
+    return `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
+  }
+
+  function updateMeta(){
+    const tfS = Number(tfSelect?.value || 60);
+    const market = marketSelect?.value || "REAL";
+    const tfText = tfS >= 60 ? `${tfS/60}m` : `${tfS}s`;
+
+    if (metaLine) metaLine.textContent = `${selectedAsset.symbol} • ${market} • ${tfText}`;
+    if (pairOut) pairOut.textContent = selectedAsset.symbol;
+    if (badge) badge.textContent = market;
+  }
+
+  function setFactor(elV, elM, value){
+    if (elV) elV.textContent = `${value}%`;
+    if (elM) elM.style.width = `${value}%`;
+  }
+
+  function runAnalysis(){
+    ensureChart();
+    updateMeta();
+
+    const tfS = Number(tfSelect?.value || 60);
+    const market = marketSelect?.value || "REAL";
+
+    // AI scan animation on button
+    btnAnalyze?.classList.add("isScanning");
+
+    // pseudo premium analytics output
+    const confidence = Math.floor(74 + Math.random()*18); // 74-92
+    const d = randomDir();
+    const untilStr = formatUntil(tfS);
+
+    const vol = Math.floor(35 + Math.random()*55);
+    const trend = Math.floor(30 + Math.random()*60);
+    const risk = Math.floor(20 + Math.random()*70);
+
+    // render after short "scan"
+    setTimeout(() => {
+      if (conf) conf.textContent = `${confidence}%`;
+      if (dir) dir.textContent = d === "UP" ? "↑ UP" : "↓ DOWN";
+      if (until) until.textContent = untilStr;
+
+      if (big) big.textContent = d === "UP" ? "BULLISH SCENARIO" : "BEARISH SCENARIO";
+      if (sub) sub.textContent = `${selectedAsset.symbol} • ${market} • Confidence ${confidence}% • Valid until ${untilStr}`;
+
+      setFactor(fVol, mVol, vol);
+      setFactor(fTrend, mTrend, trend);
+      setFactor(fRisk, mRisk, risk);
+
+      if (series){
+        series.setData(mockLinePoints(90));
+        chart.timeScale().fitContent();
+      }
+
+      startTimer(tfS);
+      btnAnalyze?.classList.remove("isScanning");
+    }, 650);
+  }
+
+  function resetAll(){
+    stopTimer();
+    if (timerBg) timerBg.style.width = "0%";
+    if (timerText) timerText.textContent = "00:00 / 00:00";
+    if (conf) conf.textContent = "—";
+    if (dir) dir.textContent = "—";
+    if (until) until.textContent = "—";
+    if (big) big.textContent = "—";
+    if (fVol) fVol.textContent = "—";
+    if (fTrend) fTrend.textContent = "—";
+    if (fRisk) fRisk.textContent = "—";
+    if (mVol) mVol.style.width = "0%";
+    if (mTrend) mTrend.style.width = "0%";
+    if (mRisk) mRisk.style.width = "0%";
+
+    const dict = I18N[localStorage.getItem("ca_lang") || "ru"] || I18N.ru;
+    if (sub) sub.textContent = dict.sub;
+
+    if (series){
+      series.setData(mockLinePoints(90));
+      chart.timeScale().fitContent();
+    }
+  }
+
+  btnAnalyze?.addEventListener("click", runAnalysis);
+  btnReset?.addEventListener("click", resetAll);
+
+  // -------- Boot --------
+  const saved = localStorage.getItem("ca_lang") || "ru";
+  applyLang(saved);
+  setUnlockEnabled(false);
+
+  (async () => {
+    await loadAssets();
+    // default asset must exist
+    const found = ASSETS.find(a => a.symbol === selectedAsset.symbol) || ASSETS[0];
+    if (found) selectedAsset = found;
+    if (assetValue) assetValue.textContent = selectedAsset.symbol;
+    updateMeta();
+  })();
+
 })();
