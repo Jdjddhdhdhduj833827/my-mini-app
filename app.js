@@ -78,7 +78,7 @@ const analyzeOverlay = $("analyzeOverlay");
 function closeAllDropdowns(){
   pairDrop.classList.remove("open");
   tfDrop.classList.remove("open");
-  backdrop.classList.add("hidden");
+  backdrop.classList.remove("show"); // <-- важно
 }
 
 function toggleDropdown(drop){
@@ -86,7 +86,7 @@ function toggleDropdown(drop){
   closeAllDropdowns();
   if(!isOpen){
     drop.classList.add("open");
-    backdrop.classList.remove("hidden");
+    backdrop.classList.add("show"); // <-- важно
   }
 }
 
