@@ -166,7 +166,7 @@
       if (state.left <= 0) { state.left = 0; stopTimer(); }
 
       const pct = state.total ? ((state.total - state.left) / state.total) * 100 : 100;
-      if (progressBar) progressBar.style.width = `${clamp(pct,0,100)}%`;
+      document.querySelector('.timer-bg').style.width = `${clamp(pct,0,100)}%`;
       if (timerText) timerText.textContent = `${mmss(state.left)} / ${mmss(state.total)}`;
     };
 
@@ -333,7 +333,7 @@ series.setData(lineData);
     closeDrops();
     stopTimer();
     showResult(false);
-    if (progressBar) progressBar.style.width = "0%";
+    document.querySelector('.timer-bg').style.width = "0%";
     if (timerText) timerText.textContent = "00:00 / 00:00";
   });
 
