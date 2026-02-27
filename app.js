@@ -30,7 +30,12 @@ function escapeHtml(str){
 
 async function loadJson(path){
   const res = await fetch(path, { cache: "no-store" });
-  if(!res.ok) throw new Error(`Cannot load ${path}`);
+
+  if(!res.ok){
+    const txt = await res.text();
+    throw new Error("HTTP " + res.status + " " + path + " :: " + txt.slice(0,200));
+  }
+
   return await res.json();
 }
 
