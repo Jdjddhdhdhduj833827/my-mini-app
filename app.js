@@ -132,7 +132,7 @@ const I18N = {
     gate_btn_access: "Получить доступ",
     gate_status: "Статус:",
     gate_status_na: "не проверен",
-     vpn_hint: "Для корректной проверки статуса рекомендуем отключить VPN.",
+     vpn_hint: "Для корректной работы сервера рекомендуется отключить VPN.",
     gate_legal: "Demo UI. Not financial advice.",
     gate_meter: "SECURITY • initData required",
 
@@ -198,7 +198,7 @@ const I18N = {
     gate_btn_access: "Get access",
     gate_status: "Status:",
     gate_status_na: "not checked",
-     vpn_hint: "For correct status verification, please disable VPN.",
+     vpn_hint: "Disable VPN for stable server connection.",
     gate_legal: "Demo UI. Not financial advice.",
     gate_meter: "SECURITY • initData required",
 
