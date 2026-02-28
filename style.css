@@ -424,3 +424,37 @@ canvas{ display:block; width:100%; height:auto; }
   border-radius: 14px;
   white-space:pre-wrap;
 }
+/* === Hotfix: вернуть контраст/яркость и плавный градиент === */
+
+:root{
+  --txt: rgba(255,255,255,.92);
+  --muted: rgba(255,255,255,.72);
+  --card: rgba(18, 26, 46, .62);
+  --stroke: rgba(255,255,255,.10);
+}
+
+body { color: var(--txt); }
+
+.h1, .brandTitle { color: rgba(255,255,255,.95); }
+.p, .muted, .brandSub, .stepDesc { color: var(--muted) !important; }
+
+.card, .step, .modal, .notifyCard {
+  background: var(--card) !important;
+  border: 1px solid var(--stroke) !important;
+  backdrop-filter: blur(14px) saturate(140%) !important;
+}
+
+.bg{
+  filter: saturate(135%) contrast(112%) brightness(108%) !important;
+  opacity: 1 !important;
+  animation: bgMove 10s ease-in-out infinite alternate !important;
+}
+
+@keyframes bgMove{
+  0%   { transform: translate3d(0,0,0) scale(1.02); }
+  100% { transform: translate3d(-10px,-14px,0) scale(1.06); }
+}
+
+/* сделать текст в шагах четче */
+.stepTitle{ color: rgba(255,255,255,.92) !important; }
+.stepDesc{ color: rgba(255,255,255,.74) !important; }
