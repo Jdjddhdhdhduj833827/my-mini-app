@@ -1,10 +1,9 @@
-// assets.json
 {
   "categories": {
-    "Forex": ["EUR/USD","GBP/USD","USD/JPY","USD/CHF","AUD/USD","USD/CAD","NZD/USD","EUR/GBP","EUR/JPY","GBP/JPY","EUR/CHF","AUD/JPY","CAD/JPY","CHF/JPY"],
-    "Crypto": ["BTC/USD","ETH/USD","SOL/USD","XRP/USD","BNB/USD","DOGE/USD","ADA/USD"],
-    "Stocks": ["AAPL","TSLA","AMZN","NVDA","MSFT","META","GOOGL"],
-    "Commodities": ["Gold","Silver","Oil","Natural Gas"]
+    "Forex": ["EUR/USD", "GBP/USD", "USD/JPY", "USD/CHF"],
+    "Crypto": ["BTC/USD", "ETH/USD"],
+    "Stocks": ["AAPL", "TSLA"],
+    "Commodities": ["Gold", "Oil"]
   },
-  "timeframes": ["5s","15s","30s","1m","2m","5m"]
+  "timeframes": ["15s", "30s", "1m"]
 }
