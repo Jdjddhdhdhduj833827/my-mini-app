@@ -1,354 +1,260 @@
-<!-- index.html -->
 <!doctype html>
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="color-scheme" content="dark" />
-  <meta name="theme-color" content="#080911" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="format-detection" content="telephone=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1220" />
+  <title>CRAFT SYSTEM</title>
 
-  <title>CRAFT ANALYTICS</title>
-  <meta name="description" content="CRAFT ANALYTICS — Premium UI (Telegram Mini App)" />
-
-  <!-- Telegram WebApp SDK (ОДИН РАЗ) -->
+  <!-- Telegram WebApp SDK (обязательно) -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="./style.css?v=7" />
 </head>
 
 <body>
-  <!-- Background (click-safe) -->
-  <div class="bg" aria-hidden="true">
-    <div class="bgAura"></div>
-    <div class="bgGrid"></div>
-    <div class="bgNoise"></div>
-    <div class="bgVignette"></div>
-  </div>
+  <div class="bg"></div>
 
-  <!-- =========================
-       GATE / ONBOARDING
-  ========================== -->
-  <section class="gate" id="gate">
-    <div class="gateCard">
-      <header class="gateHeader">
+  <main class="wrap">
+
+    <!-- ================== GATE ================== -->
+    <section id="gate" class="screen">
+      <header class="top">
         <div class="brand">
-          <div class="brandMark" aria-hidden="true">
-            <span class="brandMarkInner">CA</span>
-            <span class="brandMarkShine" aria-hidden="true"></span>
-          </div>
+          <div class="logo">CA</div>
           <div class="brandText">
-            <div class="brandName">CRAFT ANALYTICS</div>
+            <div class="brandTitle">CRAFT ANALYTICS</div>
             <div class="brandSub" data-i="gate_sub">Premium terminal • Smart assistant</div>
           </div>
         </div>
 
-        <div class="statusPills" aria-label="Status">
-          <span class="pill" id="pillConn">● online</span>
-          <span class="pill pillGold hidden" id="pillVipGate">VIP</span>
-          <button class="iconBtn" id="btnLangGate" type="button" aria-label="Language">🌐</button>
+        <div class="chips">
+          <div class="chip"><span class="dot"></span> online</div>
+          <button class="chipBtn" id="btnLangGate" type="button">🌐</button>
         </div>
       </header>
 
-      <div class="gateHero">
-        <h1 class="gateTitle" data-i="gate_title">Доступ к терминалу</h1>
+      <h1 class="h1" data-i="gate_title">Доступ к терминалу</h1>
+      <p class="p" data-i="gate_text_main">Чтобы открыть интерфейс, подтвердите статус аккаунта.</p>
 
-        <p class="gateText" data-i="gate_text_main">
-          Чтобы открыть интерфейс, подтвердите статус аккаунта.
-        </p>
-
-        <div class="gateSteps" aria-label="Steps">
-          <div class="step">
-            <div class="stepNum">1</div>
-            <div class="stepBody">
-              <div class="stepTitle" data-i="gate_step1_t">Регистрация</div>
-              <div class="stepDesc" data-i="gate_step1_d">Создайте новый аккаунт через кнопку ниже.</div>
-            </div>
+      <div class="steps">
+        <div class="step">
+          <div class="stepNum">1</div>
+          <div>
+            <div class="stepTitle" data-i="gate_step1_t">Регистрация</div>
+            <div class="stepDesc" data-i="gate_step1_d">Создайте новый аккаунт через кнопку ниже.</div>
           </div>
+        </div>
 
-          <div class="step">
-            <div class="stepNum">2</div>
-            <div class="stepBody">
-              <div class="stepTitle" data-i="gate_step2_t">Проверка статуса</div>
-              <div class="stepDesc" data-i="gate_step2_d">Вернитесь и нажмите «Получить доступ».</div>
-            </div>
+        <div class="step">
+          <div class="stepNum">2</div>
+          <div>
+            <div class="stepTitle" data-i="gate_step2_t">Проверка статуса</div>
+            <div class="stepDesc" data-i="gate_step2_d">Вернитесь и нажмите «Получить доступ».</div>
           </div>
+        </div>
 
-          <div class="step">
-            <div class="stepNum">3</div>
-            <div class="stepBody">
-              <div class="stepTitle" data-i="gate_step3_t">Доступ</div>
-              <div class="stepDesc" data-i="gate_step3_d">
-                После подтверждения откроются модули интерфейса.
-              </div>
-            </div>
+        <div class="step">
+          <div class="stepNum">3</div>
+          <div>
+            <div class="stepTitle" data-i="gate_step3_t">Доступ</div>
+            <div class="stepDesc" data-i="gate_step3_d">После подтверждения откроются модули интерфейса.</div>
           </div>
         </div>
       </div>
 
-      <div class="gateActions">
-        <button class="btn btnPrimary" id="btnOpenReg" type="button">
-          <span class="btnIcon">↗</span>
+      <div class="actions">
+        <button class="btn primary" id="btnOpenReg" type="button">
+          <span class="ico">↗</span>
           <span data-i="gate_btn_reg">Открыть регистрацию</span>
-          <span class="btnGlow" aria-hidden="true"></span>
         </button>
-        <button class="btn btnGlass" id="btnGetAccess" type="button">
-          <span class="btnIcon">⟡</span>
+
+        <button class="btn glass" id="btnGetAccess" type="button">
+          <span class="ico">✦</span>
           <span data-i="gate_btn_access">Получить доступ</span>
         </button>
-
-    <div class="gateHint">
-  <div class="gateDebug" id="gateDebug"
-       style="margin-top:8px;color:rgba(255,255,255,.6);font-size:12px;line-height:1.4;word-break:break-word;">
-  </div>
-
-  <span data-i="gate_status">Статус:</span>
-  <b id="gateStatusText" data-i="gate_status_na">не проверен</b>
-</div>
-</div>
-        <div class="legal" data-i="gate_legal">
-          Demo UI. Not financial advice.
-        </div>
       </div>
 
-      <footer class="gateFooter">
-        <div class="meter" aria-label="Access meter">
+      <!-- аккуратный hint под кнопками -->
+      <div class="hint" id="vpnHint">
+        <span data-i="vpn_hint">Для корректной работы сервера рекомендуется отключить VPN.</span>
+      </div>
+
+      <div class="statusLine">
+        <span class="muted" data-i="gate_status">Статус:</span>
+        <b id="gateStatusText" data-i="gate_status_na">не проверен</b>
+      </div>
+
+      <div class="legal" data-i="gate_legal">Demo UI. Not financial advice.</div>
+
+      <footer class="meterRow" aria-label="Access meter">
+        <div class="meter">
           <div class="meterFill" id="gateMeter" style="width:14%"></div>
         </div>
-        <div class="meterText" id="gateMeterText" data-i="gate_meter">
-          SECURITY • initData required
-        </div>
+        <div class="meterText" id="gateMeterText" data-i="gate_meter">SECURITY • initData required</div>
       </footer>
-    </div>
-  </section>
 
-  <!-- =========================
-            MAIN APP
-  ========================== -->
-  <div class="app hidden" id="app">
-    <header class="topbar">
-      <div class="topLeft">
-        <div class="brandMini">
-          <div class="brandMark sm" aria-hidden="true">
-            <span class="brandMarkInner">CA</span>
-            <span class="brandMarkShine" aria-hidden="true"></span>
-          </div>
+      <!-- debug (если нужно) -->
+      <pre id="gateDebug" class="debug hidden"></pre>
+    </section>
+
+    <!-- ================== APP ================== -->
+    <section id="app" class="screen hidden">
+      <header class="top">
+        <div class="brand">
+          <div class="logo">CA</div>
           <div class="brandText">
-            <div class="brandName sm">CRAFT ANALYTICS</div>
-            <div class="brandSub sm" data-i="app_sub">Premium UI Terminal</div>
+            <div class="brandTitle">CRAFT ANALYTICS</div>
+            <div class="brandSub" data-i="app_sub">Premium UI Terminal</div>
           </div>
         </div>
-      </div>
 
-      <div class="topRight">
-        <span class="pill hidden" id="pillVipTop">VIP</span>
-        <button class="iconBtn" id="btnLangApp" type="button" aria-label="Language">🌐</button>
-        <button class="iconBtn" id="btnMenu" type="button" aria-label="Menu">⋯</button>
-      </div>
-    </header>
-
-    <main class="content">
-      <!-- HERO -->
-      <section class="hero">
-        <div class="heroLeft">
-          <div class="heroTitle" data-i="hero_title">Terminal Overview</div>
-          <div class="heroSub" data-i="hero_sub">Smart mode • Premium UI</div>
+        <div class="chips">
+          <div class="chip" id="chipSession">SESSION: —</div>
+          <div class="chip" id="chipAccess">ACCESS: —</div>
+          <button class="chipBtn" id="btnLangApp" type="button">🌐</button>
         </div>
+      </header>
 
-        <div class="heroRight">
-          <div class="heroChip" id="chipSession">SESSION: —</div>
-          <div class="heroChip" id="chipAccess">ACCESS: —</div>
-          <div class="heroChip" id="chipMode" data-i="hero_mode">MODE: SMART</div>
-        </div>
-      </section>
-
-      <!-- CONTROL CENTER -->
-      <section class="panel">
-        <div class="panelHead">
-          <div class="panelTitle" data-i="cc_title">CONTROL CENTER</div>
-          <div class="panelRight">
-            <button class="chipBtn" id="btnCheckStatus" type="button" data-i="cc_btn_check">Проверить</button>
-            <button class="chipBtn" id="btnReset" type="button" data-i="cc_btn_reset">Сброс</button>
-          </div>
-        </div>
+      <div class="card">
+        <div class="cardTitle" data-i="hero_title">Terminal Overview</div>
+        <div class="cardSub" data-i="hero_sub">Smart mode • Premium UI</div>
 
         <div class="row">
-          <button class="select" id="assetBtn" type="button">
-            <div class="selectLeft">
-              <span class="badge" aria-hidden="true">💱</span>
-              <span class="selectValue" id="assetValue">EUR/USD</span>
+          <div class="pill">MODE: SMART</div>
+          <div class="pill" id="vipBadge">VIP</div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="cardTitle" data-i="cc_title">CONTROL CENTER</div>
+          <div class="row gap">
+            <button class="btn glass sm" id="btnCheckStatus" type="button" data-i="cc_btn_check">Проверить</button>
+            <button class="btn glass sm" id="btnReset" type="button" data-i="cc_btn_reset">Сброс</button>
+          </div>
+
+          <div class="hint small" data-i="cc_hint">Нажмите «Запустить анализ» — получите демо-сигнал.</div>
+
+          <button class="btn primary" id="btnAnalyze" type="button" data-i="cc_btn_analyze">Запустить анализ</button>
+
+          <div class="row gap top8">
+            <button class="btn glass sm" id="btnLong" type="button">LONG</button>
+            <button class="btn glass sm" id="btnShort" type="button">SHORT</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardTitle" data-i="chart_title">MARKET VISUAL</div>
+
+          <div class="row gap">
+            <button class="chipBtn" id="assetBtn" type="button">Asset: <b id="assetValue">EUR/USD</b></button>
+            <button class="chipBtn" id="tfBtn" type="button">TF: <b id="tfValue">30s</b></button>
+            <button class="chipBtn" id="marketBtn" type="button">MKT: <b id="marketValue">OTC</b></button>
+          </div>
+
+          <div class="row gap top8">
+            <div class="chip" id="chipQuality" data-i="chart_quality">Quality: —</div>
+            <div class="chip" id="chipConf" data-i="chart_conf">Conf: —</div>
+          </div>
+
+          <div class="chartBox">
+            <canvas id="chart" width="640" height="340"></canvas>
+            <div id="chartOverlay" class="chartOverlay hidden">
+              <div class="scan" data-i="chart_scan">Сканирование…</div>
+              <div class="bar"><div id="overlayFill" class="barFill"></div></div>
             </div>
-            <span class="chev" aria-hidden="true">▾</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="row spread">
+          <div>
+            <div class="cardTitle" data-i="sig_label">СИГНАЛ</div>
+            <div class="muted">
+              <span data-i="sig_window">окно:</span> <b id="rWindow">30s</b> •
+              <span data-i="sig_until">до</span> <b id="rUntil">—</b>
+            </div>
+          </div>
+          <div class="dir">
+            <div id="dirArrow" class="dirArrow up">↗</div>
+            <div id="dirText" class="dirText up">LONG-TREND</div>
+          </div>
+        </div>
+
+        <div class="miniChart">
+          <canvas id="signalChart" width="640" height="160"></canvas>
+        </div>
+
+        <div class="metrics">
+          <div class="metric"><div class="muted" data-i="m_acc">Точность</div><div id="rAcc">—%</div></div>
+          <div class="metric"><div class="muted" data-i="m_vol">Волатильность</div><div id="volFactor">—</div></div>
+          <div class="metric"><div class="muted" data-i="m_mom">Импульс</div><div id="momFactor">—</div></div>
+          <div class="metric"><div class="muted" data-i="m_liq">Ликвидность</div><div id="liqFactor">—</div></div>
+        </div>
+      </div>
+
+      <div class="legal foot" data-i="footnote">Проверка статуса выполняется на сервере через Telegram initData.</div>
+    </section>
+
+    <!-- ================== NOTIFY MODAL ================== -->
+    <div id="notify" class="notify hidden" role="dialog" aria-modal="true">
+      <div class="notifyCard">
+        <div class="notifyTitle" id="notifyTitle">—</div>
+        <div class="notifyText" id="notifyText">—</div>
+
+        <div class="notifyActions">
+          <button class="btn primary" id="btnNotifyPrimary" type="button">
+            <span class="ico">↗</span>
+            <span id="notifyPrimaryLabel">—</span>
           </button>
-
-          <button class="select compact" id="tfBtn" type="button">
-            <div class="selectLeft">
-              <span class="badge" aria-hidden="true">⏱</span>
-              <span class="selectValue" id="tfValue">30s</span>
-            </div>
-            <span class="chev" aria-hidden="true">▾</span>
-          </button>
-
-          <button class="select compact" id="marketBtn" type="button">
-            <div class="selectLeft">
-              <span class="badge" aria-hidden="true">🌐</span>
-              <span class="selectValue" id="marketValue">OTC</span>
-            </div>
-            <span class="chev" aria-hidden="true">↺</span>
-          </button>
+          <button class="btn glass" id="btnNotifyClose" type="button" data-i="notify_btn_ok">Понятно</button>
         </div>
-
-        <div class="hint" id="hintText" data-i="cc_hint">
-          Нажмите «Запустить анализ» — получите демо-сигнал.
-        </div>
-
-        <div class="actions">
-          <button class="btn btnPrimary btnWide" id="btnAnalyze" type="button">
-            <span class="btnIcon">⟡</span>
-            <span data-i="cc_btn_analyze">Запустить анализ</span>
-            <span class="btnGlow" aria-hidden="true"></span>
-          </button>
-
-          <div class="trendRow">
-            <button class="trendBtn trendLong" id="btnLong" type="button">
-              <span class="trendLabel">LONG-TREND</span>
-              <span class="trendArrow" aria-hidden="true">↗</span>
-            </button>
-
-            <button class="trendBtn trendShort" id="btnShort" type="button">
-              <span class="trendLabel">SHORT-TREND</span>
-              <span class="trendArrow" aria-hidden="true">↘</span>
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <!-- CHART -->
-      <section class="panel">
-        <div class="panelHead">
-          <div class="panelTitle" data-i="chart_title">MARKET VISUAL</div>
-          <div class="panelRight">
-            <span class="chip" id="chipQuality" data-i="chart_quality">Quality: —</span>
-            <span class="chip" id="chipConf" data-i="chart_conf">Conf: —</span>
-          </div>
-        </div>
-
-        <div class="chartWrap" id="chartWrap">
-          <canvas id="chart" width="920" height="420" aria-label="Chart"></canvas>
-
-          <div class="chartOverlay hidden" id="chartOverlay" aria-hidden="true">
-            <div class="overlayTitle">SCANNING</div>
-            <div class="overlayLine" id="overlayLine" data-i="chart_scan">Сканирование…</div>
-            <div class="overlayBar"><div class="overlayFill" id="overlayFill"></div></div>
-          </div>
-        </div>
-
-        <div class="signalCard" id="signalCard">
-          <div class="signalLeft">
-            <div class="label" data-i="sig_label">СИГНАЛ</div>
-
-            <div class="signalLine">
-              <span class="dirArrow up" id="dirArrow" aria-hidden="true">↗</span>
-              <span class="dirText up" id="dirText">LONG-TREND</span>
-
-              <span class="signalMeta">
-                <span class="metaDot" aria-hidden="true"></span>
-                <span data-i="sig_window">окно:</span> <b id="rWindow">—</b>
-                <span class="metaSep">•</span>
-                <span data-i="sig_until">до</span> <b id="rUntil">--:--</b>
-              </span>
-
-              <span class="vipBadge hidden" id="vipBadge" aria-label="VIP">VIP</span>
-            </div>
-
-            <div class="miniMetrics">
-              <div class="m">
-                <div class="k" data-i="m_acc">Точность</div>
-                <div class="v" id="rAcc">—%</div>
-              </div>
-              <div class="m">
-                <div class="k" data-i="m_vol">Волатильность</div>
-                <div class="v" id="volFactor">—</div>
-              </div>
-              <div class="m">
-                <div class="k" data-i="m_mom">Импульс</div>
-                <div class="v" id="momFactor">—</div>
-              </div>
-              <div class="m">
-                <div class="k" data-i="m_liq">Ликвидность</div>
-                <div class="v" id="liqFactor">—</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="signalRight">
-            <div class="label" data-i="confirm_label">ПОДТВЕРЖДЕНИЕ</div>
-            <div class="miniChart">
-              <canvas id="signalChart" width="520" height="220" aria-label="Signal mini chart"></canvas>
-              <div class="miniChartHint" data-i="mini_hint">Mini chart • demo render</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="footnote" data-i="footnote">
-          Проверка статуса выполняется на сервере через Telegram initData.
-        </div>
-      </section>
-    </main>
-  </div>
-
-  <!-- =========================
-            MODALS
-  ========================== -->
-  <div class="backdrop hidden" id="backdrop" aria-hidden="true"></div>
-
-  <section class="modal hidden" id="assetsModal" role="dialog" aria-modal="true" aria-label="Assets modal">
-    <div class="modalTop">
-      <div class="modalTitle" data-i="assets_title">Выбор актива</div>
-      <button class="iconBtn" id="closeAssets" aria-label="Close" type="button">✕</button>
-    </div>
-    <input class="search" id="assetSearch" placeholder="Поиск…" autocomplete="off" />
-    <div class="tabs" id="assetTabs" aria-label="Categories"></div>
-    <div class="list" id="assetList" aria-label="Assets list"></div>
-  </section>
-
-  <section class="modal hidden" id="tfModal" role="dialog" aria-modal="true" aria-label="Timeframe modal">
-    <div class="modalTop">
-      <div class="modalTitle" data-i="tf_title">Выбор таймфрейма</div>
-      <button class="iconBtn" id="closeTf" aria-label="Close" type="button">✕</button>
-    </div>
-    <div class="list" id="tfList" aria-label="Timeframes list"></div>
-  </section>
-
-  <section class="modal hidden" id="langModal" role="dialog" aria-modal="true" aria-label="Language modal">
-    <div class="modalTop">
-      <div class="modalTitle" data-i="lang_title">Язык интерфейса</div>
-      <button class="iconBtn" id="closeLang" aria-label="Close" type="button">✕</button>
-    </div>
-    <div class="list" id="langList" aria-label="Languages list"></div>
-  </section>
-
-  <!-- Smart Notify -->
-  <div class="notify hidden" id="notify">
-    <div class="notifyCard">
-      <div class="notifyTitle" id="notifyTitle">Notice</div>
-      <div class="notifyText" id="notifyText">—</div>
-      <div class="notifyActions">
-        <button class="btn btnPrimary" id="btnNotifyPrimary" type="button">
-          <span class="btnIcon">↗</span>
-          <span id="notifyPrimaryLabel">—</span>
-          <span class="btnGlow" aria-hidden="true"></span>
-        </button>
-        <button class="btn btnGlass" id="btnNotifyClose" type="button" data-i="notify_btn_ok">Понятно</button>
       </div>
     </div>
-  </div>
 
-  <!-- SoftLock blur layer -->
-  <div class="softLock hidden" id="softLock" aria-hidden="true"></div>
+    <!-- SoftLock -->
+    <div id="softLock" class="softLock hidden" aria-hidden="true"></div>
 
-  <script src="./app.js?v=2" defer></script>
+    <!-- ================== MODALS ================== -->
+    <div id="backdrop" class="backdrop hidden"></div>
+
+    <div id="assetsModal" class="modal hidden">
+      <div class="modalHead">
+        <div class="modalTitle" data-i="assets_title">Выбор актива</div>
+        <button class="chipBtn" id="closeAssets" type="button">✕</button>
+      </div>
+      <div class="modalBody">
+        <input id="assetSearch" class="search" placeholder="Search…" />
+        <div id="assetTabs" class="tabs"></div>
+        <div id="assetList" class="list"></div>
+      </div>
+    </div>
+
+    <div id="tfModal" class="modal hidden">
+      <div class="modalHead">
+        <div class="modalTitle" data-i="tf_title">Выбор таймфрейма</div>
+        <button class="chipBtn" id="closeTf" type="button">✕</button>
+      </div>
+      <div class="modalBody">
+        <div id="tfList" class="list"></div>
+      </div>
+    </div>
+
+    <div id="langModal" class="modal hidden">
+      <div class="modalHead">
+        <div class="modalTitle" data-i="lang_title">Язык интерфейса</div>
+        <button class="chipBtn" id="closeLang" type="button">✕</button>
+      </div>
+      <div class="modalBody">
+        <div id="langList" class="list"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- анти-кэш: меняй версию -->
+  <script src="./app.js?v=7" defer></script>
 </body>
 </html>
