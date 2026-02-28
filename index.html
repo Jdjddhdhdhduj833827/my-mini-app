@@ -493,6 +493,11 @@ if (data.vip) {
         body: JSON.stringify({ initData })
       });
       data = await resp.json();
+      // DEBUG (временно)
+const pre = document.createElement("pre");
+pre.style.cssText = "position:fixed;top:10px;left:10px;right:10px;max-height:40vh;overflow:auto;z-index:999999;background:rgba(0,0,0,.85);color:#0f0;padding:10px;border-radius:10px;font-size:12px;";
+pre.textContent = JSON.stringify(data, null, 2);
+document.body.appendChild(pre);
       document.body.insertAdjacentHTML("beforeend", "<pre style='position:fixed;bottom:10px;left:10px;right:10px;max-height:40vh;overflow:auto;z-index:100000;background:#000;color:#0f0;padding:10px;font-size:12px'>" + JSON.stringify(data,null,2) + "</pre>");
     } catch (e) {
       gate(true, "Ошибка связи. Попробуйте позже.");
