@@ -1,29 +1,34 @@
-/* app.js — CRAFT ANALYTICS (fixed)
-   ЛОГИКА (как ты попросил):
-   A) Вход в интерфейс (app) требует ТОЛЬКО регистрации:
-      - если registered=0 -> notify "Нужна регистрация" (кнопка REG_URL)
-      - если registered=1 -> пускаем в app сразу (депозит НЕ трогаем)
-
-   B) Депозит проверяем ТОЛЬКО при попытке анализа:
-      - если dep_count < 1 -> notify "Нужен депозит" (кнопка DEPOSIT_URL)
-      - если депозит есть -> запускаем демо-анализ
-
-   C) Анти-спам:
-      - одно и то же уведомление не всплывает бесконечно при каждом клике подряд
-      - если уведомление уже открыто с тем же режимом — повторно не дергаем
-
-   D) VPN hint — показываем в тексте статуса (и можно добавить отдельный блок в HTML, см. ниже)
+/* app.js (новая стабильная версия)
+   ЛОГИКА:
+   A) GATE (вход):
+      - если нет Telegram/initData -> показываем подсказку (и про VPN), остаёмся на gate
+      - иначе -> auth -> если НЕ зарегистрирован -> окно "Регистрация"
+      - если зарегистрирован -> пускаем в app (депозит НЕ проверяем)
+   B) APP:
+      - "Проверить" обновляет AUTH и UI (VIP/ACCESS), но НЕ показывает депозитных окон
+      - депозитное окно показываем ТОЛЬКО при клике "Анализ / LONG / SHORT"
+   C) Notify антиспам:
+      - одно и то же сообщение не показывается повторно при повторных нажатиях
+   D) VPN:
+      - если API недоступен: пробуем альтернативные базы (CONFIG.API_BASES)
+      - если всё упало: показываем в notify текст "включите VPN"
 */
 
 const CONFIG = {
-  API_BASE: "https://hidden-fog-c1f2craft-analytics-api.ashirkhanlogubekov-833.workers.dev",
-  REG_URL: "https://example.com/register",   // <-- замени на свою
-  DEPOSIT_URL: "https://example.com/deposit",// <-- замени на свою
+  // Можно указать несколько баз — будет авто-fallback
+  // 1) основной
+  // 2) резерв (через другой домен/воркер) — добавишь при необходимости
+  API_BASES: [
+    "https://hidden-fog-c1f2craft-analytics-api.ashirkhanlogubekov-833.workers.dev"
+    // "https://your-second-worker.example.workers.dev"
+  ],
+  REG_URL: "https://example.com/register",
+  DEPOSIT_URL: "https://example.com/deposit",
   ASSETS_JSON: "./assets.json",
-  NOTIFY_COOLDOWN_MS: 1200,
+  FETCH_TIMEOUT_MS: 9000
 };
 
-const tg = window.Telegram?.WebApp || null;
+const tg = window.Telegram?.WebApp;
 if (tg) tg.expand();
 
 // ---------- DOM ----------
@@ -105,10 +110,12 @@ const softLock = $("softLock");
 
 // ---------- State ----------
 let LANG = "ru";
-let NOTIFY_MODE = null; // "reg" | "deposit" | "need_tg"
-let LAST_NOTIFY_KEY = "";
-let LAST_NOTIFY_AT = 0;
 
+// Антиспам notify
+let LAST_NOTIFY_KEY = "";     // ключ последнего показа
+let NOTIFY_MODE = "reg";      // "reg" | "deposit" | "info"
+
+// auth
 let AUTH = {
   ok: false,
   telegram_id: "",
@@ -117,14 +124,17 @@ let AUTH = {
   flags: { registered: 0, dep_count: 0, approved: 0 },
 };
 
+// assets/timeframes
 let ASSETS = {
   Forex: ["EUR/USD","GBP/USD","USD/JPY","USD/CHF"],
   Crypto: ["BTC/USD","ETH/USD"],
   Stocks: ["AAPL","TSLA"],
   Commodities: ["Gold","Oil"],
 };
-
 let TIMEFRAMES = ["15s","30s","1m"];
+
+// Текущая рабочая API base (VPN/fallback)
+let API_BASE = "";
 
 // ---------- i18n ----------
 const I18N = {
@@ -177,19 +187,24 @@ const I18N = {
     lang_title: "Язык интерфейса",
 
     footnote: "Проверка статуса выполняется на сервере через Telegram initData.",
+
     notify_btn_ok: "Понятно",
 
-    // сообщения
     st_need_tg: "Откройте внутри Telegram",
-    st_need_tg_d: "Мини-приложение работает только внутри Telegram.\n\nЕсли вы открыли ссылку в браузере — статус не определится.",
-    st_reg_required: "Нужна регистрация",
-    st_reg_required_d: "Нажмите «Открыть регистрацию», создайте аккаунт и вернитесь в мини-приложение.\n\nСовет: для корректной работы сервера лучше отключить VPN.",
+    st_need_tg_d: "Мини-приложение работает только внутри Telegram. Если Telegram/доступ блокируется — включите VPN и попробуйте снова.",
+
+    st_reg_required: "Сначала создайте аккаунт",
+    st_reg_required_d: "Нажмите «Открыть регистрацию», создайте аккаунт и вернитесь в мини-приложение, затем нажмите «Получить доступ».",
+
     st_deposit_required: "Требуется депозит",
-    st_deposit_required_d: "Чтобы получить сигнал, пополните депозит и снова нажмите «Запустить анализ».\n\nСовет: для корректной работы сервера лучше отключить VPN.",
+    st_deposit_required_d: "Чтобы запустить анализ, внесите депозит. После пополнения вернитесь и повторите запуск анализа.",
+
+    st_api_down: "Нет соединения с сервером",
+    st_api_down_d: "Сервер недоступен. Попробуйте включить VPN и нажать снова.",
 
     btn_open_reg: "Открыть регистрацию",
     btn_open_deposit: "Открыть пополнение",
-    st_checked: "проверено",
+    btn_retry: "Повторить"
   },
 
   en: {
@@ -241,18 +256,24 @@ const I18N = {
     lang_title: "Language",
 
     footnote: "Status is verified on server using Telegram initData.",
+
     notify_btn_ok: "Got it",
 
     st_need_tg: "Open inside Telegram",
-    st_need_tg_d: "This mini app works only inside Telegram.\n\nIf you opened it in a browser — status cannot be verified.",
-    st_reg_required: "Registration required",
-    st_reg_required_d: "Tap “Open registration”, create an account, then come back.\n\nTip: disable VPN for stable server connection.",
+    st_need_tg_d: "This mini app works only inside Telegram. If access is blocked, enable VPN and try again.",
+
+    st_reg_required: "Create an account first",
+    st_reg_required_d: "Tap “Open registration”, create an account, return to the mini app and tap “Get access”.",
+
     st_deposit_required: "Deposit required",
-    st_deposit_required_d: "To get a signal, make a deposit, then tap “Run analysis” again.\n\nTip: disable VPN for stable server connection.",
+    st_deposit_required_d: "To run analysis, make a deposit. Then return and run analysis again.",
+
+    st_api_down: "Server unavailable",
+    st_api_down_d: "Server is unreachable. Try enabling VPN and retry.",
 
     btn_open_reg: "Open registration",
     btn_open_deposit: "Open deposit",
-    st_checked: "checked",
+    btn_retry: "Retry"
   }
 };
 
@@ -266,9 +287,14 @@ function applyI18n(){
     const k = el.getAttribute("data-i");
     el.textContent = t(k);
   });
+  // обновим динамические подписи notify, если открыт
+  if (!notify.classList.contains("hidden")) {
+    if (NOTIFY_MODE === "reg") notifyPrimaryLabel.textContent = t("btn_open_reg");
+    if (NOTIFY_MODE === "deposit") notifyPrimaryLabel.textContent = t("btn_open_deposit");
+  }
 }
 
-// ---------- helpers ----------
+// ---------- UI helpers ----------
 function show(el){ el?.classList.remove("hidden"); }
 function hide(el){ el?.classList.add("hidden"); }
 
@@ -277,108 +303,210 @@ function setGateStatus(text, meterPct){
   if (gateMeter && typeof meterPct === "number") gateMeter.style.width = `${meterPct}%`;
 }
 
-function isInsideTelegram(){
-  // Важно: tg может существовать, но initData пустой, если открыт не из WebApp-кнопки.
-  const initData = tg?.initData || "";
-  return !!initData && initData.length > 10;
-}
-
 function openURL(url){
   if (tg?.openLink) tg.openLink(url);
   else window.open(url, "_blank");
 }
 
-// ---------- notify (anti-spam) ----------
-function canShowNotify(key){
-  const now = Date.now();
-  if (notify && !notify.classList.contains("hidden") && key === LAST_NOTIFY_KEY) {
-    // уже открыто это же — не дергаем
-    return false;
-  }
-  if (key === LAST_NOTIFY_KEY && (now - LAST_NOTIFY_AT) < CONFIG.NOTIFY_COOLDOWN_MS) {
-    return false;
-  }
-  LAST_NOTIFY_KEY = key;
-  LAST_NOTIFY_AT = now;
-  return true;
+// Мягкая блокировка (используем только когда notify открыт, чтобы не было мискликов)
+function setLocked(isLocked){
+  if (isLocked) show(softLock);
+  else hide(softLock);
 }
 
-function premiumNotify(mode, title, text){
-  const key = `${mode}:${title}`;
-  if (!canShowNotify(key)) return;
-
-  NOTIFY_MODE = mode;
-  notifyTitle.textContent = title;
-  notifyText.textContent = text;
-
-  if (mode === "reg") notifyPrimaryLabel.textContent = t("btn_open_reg");
-  else if (mode === "deposit") notifyPrimaryLabel.textContent = t("btn_open_deposit");
-  else notifyPrimaryLabel.textContent = t("btn_open_reg");
-
-  show(notify);
+// ---------- Helpers: parse URL param ----------
+function getQueryParam(name){
+  const u = new URL(window.location.href);
+  return u.searchParams.get(name);
 }
 
-function closeNotify(){
-  hide(notify);
-  NOTIFY_MODE = null;
+// ---------- Network helpers ----------
+function withTimeout(promise, ms){
+  const ac = new AbortController();
+  const tmr = setTimeout(() => ac.abort(), ms);
+  const wrapped = (async () => {
+    try {
+      const res = await promise(ac.signal);
+      return res;
+    } finally {
+      clearTimeout(tmr);
+    }
+  })();
+  return wrapped;
+}
+
+async function fetchJson(url, options = {}, timeoutMs = CONFIG.FETCH_TIMEOUT_MS){
+  return withTimeout(async (signal) => {
+    const resp = await fetch(url, { ...options, signal });
+    const data = await resp.json().catch(() => ({}));
+    return { ok: resp.ok, status: resp.status, data };
+  }, timeoutMs);
 }
 
 // ---------- AUTH ----------
-async function auth(){
-  const initData = tg?.initData || "";
-  if (!initData) return { ok:false, error:"no initData" };
-
-  const resp = await fetch(CONFIG.API_BASE + "/pb/auth", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({ initData })
-  });
-
-  const data = await resp.json().catch(()=> ({}));
-  return data;
-}
-
 function normalizeAuth(data){
   const flags = data?.flags || {};
+  const toNum = (v) => {
+    if (v === true) return 1;
+    if (v === false) return 0;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  };
+
   return {
     ok: !!data?.ok,
     telegram_id: String(data?.telegram_id || ""),
     access: !!data?.access,
     vip: !!data?.vip,
     flags: {
-      registered: Number(flags.registered ?? 0),
-      dep_count: Number(flags.dep_count ?? 0),
-      approved: Number(flags.approved ?? 0),
+      registered: toNum(flags.registered),
+      dep_count: toNum(flags.dep_count),
+      approved: toNum(flags.approved),
     }
   };
 }
 
-// ---------- Gate flow (REG only) ----------
-async function gateCheckAndProceed(){
-  setGateStatus(t("gate_status_na"), 18);
+function getInitData(){
+  return tg?.initData || "";
+}
 
-  if (!isInsideTelegram()){
-    setGateStatus(t("st_need_tg"), 22);
-    premiumNotify("need_tg", t("st_need_tg"), t("st_need_tg_d"));
+async function authRequest(){
+  const initData = getInitData();
+  if (!initData) return { ok:false, error:"no_initData" };
+
+  // приоритет: ?api=... -> localStorage -> список CONFIG.API_BASES
+  const forced = getQueryParam("api");
+  if (forced) {
+    localStorage.setItem("api_base", forced);
+  }
+  const saved = localStorage.getItem("api_base");
+
+  const bases = [];
+  if (saved) bases.push(saved);
+  CONFIG.API_BASES.forEach(b => { if (!bases.includes(b)) bases.push(b); });
+
+  // пробуем базы по очереди
+  for (const base of bases) {
+    const url = base.replace(/\/$/, "") + "/pb/auth";
+    try {
+      const res = await fetchJson(url, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ initData })
+      });
+
+      if (res.ok && res.data) {
+        API_BASE = base;
+        localStorage.setItem("api_base", base);
+        return { ok:true, data: res.data, base };
+      }
+    } catch (e) {
+      // пробуем следующую
+    }
+  }
+
+  return { ok:false, error:"api_down" };
+}
+
+async function refreshAuth(){
+  const r = await authRequest();
+  if (!r.ok) return { ok:false, error:r.error };
+  const a = normalizeAuth(r.data);
+  if (a.ok) AUTH = a;
+  return { ok:a.ok, auth:a };
+}
+
+// ---------- Notify (anti-spam) ----------
+function showNotify({ mode, title, text, primaryLabel, primaryAction, key, lock = true }){
+  // антиспам: если уже показано это же — не повторяем
+  if (key && key === LAST_NOTIFY_KEY && !notify.classList.contains("hidden")) {
     return;
   }
 
-  setGateStatus("…", 34);
+  LAST_NOTIFY_KEY = key || `${mode}:${title}:${text}`;
+  NOTIFY_MODE = mode;
 
-  const data = normalizeAuth(await auth());
-  if (data.ok) AUTH = data;
+  notifyTitle.textContent = title;
+  notifyText.textContent = text;
+
+  // primary button label
+  notifyPrimaryLabel.textContent = primaryLabel || (
+    mode === "deposit" ? t("btn_open_deposit") :
+    mode === "reg" ? t("btn_open_reg") :
+    t("btn_retry")
+  );
+
+  // навесим обработчик (заменим безопасно)
+  btnNotifyPrimary.onclick = () => {
+    if (typeof primaryAction === "function") primaryAction();
+  };
+
+  show(notify);
+  setLocked(!!lock);
+}
+
+function closeNotify(){
+  hide(notify);
+  setLocked(false);
+  // LAST_NOTIFY_KEY НЕ сбрасываем — чтобы не спамило при повторном клике в ту же секунду
+}
+
+// ---------- Gate flow ----------
+async function gateCheckAndProceed(){
+  LAST_NOTIFY_KEY = ""; // на gate можно сбросить, чтобы новые статусы показывались
+  setGateStatus(t("gate_status_na"), 18);
+
+  // must be inside Telegram
+  if (!getInitData()) {
+    setGateStatus(t("st_need_tg"), 22);
+    showNotify({
+      mode: "reg",
+      title: t("st_need_tg"),
+      text: t("st_need_tg_d"),
+      primaryLabel: t("btn_retry"),
+      primaryAction: () => gateCheckAndProceed(),
+      key: "need_tg",
+      lock: true
+    });
+    return;
+  }
+
+  setGateStatus("…", 32);
+
+  const r = await refreshAuth();
+  if (!r.ok) {
+    setGateStatus(t("st_api_down"), 22);
+    showNotify({
+      mode: "info",
+      title: t("st_api_down"),
+      text: t("st_api_down_d"),
+      primaryLabel: t("btn_retry"),
+      primaryAction: () => gateCheckAndProceed(),
+      key: "api_down_gate",
+      lock: true
+    });
+    return;
+  }
 
   if (AUTH.vip) show(pillVipGate); else hide(pillVipGate);
 
-  // 1) Требуем только регистрацию
-  if (!AUTH.flags.registered){
-    setGateStatus(t("st_reg_required"), 26);
-    premiumNotify("reg", t("st_reg_required"), t("st_reg_required_d"));
+  // ВХОД: проверяем ТОЛЬКО регистрацию
+  if (!AUTH.flags.registered) {
+    setGateStatus(t("st_reg_required"), 24);
+    showNotify({
+      mode: "reg",
+      title: t("st_reg_required"),
+      text: t("st_reg_required_d"),
+      primaryLabel: t("btn_open_reg"),
+      primaryAction: () => openURL(CONFIG.REG_URL),
+      key: "need_reg_gate",
+      lock: true
+    });
     return;
   }
 
-  // 2) зарегистрирован -> сразу в app (депозит НЕ проверяем тут)
-  setGateStatus(t("st_checked"), 72);
+  // зарегистрирован -> пускаем в app
+  setGateStatus("OK", 62);
   closeNotify();
   enterApp();
 }
@@ -393,27 +521,44 @@ function enterApp(){
   if (AUTH.vip) show(pillVipTop); else hide(pillVipTop);
   if (AUTH.vip) show(vipBadge); else hide(vipBadge);
 
-  // обновим AUTH тихо (без депозит-уведомлений)
-  setTimeout(() => refreshAuthSilent(), 350);
+  // ВАЖНО: НЕ показываем депозитные окна на входе
+  // Но обновим auth тихо (без notify), чтобы UI был свежий
+  setTimeout(async () => {
+    await refreshAuthSilent();
+  }, 350);
 
   drawChartDemo();
   drawMiniChartDemo();
 }
 
 async function refreshAuthSilent(){
-  if (!isInsideTelegram()) return;
-  const data = normalizeAuth(await auth());
-  if (data.ok) AUTH = data;
+  if (!getInitData()) return;
+  const r = await refreshAuth();
+  if (!r.ok) return;
 
   chipAccess.textContent = "ACCESS: " + (AUTH.access ? "OPEN" : "PENDING");
-  if (AUTH.vip) { show(pillVipTop); show(vipBadge); }
-  else { hide(pillVipTop); hide(vipBadge); }
+  if (AUTH.vip) { show(pillVipTop); show(vipBadge); show(pillVipGate); }
+  else { hide(pillVipTop); hide(vipBadge); hide(pillVipGate); }
 
-  // если вдруг сервер сказал "не зарегистрирован" — возвращаем на gate
-  if (!AUTH.flags.registered){
+  // если сервер внезапно “сбросил” registered -> возвращаем на gate
+  if (!AUTH.flags.registered) {
     hide(app); show(gate);
-    premiumNotify("reg", t("st_reg_required"), t("st_reg_required_d"));
+    setGateStatus(t("st_reg_required"), 24);
+    showNotify({
+      mode: "reg",
+      title: t("st_reg_required"),
+      text: t("st_reg_required_d"),
+      primaryLabel: t("btn_open_reg"),
+      primaryAction: () => openURL(CONFIG.REG_URL),
+      key: "need_reg_back",
+      lock: true
+    });
   }
+}
+
+// Кнопка "Проверить" в app: обновляет статус, но НЕ депозитные окна
+async function onCheckStatus(){
+  await refreshAuthSilent();
 }
 
 // ---------- Assets loader ----------
@@ -424,7 +569,9 @@ async function loadAssetsJson(){
     const j = await r.json();
     if (j?.categories) ASSETS = j.categories;
     if (Array.isArray(j?.timeframes)) TIMEFRAMES = j.timeframes;
-  } catch (e) {}
+  } catch (e) {
+    // fallback оставляем дефолт
+  }
 }
 
 // ---------- Modals ----------
@@ -442,7 +589,7 @@ function openLangModal(){
   langList.innerHTML = "";
   const items = [
     { id:"ru", label:"Русский" },
-    { id:"en", label:"English" },
+    { id:"en", label:"English" }
   ];
   items.forEach(it => {
     const row = document.createElement("div");
@@ -452,11 +599,6 @@ function openLangModal(){
       LANG = it.id;
       localStorage.setItem("lang", LANG);
       applyI18n();
-      // обновим подпись notify кнопки
-      if (notify && !notify.classList.contains("hidden")) {
-        if (NOTIFY_MODE === "deposit") notifyPrimaryLabel.textContent = t("btn_open_deposit");
-        else notifyPrimaryLabel.textContent = t("btn_open_reg");
-      }
       closeModal(langModal);
     });
     langList.appendChild(row);
@@ -503,7 +645,7 @@ function openAssets(){
     assetTabs.appendChild(tab);
   });
 
-  assetSearch.addEventListener("input", render);
+  assetSearch.oninput = render;
   render();
   openModal(assetsModal);
 }
@@ -529,36 +671,27 @@ function toggleMarket(){
   drawChartDemo();
 }
 
-// ---------- Deposit check only on analysis ----------
-async function ensureAuthFresh(){
-  // обновляем перед анализом, чтобы не ловить "зарегистрирован, но почему-то не..."
-  if (!isInsideTelegram()) return false;
-  const data = normalizeAuth(await auth());
-  if (data.ok) AUTH = data;
-  return true;
-}
-
+// ---------- Analysis (demo) ----------
 async function runAnalysis(direction /* "long" | "short" */){
-  // если не в Telegram — сразу предупреждение
-  if (!isInsideTelegram()){
-    premiumNotify("need_tg", t("st_need_tg"), t("st_need_tg_d"));
+  // Перед анализом — тихо обновим auth, чтобы dep_count был актуальным
+  await refreshAuthSilent();
+
+  // Депозит проверяем ТОЛЬКО тут
+  if (AUTH.flags.dep_count < 1) {
+    showNotify({
+      mode: "deposit",
+      title: t("st_deposit_required"),
+      text: t("st_deposit_required_d"),
+      primaryLabel: t("btn_open_deposit"),
+      primaryAction: () => openURL(CONFIG.DEPOSIT_URL),
+      key: "need_deposit_analysis",
+      lock: true
+    });
     return;
   }
 
-  await ensureAuthFresh();
-
-  // если вдруг слетел registered — на gate
-  if (!AUTH.flags.registered){
-    hide(app); show(gate);
-    premiumNotify("reg", t("st_reg_required"), t("st_reg_required_d"));
-    return;
-  }
-
-  // ВАЖНО: депозит проверяем ТОЛЬКО тут
-  if (AUTH.flags.dep_count < 1){
-    premiumNotify("deposit", t("st_deposit_required"), t("st_deposit_required_d"));
-    return;
-  }
+  // если notify был открыт — закрываем
+  if (!notify.classList.contains("hidden")) closeNotify();
 
   const dur = 600 + Math.floor(Math.random() * 1000);
 
@@ -712,21 +845,17 @@ function drawMiniChartDemo(bias = 0){
 }
 
 // ---------- Events ----------
-btnOpenReg?.addEventListener("click", () => openURL(CONFIG.REG_URL));
-btnGetAccess?.addEventListener("click", gateCheckAndProceed);
+btnOpenReg.addEventListener("click", () => openURL(CONFIG.REG_URL));
+btnGetAccess.addEventListener("click", gateCheckAndProceed);
 
-btnLangGate?.addEventListener("click", openLangModal);
-btnLangApp?.addEventListener("click", openLangModal);
+btnLangGate.addEventListener("click", openLangModal);
+btnLangApp.addEventListener("click", openLangModal);
 
-btnNotifyPrimary?.addEventListener("click", () => {
-  if (NOTIFY_MODE === "deposit") openURL(CONFIG.DEPOSIT_URL);
-  else openURL(CONFIG.REG_URL);
-});
-btnNotifyClose?.addEventListener("click", closeNotify);
+btnNotifyClose.addEventListener("click", closeNotify);
 
-btnCheckStatus?.addEventListener("click", refreshAuthSilent);
+btnCheckStatus.addEventListener("click", onCheckStatus);
 
-btnReset?.addEventListener("click", () => {
+btnReset.addEventListener("click", () => {
   chipQuality.textContent = t("chart_quality");
   chipConf.textContent = t("chart_conf");
   rAcc.textContent = "—%";
@@ -738,22 +867,22 @@ btnReset?.addEventListener("click", () => {
   drawMiniChartDemo();
 });
 
-btnAnalyze?.addEventListener("click", () => runAnalysis("long"));
-btnLong?.addEventListener("click", () => runAnalysis("long"));
-btnShort?.addEventListener("click", () => runAnalysis("short"));
+btnAnalyze.addEventListener("click", () => runAnalysis("long"));
+btnLong.addEventListener("click", () => runAnalysis("long"));
+btnShort.addEventListener("click", () => runAnalysis("short"));
 
-assetBtn?.addEventListener("click", openAssets);
-tfBtn?.addEventListener("click", openTF);
-marketBtn?.addEventListener("click", toggleMarket);
+assetBtn.addEventListener("click", openAssets);
+tfBtn.addEventListener("click", openTF);
+marketBtn.addEventListener("click", toggleMarket);
 
-backdrop?.addEventListener("click", () => {
+backdrop.addEventListener("click", () => {
   closeModal(assetsModal);
   closeModal(tfModal);
   closeModal(langModal);
 });
-closeAssets?.addEventListener("click", () => closeModal(assetsModal));
-closeTf?.addEventListener("click", () => closeModal(tfModal));
-closeLang?.addEventListener("click", () => closeModal(langModal));
+closeAssets.addEventListener("click", () => closeModal(assetsModal));
+closeTf.addEventListener("click", () => closeModal(tfModal));
+closeLang.addEventListener("click", () => closeModal(langModal));
 
 // ---------- Boot ----------
 (async function boot(){
@@ -765,15 +894,11 @@ closeLang?.addEventListener("click", () => closeModal(langModal));
   setGateStatus(t("gate_status_na"), 14);
   setSignal("LONG-TREND", true);
 
+  // VIP метка — тихо, без редиректов/окон
+  if (getInitData()) {
+    refreshAuthSilent().catch(()=>{});
+  }
+
   drawChartDemo();
   drawMiniChartDemo();
-
-  // если открыто внутри TG — обновим VIP/registered тихо (без модалок)
-  if (isInsideTelegram()){
-    try {
-      const data = normalizeAuth(await auth());
-      if (data.ok) AUTH = data;
-      if (AUTH.vip) show(pillVipGate); else hide(pillVipGate);
-    } catch(e){}
-  }
 })();
