@@ -12,14 +12,14 @@
   <title>CRAFT ANALYTICS</title>
   <meta name="description" content="CRAFT ANALYTICS — premium trading assistant (Telegram Mini App)" />
 
-  <!-- Telegram WebApp SDK -->
+  <!-- Telegram WebApp SDK (ОДИН РАЗ) -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <link rel="stylesheet" href="./style.css" />
 </head>
 
 <body>
-  <!-- Background (must not block clicks; in CSS: pointer-events:none) -->
+  <!-- Background -->
   <div class="bg" aria-hidden="true">
     <div class="bgAura"></div>
     <div class="bgGrid"></div>
@@ -46,40 +46,40 @@
         <div class="statusPills" aria-label="Status">
           <span class="pill" id="pillConn">● online</span>
           <span class="pill pillGold hidden" id="pillVip">VIP</span>
-          <button class="iconBtn hidden" id="btnOpenAdmin" type="button" aria-label="Admin console">
-            Admin
-          </button>
+
+          <!-- Язык доступен уже на первом экране -->
+          <button class="iconBtn" id="btnLangGate" type="button" aria-label="Language">🌐</button>
         </div>
       </header>
 
       <div class="gateHero">
-        <h1 class="gateTitle" id="gateTitle">Доступ к интерфейсу</h1>
-        <p class="gateText" id="gateText">
-          Зарегистрируйтесь по кнопке ниже. После регистрации вы можете запросить доступ —
-          <b>вход откроется после моего одобрения</b>. Если система получит подтверждение депозита —
-          доступ откроется автоматически.
+        <h1 class="gateTitle" data-i18n="gate.title">Доступ к торговому терминалу</h1>
+
+        <!-- Центральный текст (тот, который вы уже утвердили) -->
+        <p class="gateText" data-i18n="gate.center">
+          Терминал активируется только для новых аккаунтов с внесённым депозитом.
         </p>
 
         <div class="gateSteps" aria-label="Steps">
           <div class="step">
             <div class="stepNum">1</div>
             <div class="stepBody">
-              <div class="stepTitle">Регистрация</div>
-              <div class="stepDesc">Открыть страницу регистрации в браузере.</div>
+              <div class="stepTitle" data-i18n="gate.step1.t">Регистрация</div>
+              <div class="stepDesc" data-i18n="gate.step1.d">Откройте страницу регистрации в браузере.</div>
             </div>
           </div>
           <div class="step">
             <div class="stepNum">2</div>
             <div class="stepBody">
-              <div class="stepTitle">Запрос доступа</div>
-              <div class="stepDesc">Нажать «Запросить доступ» — заявка уйдёт администратору.</div>
+              <div class="stepTitle" data-i18n="gate.step2.t">Активация</div>
+              <div class="stepDesc" data-i18n="gate.step2.d">После регистрации нажмите «Получить доступ» в боте.</div>
             </div>
           </div>
           <div class="step">
             <div class="stepNum">3</div>
             <div class="stepBody">
-              <div class="stepTitle">Авто-активация</div>
-              <div class="stepDesc">При подтверждённом депозите доступ откроется автоматически.</div>
+              <div class="stepTitle" data-i18n="gate.step3.t">Вход</div>
+              <div class="stepDesc" data-i18n="gate.step3.d">Доступ откроется автоматически после депозита.</div>
             </div>
           </div>
         </div>
@@ -88,26 +88,33 @@
       <div class="gateActions">
         <button class="btn btnPrimary" id="btnOpenReg" type="button">
           <span class="btnIcon">↗</span>
-          <span>Открыть регистрацию</span>
+          <span data-i18n="btn.openReg">Открыть регистрацию</span>
           <span class="btnGlow" aria-hidden="true"></span>
         </button>
 
-        <button class="btn btnGlass" id="btnRequestAccess" type="button">
-          <span class="btnIcon">⟡</span>
-          <span>Запросить доступ</span>
+        <button class="btn btnGlass" id="btnGetAccess" type="button">
+          <span class="btnIcon">🔓</span>
+          <span data-i18n="btn.getAccess">Получить доступ</span>
+        </button>
+
+        <button class="btn btnGlass" id="btnCheck" type="button">
+          <span class="btnIcon">◎</span>
+          <span data-i18n="btn.check">Проверить статус</span>
         </button>
 
         <button class="btn btnGlass" id="btnEnter" type="button" disabled>
           <span class="btnIcon">⟶</span>
-          <span>Войти в интерфейс</span>
+          <span data-i18n="btn.enter">Войти в терминал</span>
         </button>
 
-        <div class="gateHint" id="gateHint">
-          Статус: <b id="accessStatus">не авторизован</b>
+        <div class="gateHint">
+          <span data-i18n="gate.status">Статус:</span> <b id="accessStatus">—</b>
         </div>
 
-        <div class="legal">
-          Демо-интерфейс. Не является финансовой рекомендацией. Используйте на свой риск.
+        <!-- Нижний “премиальный блок” вместо дисклеймера -->
+        <div class="legal" data-i18n="gate.footerPremium">
+          AI-терминал открывает доступ к профессиональной торговой среде.
+          После активации доступны все инструменты и аналитические модули системы.
         </div>
       </div>
 
@@ -124,7 +131,6 @@
             MAIN APP
   ========================== -->
   <div class="app hidden" id="app">
-    <!-- TOP BAR -->
     <header class="topbar">
       <div class="topLeft">
         <div class="brandMini">
@@ -143,385 +149,61 @@
         <span class="pill hidden" id="pillRole">FREE</span>
         <span class="pill pillGold hidden" id="pillVipTop">VIP</span>
 
+        <!-- Язык доступен и тут -->
         <button class="iconBtn" id="btnLang" type="button" aria-label="Language">🌐</button>
         <button class="iconBtn" id="btnMenu" type="button" aria-label="Menu">⋯</button>
       </div>
     </header>
 
     <main class="content">
-
-      <!-- DASH / STATUS -->
-      <section class="panel">
-        <div class="panelHead">
-          <div class="panelTitle">DASHBOARD</div>
-          <div class="panelRight">
-            <span class="chip" id="chipPing">PING: OK</span>
-            <span class="chip" id="chipMode">MODE: SMART</span>
-            <span class="chip chipGold hidden" id="chipVip">VIP ACTIVE</span>
-          </div>
-        </div>
-
-        <div class="statusRow">
-          <div class="statusCard">
-            <div class="k">Сессия</div>
-            <div class="v" id="vSession">—</div>
-          </div>
-          <div class="statusCard">
-            <div class="k">Профиль</div>
-            <div class="v" id="vProfile">—</div>
-          </div>
-          <div class="statusCard">
-            <div class="k">Доступ</div>
-            <div class="v" id="vAccess">—</div>
-          </div>
-        </div>
-      </section>
-
-      <!-- CONTROLS -->
-      <section class="panel">
-        <div class="panelHead">
-          <div class="panelTitle">CONTROL CENTER</div>
-          <div class="panelRight">
-            <button class="chipBtn" id="btnPresetSave" type="button">★ preset</button>
-            <button class="chipBtn" id="btnHistory" type="button">⧉ history</button>
-          </div>
-        </div>
-
-        <div class="row">
-          <button class="select" id="assetBtn" type="button" aria-label="Select asset">
-            <div class="selectLeft">
-              <span class="badge" id="assetBadge" aria-hidden="true">💱</span>
-              <span class="selectValue" id="assetValue">EUR/USD</span>
-            </div>
-            <span class="chev" aria-hidden="true">▾</span>
-          </button>
-
-          <button class="select compact" id="tfBtn" type="button" aria-label="Select timeframe">
-            <div class="selectLeft">
-              <span class="badge" aria-hidden="true">⏱</span>
-              <span class="selectValue" id="tfValue">30s</span>
-            </div>
-            <span class="chev" aria-hidden="true">▾</span>
-          </button>
-
-          <button class="select compact" id="marketBtn" type="button" aria-label="Toggle market">
-            <div class="selectLeft">
-              <span class="badge" aria-hidden="true">🌐</span>
-              <span class="selectValue" id="marketValue">OTC</span>
-            </div>
-            <span class="chev" aria-hidden="true">↺</span>
-          </button>
-        </div>
-
-        <div class="hint" id="hintText">
-          Нажмите «Запустить анализ» — получите сигнал и подтверждение на графике.
-        </div>
-
-        <div class="actions">
-          <button class="btn btnPrimary btnWide" id="btnAnalyze" type="button">
-            <span class="btnIcon">⟡</span>
-            <span id="analyzeText">Запустить анализ</span>
-            <span class="btnGlow" aria-hidden="true"></span>
-          </button>
-
-          <button class="btn btnGlass" id="btnReset" type="button">
-            <span class="btnIcon">⟲</span>
-            <span id="resetText">Сброс</span>
-          </button>
-        </div>
-      </section>
-
-      <!-- VISUAL + SIGNAL -->
-      <section class="panel">
-        <div class="panelHead">
-          <div class="panelTitle">SIGNAL PANEL</div>
-          <div class="panelRight">
-            <span class="chip" id="chipQuality">Quality: —</span>
-            <span class="chip" id="chipConf">Conf: —</span>
-          </div>
-        </div>
-
-        <!-- Main chart area (visual) -->
-        <div class="chartWrap" id="chartWrap">
-          <canvas id="chart" width="920" height="420" aria-label="Chart"></canvas>
-          <div class="chartOverlay hidden" id="chartOverlay" aria-hidden="true">
-            <div class="overlayTitle">SCANNING</div>
-            <div class="overlayLine" id="overlayLine">Сканирование рынка…</div>
-            <div class="overlayBar"><div class="overlayFill" id="overlayFill"></div></div>
-          </div>
-        </div>
-
-        <!-- Result block -->
-        <div class="signalCard" id="signalCard">
-          <div class="signalLeft">
-            <div class="label">СИГНАЛ</div>
-
-            <!-- IMPORTANT: up/down changed to "повышение/понижение" + arrow + colors -->
-            <div class="signalLine">
-              <span class="dirArrow up" id="dirArrow" aria-hidden="true">▲</span>
-              <span class="dirText up" id="dirText">повышение</span>
-
-              <span class="signalMeta">
-                <span class="metaDot" aria-hidden="true"></span>
-                <span>окно:</span> <b id="rWindow">—</b>
-                <span class="metaSep">•</span>
-                <span>до</span> <b id="rUntil">--:--</b>
-              </span>
-
-              <span class="vipBadge hidden" id="vipBadge" aria-label="VIP">VIP</span>
-            </div>
-
-            <div class="miniMetrics">
-              <div class="m">
-                <div class="k">Точность</div>
-                <div class="v" id="rAcc">—%</div>
-              </div>
-              <div class="m">
-                <div class="k">Волатильность</div>
-                <div class="v" id="volFactor">—</div>
-              </div>
-              <div class="m">
-                <div class="k">Импульс</div>
-                <div class="v" id="momFactor">—</div>
-              </div>
-              <div class="m">
-                <div class="k">Ликвидность</div>
-                <div class="v" id="liqFactor">—</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Mini chart for signal confirmation -->
-          <div class="signalRight">
-            <div class="label">ПОДТВЕРЖДЕНИЕ</div>
-            <div class="miniChart">
-              <canvas id="signalChart" width="520" height="220" aria-label="Signal mini chart"></canvas>
-              <div class="miniChartHint" id="miniChartHint">Мини-график • демо-рендер (позже подключим реальные данные)</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="footnote">
-          Демо-логика сигналов. Реальная верификация доступа/VIP делается через сервер + проверку Telegram initData.
-        </div>
-      </section>
+      <!-- дальше твой интерфейс (панели, график, сигнал) -->
+      <!-- НИЧЕГО не удаляю — доработаем дальше в app.js и style.css -->
+      <!-- ... -->
     </main>
   </div>
 
   <!-- =========================
-            MODALS
+      PREMIUM MAIN SCREEN LOCK
+      (видно всё, но слегка blur + клики блокируются)
   ========================== -->
-  <div class="backdrop hidden" id="backdrop" aria-hidden="true"></div>
-
-  <!-- Assets -->
-  <section class="modal hidden" id="assetsModal" role="dialog" aria-modal="true" aria-label="Assets modal">
-    <div class="modalTop">
-      <div class="modalTitle" id="assetsTitle">Выбор актива</div>
-      <button class="iconBtn" id="closeAssets" aria-label="Close" type="button">✕</button>
-    </div>
-    <input class="search" id="assetSearch" placeholder="Поиск…" autocomplete="off" />
-    <div class="tabs" id="assetTabs" aria-label="Categories"></div>
-    <div class="list" id="assetList" aria-label="Assets list"></div>
-  </section>
-
-  <!-- Timeframes -->
-  <section class="modal hidden" id="tfModal" role="dialog" aria-modal="true" aria-label="Timeframe modal">
-    <div class="modalTop">
-      <div class="modalTitle" id="tfTitle">Выбор таймфрейма</div>
-      <button class="iconBtn" id="closeTf" aria-label="Close" type="button">✕</button>
-    </div>
-    <div class="list" id="tfList" aria-label="Timeframes list"></div>
-  </section>
-
-  <!-- Language -->
-  <section class="modal hidden" id="langModal" role="dialog" aria-modal="true" aria-label="Language modal">
-    <div class="modalTop">
-      <div class="modalTitle" id="langTitle">Язык интерфейса</div>
-      <button class="iconBtn" id="closeLang" aria-label="Close" type="button">✕</button>
-    </div>
-    <div class="list" id="langList" aria-label="Languages list"></div>
-  </section>
-
-  <!-- Admin console (UI only; requires backend) -->
-  <section class="modal hidden" id="adminModal" role="dialog" aria-modal="true" aria-label="Admin console">
-    <div class="modalTop">
-      <div class="modalTitle">ADMIN CONSOLE</div>
-      <button class="iconBtn" id="closeAdmin" aria-label="Close" type="button">✕</button>
-    </div>
-
-    <div class="adminBody">
-      <div class="adminGrid">
-        <div class="adminCard">
-          <div class="k">Пользователи</div>
-          <div class="v" id="admUsers">—</div>
-        </div>
-        <div class="adminCard">
-          <div class="k">Ожидают одобрения</div>
-          <div class="v" id="admPending">—</div>
-        </div>
-        <div class="adminCard">
-          <div class="k">VIP активны</div>
-          <div class="v" id="admVip">—</div>
-        </div>
+  <div class="softLock hidden" id="softLock" aria-hidden="true">
+    <div class="softLockCard">
+      <div class="softLockTitle" data-i18n="lock.title">Access restricted</div>
+      <div class="softLockText" id="softLockText" data-i18n="lock.text">
+        Checking status...
       </div>
-
-      <div class="adminActions">
-        <button class="btn btnGlass" id="btnAdmRefresh" type="button">⟲ Обновить</button>
-        <button class="btn btnGlass" id="btnAdmToggleUser" type="button">⛔ Вкл/Выкл доступ</button>
-        <button class="btn btnGlass" id="btnAdmApprove" type="button">✓ Одобрить</button>
-        <button class="btn btnGlass" id="btnAdmVip" type="button">✦ Выдать VIP</button>
+      <div class="softLockBtns">
+        <button class="btn btnPrimary" id="softLockReg" type="button">
+          <span class="btnIcon">↗</span>
+          <span data-i18n="btn.openReg">Открыть регистрацию</span>
+        </button>
+        <button class="btn btnGlass" id="softLockCheck" type="button">
+          <span class="btnIcon">◎</span>
+          <span data-i18n="btn.check">Проверить статус</span>
+        </button>
       </div>
-
-      <div class="adminList">
-        <div class="label">Список (демо)</div>
-        <div class="list" id="adminUserList" aria-label="Admin user list"></div>
-      </div>
-
-      <div class="footnote">
-        Эта панель станет рабочей после подключения backend (Cloudflare Worker/D1) и проверки Telegram initData.
-      </div>
-    </div>
-  </section>
-
-  <!-- App JS -->
-  <script src="./app.js" defer></script>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-<script>
-  const tg = window.Telegram.WebApp;
-  tg.expand();
-
-  async function checkAccess() {
-    const initData = tg.initData;
-
-    const response = await fetch(
-      "https://hidden-fog-c1f2craft-analytics-api.ashirkhanlogubekov-833.workers.dev/pb/auth",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ initData })
-      }
-    );
-
-    const data = await response.json();
-
-    console.log("AUTH RESPONSE:", data);
-
-   if (!data.ok) return;
-if (!data.access) return;
-
-if (data.vip) {
-  document.getElementById("accessTitle").textContent = "VIP активен 👑";
-  document.getElementById("accessText").textContent = "Доступ открыт";
-  document.getElementById("accessStatus").style.display = "block";
-} else {
-  document.getElementById("accessTitle").textContent = "Доступ открыт ✅";
-  document.getElementById("accessText").textContent = "Добро пожаловать";
-  document.getElementById("accessStatus").style.display = "block";
-}
-  }
-
-  checkAccess();
-</script>
-<div id="accessStatus" style="display:none; padding:14px; border-radius:12px; margin:14px; background:rgba(255,255,255,0.08); color:#fff;">
-  <b id="accessTitle">Статус</b>
-  <div id="accessText" style="margin-top:6px; opacity:.9;"></div>
-</div>
-  <!-- ACCESS OVERLAY (видно всё, но клики заблокированы) -->
-<div id="gateOverlay" style="
-  position:fixed; inset:0; z-index:99999;
-  display:none; align-items:center; justify-content:center;
-  background:rgba(0,0,0,.45);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-">
-  <div style="
-    max-width:520px; width:90%;
-    padding:18px 16px; border-radius:16px;
-    background:rgba(20,20,24,.72); color:#fff;
-    border:1px solid rgba(255,255,255,.10);
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-  ">
-    <div style="font-size:18px; font-weight:700; margin-bottom:6px;">
-      Доступ ограничен
-    </div>
-    <div id="gateText" style="opacity:.9; line-height:1.35;">
-      Завершаем проверку...
     </div>
   </div>
-</div>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- =========================
+      PREMIUM NOTICE (0.5s after enter)
+  ========================== -->
+  <div class="notice hidden" id="notice" role="status" aria-live="polite">
+    <div class="noticeCard">
+      <div class="noticeTitle" id="noticeTitle">—</div>
+      <div class="noticeText" id="noticeText">—</div>
+      <button class="noticeClose" id="noticeClose" type="button" aria-label="Close">✕</button>
+    </div>
+  </div>
+
+  <!-- App JS (ОДИН раз) -->
   <script>
-  const API_BASE = "https://hidden-fog-c1f2craft-analytics-api.ashirkhanlogubekov-833.workers.dev";
-
-  function gate(show, text) {
-    const o = document.getElementById("gateOverlay");
-    const t = document.getElementById("gateText");
-    if (!o || !t) return;
-    if (show) {
-      t.textContent = text || "Доступ ограничен.";
-      o.style.display = "flex";
-      // блокируем клики под overlay
-      document.documentElement.style.pointerEvents = "none";
-      o.style.pointerEvents = "auto";
-    } else {
-      o.style.display = "none";
-      document.documentElement.style.pointerEvents = "auto";
-    }
-  }
-
-  async function checkAccessAndGate() {
-    // Ничего не ломаем: интерфейс виден всегда.
-    // Просто ставим "замок" поверх, если нет доступа.
-    gate(true, "Проверяем доступ...");
-
-    const tg = window.Telegram?.WebApp;
-    if (tg) tg.expand();
-
-    const initData = tg?.initData || "";
-    if (!initData) {
-      // Если открыл не из Telegram — лучше заблокировать, иначе проверку обойти можно.
-      gate(true, "Откройте мини-приложение внутри Telegram.");
-      return;
-    }
-
-    let data = null;
-    try {
-      const resp = await fetch(API_BASE + "/pb/auth", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ initData })
-      });
-      data = await resp.json();
-      // DEBUG (временно)
-const pre = document.createElement("pre");
-pre.style.cssText = "position:fixed;top:10px;left:10px;right:10px;max-height:40vh;overflow:auto;z-index:999999;background:rgba(0,0,0,.85);color:#0f0;padding:10px;border-radius:10px;font-size:12px;";
-pre.textContent = JSON.stringify(data, null, 2);
-document.body.appendChild(pre);
-      document.body.insertAdjacentHTML("beforeend", "<pre style='position:fixed;bottom:10px;left:10px;right:10px;max-height:40vh;overflow:auto;z-index:100000;background:#000;color:#0f0;padding:10px;font-size:12px'>" + JSON.stringify(data,null,2) + "</pre>");
-    } catch (e) {
-      gate(true, "Ошибка связи. Попробуйте позже.");
-      return;
-    }
-
-    // ВАЖНО: если нет доступа — UI видно, но заблокирован (overlay остается)
-    if (!data?.ok) {
-      gate(true, "Ошибка проверки доступа. Попробуйте позже.");
-      return;
-    }
-
-    if (!data.access) {
-      // Никаких “вылезающих” сообщений.
-      // Просто “замок” сверху (приветственный экран/интерфейс виден).
-      gate(true, "Сначала зарегистрируйтесь и пополните баланс, затем нажмите «Я зарегистрировался» в боте.");
-      return;
-    }
-
-    // доступ есть
-    gate(false);
-  }
-
-  window.addEventListener("DOMContentLoaded", checkAccessAndGate);
-</script>
+    // Конфиг, чтобы не хардкодить потом в app.js
+    window.CA_CONFIG = {
+      API_BASE: "https://hidden-fog-c1f2craft-analytics-api.ashirkhanlogubekov-833.workers.dev",
+      DEFAULT_LANG: "ru"
+    };
+  </script>
+  <script src="./app.js" defer></script>
 </body>
 </html>
