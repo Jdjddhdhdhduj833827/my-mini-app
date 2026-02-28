@@ -427,5 +427,95 @@ if (data.vip) {
   <b id="accessTitle">Статус</b>
   <div id="accessText" style="margin-top:6px; opacity:.9;"></div>
 </div>
+  <!-- ACCESS OVERLAY (видно всё, но клики заблокированы) -->
+<div id="gateOverlay" style="
+  position:fixed; inset:0; z-index:99999;
+  display:none; align-items:center; justify-content:center;
+  background:rgba(0,0,0,.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+">
+  <div style="
+    max-width:520px; width:90%;
+    padding:18px 16px; border-radius:16px;
+    background:rgba(20,20,24,.72); color:#fff;
+    border:1px solid rgba(255,255,255,.10);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  ">
+    <div style="font-size:18px; font-weight:700; margin-bottom:6px;">
+      Доступ ограничен
+    </div>
+    <div id="gateText" style="opacity:.9; line-height:1.35;">
+      Завершаем проверку...
+    </div>
+  </div>
+</div>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script>
+  const API_BASE = "https://hidden-fog-c1f2craft-analytics-api.ashirkhanlogubekov-833.workers.dev";
+
+  function gate(show, text) {
+    const o = document.getElementById("gateOverlay");
+    const t = document.getElementById("gateText");
+    if (!o || !t) return;
+    if (show) {
+      t.textContent = text || "Доступ ограничен.";
+      o.style.display = "flex";
+      // блокируем клики под overlay
+      document.documentElement.style.pointerEvents = "none";
+      o.style.pointerEvents = "auto";
+    } else {
+      o.style.display = "none";
+      document.documentElement.style.pointerEvents = "auto";
+    }
+  }
+
+  async function checkAccessAndGate() {
+    // Ничего не ломаем: интерфейс виден всегда.
+    // Просто ставим "замок" поверх, если нет доступа.
+    gate(true, "Проверяем доступ...");
+
+    const tg = window.Telegram?.WebApp;
+    if (tg) tg.expand();
+
+    const initData = tg?.initData || "";
+    if (!initData) {
+      // Если открыл не из Telegram — лучше заблокировать, иначе проверку обойти можно.
+      gate(true, "Откройте мини-приложение внутри Telegram.");
+      return;
+    }
+
+    let data = null;
+    try {
+      const resp = await fetch(API_BASE + "/pb/auth", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ initData })
+      });
+      data = await resp.json();
+    } catch (e) {
+      gate(true, "Ошибка связи. Попробуйте позже.");
+      return;
+    }
+
+    // ВАЖНО: если нет доступа — UI видно, но заблокирован (overlay остается)
+    if (!data?.ok) {
+      gate(true, "Ошибка проверки доступа. Попробуйте позже.");
+      return;
+    }
+
+    if (!data.access) {
+      // Никаких “вылезающих” сообщений.
+      // Просто “замок” сверху (приветственный экран/интерфейс виден).
+      gate(true, "Сначала зарегистрируйтесь и пополните баланс, затем нажмите «Я зарегистрировался» в боте.");
+      return;
+    }
+
+    // доступ есть
+    gate(false);
+  }
+
+  window.addEventListener("DOMContentLoaded", checkAccessAndGate);
+</script>
 </body>
 </html>
