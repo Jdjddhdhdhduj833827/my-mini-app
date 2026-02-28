@@ -1,47 +1,55 @@
-/* app.js
-   ИДЕАЛЬНАЯ ЛОГИКА GATE (как вы хотели):
-   1) НЕ registered -> всегда notify "Нужна регистрация" (кнопка -> REG_URL), lock=false, остаёмся на gate
-   2) registered, но dep_count < 1 -> всегда notify "Нужен депозит" (кнопка -> DEPOSIT_URL), lock=true, остаёмся на gate
-   3) registered и dep_count >= 1 -> пускаем в app, notify скрыт, lock=false
+/* app.js — NEW CLEAN VERSION
+   ЛОГИКА (как ты требовал):
+   - Нажал "Получить доступ":
+     1) Если нет Telegram initData -> уведомление "Откройте внутри Telegram" (ВСЕГДА)
+     2) Если registered=0 -> уведомление "Нужна регистрация" (ВСЕГДА)
+     3) Если registered=1 и dep_count<1 -> уведомление "Нужен депозит" + lock=true
+     4) Если dep_count>=1 -> впускаем в APP
 
-   Плюс:
-   - assets/timeframes грузим из assets.json (fallback на дефолт)
-   - любая попытка "Получить доступ" всегда проверяет сервер
+   ВАЖНО:
+   - UI больше не ломает экран (CSS уже починил).
+   - anti-cache: index.html подключает app.js?v=7
 */
 
 const CONFIG = {
   API_BASE: "https://hidden-fog-c1f2craft-analytics-api.ashirkhanlogubekov-833.workers.dev",
   REG_URL: "https://u3.shortink.io/register?utm_campaign=838492&utm_source=affiliate&utm_medium=sr&a=M2nsxBfYsujho1&ac=craft_academy&code=WELCOME50",
-
-  // ВАЖНО: сюда должен быть реальный линк на пополнение (не регистрация).
-  // Если оставить как регистрацию — dep_count так и будет 0 и тебя никогда не пустит.
-  DEPOSIT_URL: "https://u3.shortink.io/deposit?utm_campaign=838492&utm_source=affiliate&utm_medium=sr&a=M2nsxBfYsujho1&ac=craft_academy",
-
+  DEPOSIT_URL: "https://u3.shortink.io/register?utm_campaign=838492&utm_source=affiliate&utm_medium=sr&a=M2nsxBfYsujho1&ac=craft_academy&code=WELCOME50",
   ASSETS_JSON: "./assets.json",
+  DEBUG: false
 };
 
-const tg = window.Telegram?.WebApp;
-if (tg) tg.expand();
+const tg = window.Telegram?.WebApp || null;
+if (tg) {
+  tg.ready();
+  tg.expand();
+}
 
 // ---------- DOM ----------
 const $ = (id) => document.getElementById(id);
 
-// Gate/App roots
 const gate = $("gate");
 const app = $("app");
 
-// Gate elements
 const btnOpenReg = $("btnOpenReg");
 const btnGetAccess = $("btnGetAccess");
+
 const gateStatusText = $("gateStatusText");
 const gateMeter = $("gateMeter");
-const pillVipGate = $("pillVipGate");
+const gateMeterText = $("gateMeterText");
 const gateDebug = $("gateDebug");
 
-// Top/app UI
 const btnLangGate = $("btnLangGate");
 const btnLangApp = $("btnLangApp");
-const pillVipTop = $("pillVipTop");
+
+const notify = $("notify");
+const notifyTitle = $("notifyTitle");
+const notifyText = $("notifyText");
+const btnNotifyPrimary = $("btnNotifyPrimary");
+const notifyPrimaryLabel = $("notifyPrimaryLabel");
+const btnNotifyClose = $("btnNotifyClose");
+
+const softLock = $("softLock");
 
 const btnCheckStatus = $("btnCheckStatus");
 const btnReset = $("btnReset");
@@ -49,7 +57,6 @@ const btnAnalyze = $("btnAnalyze");
 const btnLong = $("btnLong");
 const btnShort = $("btnShort");
 
-// Selectors
 const assetBtn = $("assetBtn");
 const tfBtn = $("tfBtn");
 const marketBtn = $("marketBtn");
@@ -58,9 +65,12 @@ const assetValue = $("assetValue");
 const tfValue = $("tfValue");
 const marketValue = $("marketValue");
 
-// Chips / metrics
 const chipSession = $("chipSession");
 const chipAccess = $("chipAccess");
+
+const chart = $("chart");
+const chartOverlay = $("chartOverlay");
+const overlayFill = $("overlayFill");
 
 const chipQuality = $("chipQuality");
 const chipConf = $("chipConf");
@@ -75,13 +85,8 @@ const momFactor = $("momFactor");
 const liqFactor = $("liqFactor");
 const vipBadge = $("vipBadge");
 
-// Charts
-const chart = $("chart");
-const chartOverlay = $("chartOverlay");
-const overlayFill = $("overlayFill");
 const signalChart = $("signalChart");
 
-// Modals
 const assetsModal = $("assetsModal");
 const assetList = $("assetList");
 const assetSearch = $("assetSearch");
@@ -98,36 +103,25 @@ const closeLang = $("closeLang");
 
 const backdrop = $("backdrop");
 
-// Notify
-const notify = $("notify");
-const notifyTitle = $("notifyTitle");
-const notifyText = $("notifyText");
-const btnNotifyPrimary = $("btnNotifyPrimary");
-const notifyPrimaryLabel = $("notifyPrimaryLabel");
-const btnNotifyClose = $("btnNotifyClose");
-
-// Soft lock overlay
-const softLock = $("softLock");
-
 // ---------- State ----------
 let LANG = "ru";
-let NOTIFY_MODE = "reg"; // "reg" | "deposit"
+let NOTIFY_MODE = "reg"; // reg | deposit
+
 let AUTH = {
   ok: false,
   telegram_id: "",
   access: false,
   vip: false,
-  flags: { registered: 0, dep_count: 0, approved: 0 },
+  flags: { registered: 0, dep_count: 0, approved: 0 }
 };
 
 let ASSETS = {
-  Forex: ["EUR/USD", "GBP/USD", "USD/JPY", "USD/CHF"],
-  Crypto: ["BTC/USD", "ETH/USD"],
-  Stocks: ["AAPL", "TSLA"],
-  Commodities: ["Gold", "Oil"],
+  Forex: ["EUR/USD","GBP/USD","USD/JPY","USD/CHF"],
+  Crypto: ["BTC/USD","ETH/USD"],
+  Stocks: ["AAPL","TSLA"],
+  Commodities: ["Gold","Oil"]
 };
-
-let TIMEFRAMES = ["15s", "30s", "1m"];
+let TIMEFRAMES = ["15s","30s","1m"];
 
 // ---------- i18n ----------
 const I18N = {
@@ -149,24 +143,51 @@ const I18N = {
     gate_legal: "Demo UI. Not financial advice.",
     gate_meter: "SECURITY • initData required",
 
+    app_sub: "Premium UI Terminal",
+    hero_title: "Terminal Overview",
+    hero_sub: "Smart mode • Premium UI",
+
+    cc_title: "CONTROL CENTER",
+    cc_btn_check: "Проверить статус",
+    cc_btn_reset: "Сброс",
+    cc_hint: "Демо-режим. Запуск анализа доступен после подтверждения депозита.",
+    cc_btn_analyze: "Запустить анализ",
+
+    chart_title: "MARKET VISUAL",
     chart_quality: "Quality: —",
     chart_conf: "Conf: —",
+    chart_scan: "Сканирование…",
+
+    sig_label: "СИГНАЛ",
+    sig_window: "окно:",
+    sig_until: "до",
+
+    m_acc: "Точность",
+    m_vol: "Волатильность",
+    m_mom: "Импульс",
+    m_liq: "Ликвидность",
+
+    assets_title: "Выбор актива",
+    tf_title: "Выбор таймфрейма",
+    lang_title: "Язык интерфейса",
+
+    footnote: "Проверка статуса выполняется на сервере через Telegram initData.",
 
     notify_btn_ok: "Понятно",
 
     st_need_tg: "Откройте внутри Telegram",
-    st_need_tg_d: "Мини-приложение работает только внутри Telegram.",
-    st_checked: "проверено",
+    st_need_tg_d: "Мини-приложение работает только внутри Telegram. Запускайте через кнопку меню бота.",
 
-    st_reg_required: "Сначала создайте аккаунт",
-    st_reg_required_d:
-      "Нажмите «Открыть регистрацию», создайте аккаунт и вернитесь сюда.",
-    st_deposit_required: "Требуется депозит",
-    st_deposit_required_d:
-      "Чтобы открыть интерфейс, внесите депозит и снова нажмите «Получить доступ».",
+    st_reg_required: "Нужна регистрация",
+    st_reg_required_d: "Нажмите «Открыть регистрацию», создайте аккаунт и вернитесь в мини-приложение.",
+
+    st_deposit_required: "Нужен депозит",
+    st_deposit_required_d: "Чтобы открыть интерфейс, внесите депозит и снова нажмите «Получить доступ».",
+
+    st_ok: "проверено",
 
     btn_open_reg: "Открыть регистрацию",
-    btn_open_deposit: "Открыть пополнение",
+    btn_open_deposit: "Открыть пополнение"
   },
 
   en: {
@@ -187,91 +208,129 @@ const I18N = {
     gate_legal: "Demo UI. Not financial advice.",
     gate_meter: "SECURITY • initData required",
 
+    app_sub: "Premium UI Terminal",
+    hero_title: "Terminal Overview",
+    hero_sub: "Smart mode • Premium UI",
+
+    cc_title: "CONTROL CENTER",
+    cc_btn_check: "Check status",
+    cc_btn_reset: "Reset",
+    cc_hint: "Demo mode. Analysis unlocks after deposit verification.",
+    cc_btn_analyze: "Run analysis",
+
+    chart_title: "MARKET VISUAL",
     chart_quality: "Quality: —",
     chart_conf: "Conf: —",
+    chart_scan: "Scanning…",
+
+    sig_label: "SIGNAL",
+    sig_window: "window:",
+    sig_until: "until",
+
+    m_acc: "Accuracy",
+    m_vol: "Volatility",
+    m_mom: "Momentum",
+    m_liq: "Liquidity",
+
+    assets_title: "Select asset",
+    tf_title: "Select timeframe",
+    lang_title: "Language",
+
+    footnote: "Status is verified on server using Telegram initData.",
 
     notify_btn_ok: "Got it",
 
     st_need_tg: "Open inside Telegram",
-    st_need_tg_d: "This mini app works only inside Telegram.",
-    st_checked: "checked",
+    st_need_tg_d: "This mini app works only inside Telegram. Launch it via the bot menu button.",
 
-    st_reg_required: "Create an account first",
-    st_reg_required_d:
-      "Tap “Open registration”, create an account, then come back.",
+    st_reg_required: "Registration required",
+    st_reg_required_d: "Tap “Open registration”, create an account, then return to the mini app.",
+
     st_deposit_required: "Deposit required",
-    st_deposit_required_d:
-      "To unlock the UI, make a deposit and tap “Get access” again.",
+    st_deposit_required_d: "To unlock the UI, make a deposit and tap “Get access” again.",
+
+    st_ok: "checked",
 
     btn_open_reg: "Open registration",
-    btn_open_deposit: "Open deposit",
-  },
+    btn_open_deposit: "Open deposit"
+  }
 };
 
-function t(key) {
+function t(key){
   return I18N[LANG]?.[key] ?? key;
 }
 
-function applyI18n() {
+function applyI18n(){
   document.documentElement.lang = LANG;
-  document.querySelectorAll("[data-i]").forEach((el) => {
+  document.querySelectorAll("[data-i]").forEach(el => {
     const k = el.getAttribute("data-i");
     el.textContent = t(k);
   });
+  // если уведомление открыто — обновим подпись
+  if (!notify.classList.contains("hidden")) {
+    notifyPrimaryLabel.textContent = (NOTIFY_MODE === "reg") ? t("btn_open_reg") : t("btn_open_deposit");
+  }
 }
 
 // ---------- UI helpers ----------
-function show(el) {
-  el?.classList.remove("hidden");
-}
-function hide(el) {
-  el?.classList.add("hidden");
-}
+function show(el){ el?.classList.remove("hidden"); }
+function hide(el){ el?.classList.add("hidden"); }
 
-function setGateStatus(text, meterPct) {
+function setGateStatus(text, meterPct){
   if (gateStatusText) gateStatusText.textContent = text;
-  if (gateMeter && typeof meterPct === "number")
-    gateMeter.style.width = `${meterPct}%`;
+  if (gateMeter && typeof meterPct === "number") gateMeter.style.width = `${meterPct}%`;
 }
 
-function openURL(url) {
-  if (!url) return;
+function openURL(url){
   if (tg?.openLink) tg.openLink(url);
   else window.open(url, "_blank");
 }
 
-// ---------- AUTH ----------
-async function auth() {
-  const initData = tg?.initData || "";
-  if (!initData) return { ok: false, error: "no initData" };
+function setLocked(isLocked){
+  if (isLocked) show(softLock); else hide(softLock);
 
-  let resp;
-  try {
-    resp = await fetch(CONFIG.API_BASE + "/pb/auth", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ initData }),
-      cache: "no-store",
-    });
-  } catch (e) {
-    return { ok: false, error: "network_error" };
-  }
-
-  let data = {};
-  try {
-    data = await resp.json();
-  } catch (e) {
-    data = {};
-  }
-
-  if (!resp.ok) {
-    return { ok: false, error: "http_" + resp.status, ...data };
-  }
-
-  return data;
+  const targets = [btnAnalyze, btnLong, btnShort, assetBtn, tfBtn, marketBtn];
+  targets.forEach(b => {
+    if (!b) return;
+    b.disabled = !!isLocked;
+    b.style.opacity = isLocked ? ".55" : "";
+    b.style.pointerEvents = isLocked ? "none" : "";
+  });
 }
 
-function normalizeAuth(data) {
+// ---------- notify ----------
+function premiumNotify(mode, title, text, opts={ lock:false }){
+  NOTIFY_MODE = mode;
+  notifyTitle.textContent = title;
+  notifyText.textContent = text;
+  notifyPrimaryLabel.textContent = (mode === "reg") ? t("btn_open_reg") : t("btn_open_deposit");
+  show(notify);
+  setLocked(!!opts.lock);
+}
+
+function closeNotify(){
+  hide(notify);
+  // если депозит не подтвержден — lock должен остаться
+  if (AUTH.flags.registered && AUTH.flags.dep_count < 1) setLocked(true);
+  else setLocked(false);
+}
+
+// ---------- AUTH ----------
+async function authRequest(){
+  const initData = tg?.initData || "";
+  if (!initData) return { ok:false, error:"no initData" };
+
+  const resp = await fetch(CONFIG.API_BASE + "/pb/auth", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ initData })
+  });
+
+  const json = await resp.json().catch(() => ({}));
+  return json;
+}
+
+function normalizeAuth(data){
   const flags = data?.flags || {};
   return {
     ok: !!data?.ok,
@@ -282,159 +341,137 @@ function normalizeAuth(data) {
       registered: Number(flags.registered ?? 0),
       dep_count: Number(flags.dep_count ?? 0),
       approved: Number(flags.approved ?? 0),
-    },
+    }
   };
 }
 
-// ---------- Smart Notify ----------
-function setLocked(isLocked) {
-  if (isLocked) show(softLock);
-  else hide(softLock);
-
-  [btnAnalyze, btnLong, btnShort].forEach((b) => {
-    if (!b) return;
-    b.disabled = isLocked;
-    b.style.opacity = isLocked ? ".55" : "";
-  });
+function debugDump(label){
+  if (!CONFIG.DEBUG) return;
+  show(gateDebug);
+  gateDebug.textContent =
+    label + "\n" +
+    "initData len: " + String((tg?.initData || "").length) + "\n" +
+    JSON.stringify(AUTH, null, 2);
 }
 
-function premiumNotify(mode, title, text, opts = { lock: false }) {
-  NOTIFY_MODE = mode;
-
-  if (notifyTitle) notifyTitle.textContent = title ?? "";
-  if (notifyText) notifyText.textContent = text ?? "";
-
-  if (notifyPrimaryLabel) {
-    notifyPrimaryLabel.textContent =
-      mode === "reg" ? t("btn_open_reg") : t("btn_open_deposit");
-  }
-
-  show(notify);
-  setLocked(!!opts.lock);
-}
-
-// ---------- Gate flow (ГЛАВНОЕ) ----------
-async function gateCheckAndProceed() {
+// ---------- Gate decision (ВСЕГДА по кнопке) ----------
+async function onGetAccessClick(){
   setGateStatus(t("gate_status_na"), 18);
 
-  // не в Telegram -> всегда показываем
+  // 1) Не в Telegram / нет initData -> ВСЕГДА уведомление
   if (!tg?.initData) {
     setGateStatus(t("st_need_tg"), 22);
-    premiumNotify("reg", t("st_need_tg"), t("st_need_tg_d"), { lock: false });
+    premiumNotify("reg", t("st_need_tg"), t("st_need_tg_d"), { lock:false });
     return;
   }
 
   setGateStatus("…", 32);
 
-  const raw = await auth();
+  const raw = await authRequest();
   AUTH = normalizeAuth(raw);
+  debugDump("GET ACCESS CLICK");
 
-  if (gateDebug) gateDebug.textContent = "AUTH: " + JSON.stringify(AUTH);
-
-  if (!AUTH.ok) {
-    setGateStatus("server error", 22);
-    premiumNotify(
-      "reg",
-      LANG === "ru" ? "Ошибка сервера" : "Server error",
-      LANG === "ru"
-        ? "Повторите попытку через несколько секунд. Если включен VPN — отключите."
-        : "Try again in a few seconds. If VPN is enabled — disable it.",
-      { lock: false }
-    );
-    return;
-  }
-
-  if (AUTH.vip) show(pillVipGate);
-  else hide(pillVipGate);
-
-  // 1) НЕ зарегистрирован -> ВСЕГДА окно регистрации
+  // 2) не зарегистрирован -> ВСЕГДА уведомление
   if (!AUTH.flags.registered) {
-    setGateStatus(t("st_reg_required"), 24);
-    premiumNotify("reg", t("st_reg_required"), t("st_reg_required_d"), {
-      lock: false,
-    });
+    setGateStatus(t("st_reg_required"), 26);
+    premiumNotify("reg", t("st_reg_required"), t("st_reg_required_d"), { lock:false });
     return;
   }
 
-  // 2) зарегистрирован, но депозита нет -> ВСЕГДА окно депозита + lock
+  // 3) зарегистрирован, но нет депозита -> уведомление + lock
   if (AUTH.flags.dep_count < 1) {
-    setGateStatus(t("st_deposit_required"), 28);
-    premiumNotify("deposit", t("st_deposit_required"), t("st_deposit_required_d"), {
-      lock: true,
-    });
+    setGateStatus(t("st_deposit_required"), 30);
+    premiumNotify("deposit", t("st_deposit_required"), t("st_deposit_required_d"), { lock:true });
     return;
   }
 
-  // 3) всё ок -> пускаем
-  setGateStatus(t("st_checked"), 62);
-  hide(notify);
-  setLocked(false);
+  // 4) всё ок -> впускаем
+  setGateStatus(t("st_ok"), 70);
   enterApp();
 }
 
-async function refreshAuthAndEnforce() {
-  // Кнопка "Проверить" делает ту же проверку, что и "Получить доступ"
-  await gateCheckAndProceed();
-}
-
-// ---------- Enter app ----------
-function enterApp() {
+function enterApp(){
   hide(gate);
   show(app);
 
-  if (chipSession)
-    chipSession.textContent =
-      "SESSION: " + (AUTH.telegram_id ? AUTH.telegram_id.slice(-6) : "—");
-  if (chipAccess)
-    chipAccess.textContent = "ACCESS: " + (AUTH.access ? "OPEN" : "PENDING");
+  chipSession.textContent = "SESSION: " + (AUTH.telegram_id ? AUTH.telegram_id.slice(-6) : "—");
+  chipAccess.textContent = "ACCESS: " + (AUTH.access ? "OPEN" : "PENDING");
 
-  if (AUTH.vip) {
-    show(pillVipTop);
-    show(vipBadge);
-  } else {
-    hide(pillVipTop);
-    hide(vipBadge);
-  }
+  if (AUTH.vip) vipBadge.style.display = "inline-flex";
+  else vipBadge.style.display = "none";
 
-  // без дополнительных “внутренних” проверок — всё уже проверено в gate
+  setLocked(false);
+  closeNotify();
+
   drawChartDemo();
   drawMiniChartDemo();
+  refreshAuthAndEnforce(); // на всякий случай ещё раз
 }
 
-// ---------- Assets loader (assets.json) ----------
-async function loadAssetsJson() {
-  try {
-    const r = await fetch(CONFIG.ASSETS_JSON, { cache: "no-store" });
+async function refreshAuthAndEnforce(){
+  if (!tg?.initData) {
+    premiumNotify("reg", t("st_need_tg"), t("st_need_tg_d"), { lock:false });
+    return;
+  }
+
+  const raw = await authRequest();
+  const fresh = normalizeAuth(raw);
+  if (fresh.ok) AUTH = fresh;
+
+  chipAccess.textContent = "ACCESS: " + (AUTH.access ? "OPEN" : "PENDING");
+  if (AUTH.vip) vipBadge.style.display = "inline-flex";
+  else vipBadge.style.display = "none";
+
+  // если вдруг сервер сказал что не зарегистрирован — вернем на gate
+  if (!AUTH.flags.registered) {
+    hide(app); show(gate);
+    setLocked(false);
+    premiumNotify("reg", t("st_reg_required"), t("st_reg_required_d"), { lock:false });
+    return;
+  }
+
+  // депозит не подтвержден — lock
+  if (AUTH.flags.dep_count < 1) {
+    premiumNotify("deposit", t("st_deposit_required"), t("st_deposit_required_d"), { lock:true });
+    return;
+  }
+
+  // всё открыто
+  closeNotify();
+  setLocked(false);
+}
+
+// ---------- assets.json loader ----------
+async function loadAssetsJson(){
+  try{
+    const r = await fetch(CONFIG.ASSETS_JSON, { cache:"no-store" });
     if (!r.ok) throw new Error("assets.json not ok");
     const j = await r.json();
     if (j?.categories) ASSETS = j.categories;
     if (Array.isArray(j?.timeframes)) TIMEFRAMES = j.timeframes;
-  } catch (e) {
-    // fallback на дефолт
+  }catch(e){
+    // fallback остаётся дефолт
   }
 }
 
 // ---------- Modals ----------
-function openModal(modal) {
+function openModal(modal){
   show(backdrop);
   show(modal);
 }
-function closeModal(modal) {
+function closeModal(modal){
   hide(modal);
   hide(backdrop);
 }
 
 // ---------- Language ----------
-function openLangModal() {
-  if (!langList) return;
-
+function openLangModal(){
   langList.innerHTML = "";
   const items = [
-    { id: "ru", label: "Русский" },
-    { id: "en", label: "English" },
+    { id:"ru", label:"Русский" },
+    { id:"en", label:"English" },
   ];
-
-  items.forEach((it) => {
+  items.forEach(it => {
     const row = document.createElement("div");
     row.className = "item";
     row.innerHTML = `<div>${it.label}</div><div>${it.id.toUpperCase()}</div>`;
@@ -442,27 +479,15 @@ function openLangModal() {
       LANG = it.id;
       localStorage.setItem("lang", LANG);
       applyI18n();
-
-      // обновим подпись notify кнопки (если открыто)
-      if (notify && !notify.classList.contains("hidden")) {
-        if (notifyPrimaryLabel) {
-          notifyPrimaryLabel.textContent =
-            NOTIFY_MODE === "reg" ? t("btn_open_reg") : t("btn_open_deposit");
-        }
-      }
-
       closeModal(langModal);
     });
     langList.appendChild(row);
   });
-
   openModal(langModal);
 }
 
-// ---------- Assets/TF UI ----------
-function openAssets() {
-  if (!assetTabs || !assetList || !assetSearch) return;
-
+// ---------- Assets UI ----------
+function openAssets(){
   assetTabs.innerHTML = "";
   assetList.innerHTML = "";
   assetSearch.value = "";
@@ -473,15 +498,14 @@ function openAssets() {
   const render = () => {
     assetList.innerHTML = "";
     const q = assetSearch.value.trim().toLowerCase();
-
     (ASSETS[activeCat] || [])
-      .filter((x) => !q || x.toLowerCase().includes(q))
-      .forEach((sym) => {
+      .filter(x => !q || x.toLowerCase().includes(q))
+      .forEach(sym => {
         const row = document.createElement("div");
         row.className = "item";
         row.innerHTML = `<div>${sym}</div><div>${activeCat}</div>`;
         row.addEventListener("click", () => {
-          if (assetValue) assetValue.textContent = sym;
+          assetValue.textContent = sym;
           closeModal(assetsModal);
           drawChartDemo();
         });
@@ -489,7 +513,7 @@ function openAssets() {
       });
   };
 
-  cats.forEach((cat) => {
+  cats.forEach(cat => {
     const tab = document.createElement("button");
     tab.className = "chipBtn";
     tab.type = "button";
@@ -506,54 +530,46 @@ function openAssets() {
   openModal(assetsModal);
 }
 
-function openTF() {
-  if (!tfList) return;
-
+function openTF(){
   tfList.innerHTML = "";
-  TIMEFRAMES.forEach((tf) => {
+  TIMEFRAMES.forEach(tf => {
     const row = document.createElement("div");
     row.className = "item";
     row.innerHTML = `<div>${tf}</div><div>Timeframe</div>`;
     row.addEventListener("click", () => {
-      if (tfValue) tfValue.textContent = tf;
+      tfValue.textContent = tf;
       closeModal(tfModal);
     });
     tfList.appendChild(row);
   });
-
   openModal(tfModal);
 }
 
-// ---------- Market toggle ----------
-function toggleMarket() {
-  if (!marketValue) return;
-  marketValue.textContent = marketValue.textContent === "OTC" ? "Market" : "OTC";
+function toggleMarket(){
+  marketValue.textContent = (marketValue.textContent === "OTC") ? "Market" : "OTC";
   drawChartDemo();
 }
 
 // ---------- Analysis (demo) ----------
-async function runAnalysis(direction /* "long" | "short" */) {
-  // защита: если вдруг как-то оказался в app без депозита
+async function runAnalysis(direction){
+  // если нет депозита — всегда покажем депозитное уведомление
   if (AUTH.flags.dep_count < 1) {
-    premiumNotify("deposit", t("st_deposit_required"), t("st_deposit_required_d"), {
-      lock: true,
-    });
+    premiumNotify("deposit", t("st_deposit_required"), t("st_deposit_required_d"), { lock:true });
     return;
   }
 
-  const dur = 600 + Math.floor(Math.random() * 1000);
-
+  const dur = 700 + Math.floor(Math.random() * 900);
   show(chartOverlay);
-  if (overlayFill) overlayFill.style.width = "0%";
+  overlayFill.style.width = "0%";
 
   const start = Date.now();
   const tick = setInterval(() => {
     const p = Math.min(100, Math.floor(((Date.now() - start) / dur) * 100));
-    if (overlayFill) overlayFill.style.width = p + "%";
+    overlayFill.style.width = p + "%";
     if (p >= 100) clearInterval(tick);
   }, 60);
 
-  await new Promise((r) => setTimeout(r, dur));
+  await new Promise(r => setTimeout(r, dur));
   hide(chartOverlay);
 
   const isLong = direction === "long";
@@ -562,31 +578,25 @@ async function runAnalysis(direction /* "long" | "short" */) {
   const quality = 72 + Math.floor(Math.random() * 18);
   const conf = 60 + Math.floor(Math.random() * 30);
 
-  if (chipQuality) chipQuality.textContent = `Quality: ${quality}`;
-  if (chipConf) chipConf.textContent = `Conf: ${conf}`;
+  chipQuality.textContent = `Quality: ${quality}`;
+  chipConf.textContent = `Conf: ${conf}`;
 
-  if (rAcc) rAcc.textContent = `${quality}%`;
-  if (volFactor) volFactor.textContent = ["Low", "Mid", "High"][Math.floor(Math.random() * 3)];
-  if (momFactor) momFactor.textContent = ["Soft", "Stable", "Strong"][Math.floor(Math.random() * 3)];
-  if (liqFactor) liqFactor.textContent = ["Thin", "Normal", "Deep"][Math.floor(Math.random() * 3)];
+  rAcc.textContent = `${quality}%`;
+  volFactor.textContent = ["Low","Mid","High"][Math.floor(Math.random()*3)];
+  momFactor.textContent = ["Soft","Stable","Strong"][Math.floor(Math.random()*3)];
+  liqFactor.textContent = ["Thin","Normal","Deep"][Math.floor(Math.random()*3)];
 
   const now = new Date();
-  const until = new Date(now.getTime() + 30 * 1000);
-  if (rWindow) rWindow.textContent = tfValue?.textContent || "30s";
-  if (rUntil)
-    rUntil.textContent = `${String(until.getHours()).padStart(2, "0")}:${String(
-      until.getMinutes()
-    ).padStart(2, "0")}`;
+  const until = new Date(now.getTime() + 30*1000);
+  rWindow.textContent = tfValue.textContent || "30s";
+  rUntil.textContent = `${String(until.getHours()).padStart(2,"0")}:${String(until.getMinutes()).padStart(2,"0")}`;
 
   drawChartDemo(isLong ? 1 : -1);
   drawMiniChartDemo(isLong ? 1 : -1);
 }
 
-function setSignal(text, isUp) {
-  if (dirText) dirText.textContent = text;
-
-  if (!dirArrow || !dirText) return;
-
+function setSignal(text, isUp){
+  dirText.textContent = text;
   if (isUp) {
     dirArrow.textContent = "↗";
     dirArrow.classList.remove("down");
@@ -603,44 +613,34 @@ function setSignal(text, isUp) {
 }
 
 // ---------- Demo charts ----------
-function drawChartDemo(bias = 0) {
+function drawChartDemo(bias = 0){
   if (!chart) return;
   const ctx = chart.getContext("2d");
   const w = chart.width;
   const h = chart.height;
 
-  ctx.clearRect(0, 0, w, h);
+  ctx.clearRect(0,0,w,h);
   ctx.fillStyle = "rgba(0,0,0,.22)";
-  ctx.fillRect(0, 0, w, h);
+  ctx.fillRect(0,0,w,h);
 
   ctx.globalAlpha = 0.22;
   ctx.strokeStyle = "rgba(255,255,255,.10)";
   ctx.lineWidth = 1;
   const step = 46;
-  for (let x = 0; x < w; x += step) {
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, h);
-    ctx.stroke();
-  }
-  for (let y = 0; y < h; y += step) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(w, y);
-    ctx.stroke();
-  }
+  for (let x=0; x<w; x+=step){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+  for (let y=0; y<h; y+=step){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
   ctx.globalAlpha = 1;
 
   const candles = 48;
   const cw = Math.floor(w / candles);
   let price = h * 0.55;
 
-  for (let i = 0; i < candles; i++) {
+  for (let i=0; i<candles; i++){
     const drift = (Math.random() - 0.5) * 18 + bias * 2.2;
     const open = price;
     const close = price + drift;
-    const high = Math.max(open, close) + Math.random() * 10;
-    const low = Math.min(open, close) - Math.random() * 10;
+    const high = Math.max(open, close) + (Math.random()*10);
+    const low  = Math.min(open, close) - (Math.random()*10);
     price = close;
 
     const x = i * cw + 12;
@@ -651,76 +651,65 @@ function drawChartDemo(bias = 0) {
     ctx.strokeStyle = "rgba(255,255,255,.26)";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(x + cw / 2, high);
-    ctx.lineTo(x + cw / 2, low);
+    ctx.moveTo(x + cw/2, high);
+    ctx.lineTo(x + cw/2, low);
     ctx.stroke();
 
     ctx.fillStyle = up ? "rgba(119,243,178,.26)" : "rgba(255,90,110,.22)";
     ctx.strokeStyle = up ? "rgba(119,243,178,.48)" : "rgba(255,90,110,.42)";
     ctx.lineWidth = 2;
 
-    ctx.fillRect(x, bodyTop, Math.max(8, cw - 18), Math.max(6, bodyBot - bodyTop));
-    ctx.strokeRect(x, bodyTop, Math.max(8, cw - 18), Math.max(6, bodyBot - bodyTop));
+    ctx.fillRect(x, bodyTop, Math.max(8, cw-18), Math.max(6, bodyBot-bodyTop));
+    ctx.strokeRect(x, bodyTop, Math.max(8, cw-18), Math.max(6, bodyBot-bodyTop));
   }
 
-  const grd = ctx.createLinearGradient(0, 0, 0, h);
+  const grd = ctx.createLinearGradient(0,0,0,h);
   grd.addColorStop(0, "rgba(124,92,255,.14)");
   grd.addColorStop(0.45, "rgba(0,178,255,.08)");
   grd.addColorStop(1, "rgba(245,211,138,.06)");
   ctx.fillStyle = grd;
-  ctx.fillRect(0, 0, w, h);
+  ctx.fillRect(0,0,w,h);
 }
 
-function drawMiniChartDemo(bias = 0) {
+function drawMiniChartDemo(bias = 0){
   if (!signalChart) return;
   const ctx = signalChart.getContext("2d");
   const w = signalChart.width;
   const h = signalChart.height;
 
-  ctx.clearRect(0, 0, w, h);
+  ctx.clearRect(0,0,w,h);
   ctx.fillStyle = "rgba(0,0,0,.22)";
-  ctx.fillRect(0, 0, w, h);
+  ctx.fillRect(0,0,w,h);
 
   ctx.globalAlpha = 0.22;
   ctx.strokeStyle = "rgba(255,255,255,.10)";
   ctx.lineWidth = 1;
-  for (let x = 0; x < w; x += 52) {
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, h);
-    ctx.stroke();
-  }
-  for (let y = 0; y < h; y += 44) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(w, y);
-    ctx.stroke();
-  }
+  for (let x=0; x<w; x+=52){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+  for (let y=0; y<h; y+=44){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
   ctx.globalAlpha = 1;
 
-  let y = h * 0.6;
+  let y = h*0.6;
   ctx.lineWidth = 3;
   ctx.strokeStyle = "rgba(255,255,255,.70)";
   ctx.beginPath();
-  for (let i = 0; i < 32; i++) {
-    const x = (i / 31) * (w - 24) + 12;
-    y += (Math.random() - 0.5) * 10 + bias * 1.3;
-    if (i === 0) ctx.moveTo(x, y);
+  for (let i=0; i<32; i++){
+    const x = (i/31) * (w-24) + 12;
+    y += (Math.random()-0.5)*10 + bias*1.3;
+    if (i===0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   }
   ctx.stroke();
 
   ctx.globalAlpha = 0.30;
   ctx.lineWidth = 10;
-  ctx.strokeStyle =
-    bias >= 0 ? "rgba(119,243,178,.26)" : "rgba(255,90,110,.22)";
+  ctx.strokeStyle = bias >= 0 ? "rgba(119,243,178,.26)" : "rgba(255,90,110,.22)";
   ctx.stroke();
   ctx.globalAlpha = 1;
 }
 
-// ---------- Events (все безопасно с проверками) ----------
+// ---------- Events ----------
 btnOpenReg?.addEventListener("click", () => openURL(CONFIG.REG_URL));
-btnGetAccess?.addEventListener("click", gateCheckAndProceed);
+btnGetAccess?.addEventListener("click", onGetAccessClick);
 
 btnLangGate?.addEventListener("click", openLangModal);
 btnLangApp?.addEventListener("click", openLangModal);
@@ -729,23 +718,17 @@ btnNotifyPrimary?.addEventListener("click", () => {
   if (NOTIFY_MODE === "reg") openURL(CONFIG.REG_URL);
   else openURL(CONFIG.DEPOSIT_URL);
 });
-
-btnNotifyClose?.addEventListener("click", () => {
-  hide(notify);
-  // если зарегистрирован и депозита нет — lock оставляем
-  if (AUTH.flags.registered && AUTH.flags.dep_count < 1) setLocked(true);
-  else setLocked(false);
-});
+btnNotifyClose?.addEventListener("click", closeNotify);
 
 btnCheckStatus?.addEventListener("click", refreshAuthAndEnforce);
 
 btnReset?.addEventListener("click", () => {
-  if (chipQuality) chipQuality.textContent = t("chart_quality");
-  if (chipConf) chipConf.textContent = t("chart_conf");
-  if (rAcc) rAcc.textContent = "—%";
-  if (volFactor) volFactor.textContent = "—";
-  if (momFactor) momFactor.textContent = "—";
-  if (liqFactor) liqFactor.textContent = "—";
+  chipQuality.textContent = t("chart_quality");
+  chipConf.textContent = t("chart_conf");
+  rAcc.textContent = "—%";
+  volFactor.textContent = "—";
+  momFactor.textContent = "—";
+  liqFactor.textContent = "—";
   setSignal("LONG-TREND", true);
   drawChartDemo();
   drawMiniChartDemo();
@@ -769,28 +752,22 @@ closeTf?.addEventListener("click", () => closeModal(tfModal));
 closeLang?.addEventListener("click", () => closeModal(langModal));
 
 // ---------- Boot ----------
-(async function boot() {
+(async function boot(){
   LANG = localStorage.getItem("lang") || "ru";
   applyI18n();
 
   await loadAssetsJson();
 
   setGateStatus(t("gate_status_na"), 14);
+  if (gateMeterText) gateMeterText.textContent = t("gate_meter");
+
   setSignal("LONG-TREND", true);
-
-  // небольшой VIP индикатор (не пускаем/не блокируем на boot)
-  if (tg?.initData) {
-    auth()
-      .then((d) => {
-        const tmp = normalizeAuth(d);
-        if (tmp.ok) AUTH = tmp;
-        if (AUTH.vip) show(pillVipGate);
-        else hide(pillVipGate);
-        if (gateDebug) gateDebug.textContent = "AUTH: " + JSON.stringify(AUTH);
-      })
-      .catch(() => {});
-  }
-
   drawChartDemo();
   drawMiniChartDemo();
+
+  // НЕ делаем авто-вход. Вход только по кнопке "Получить доступ".
+  // Но можно подсветить если initData уже есть:
+  if (tg?.initData) {
+    setGateStatus(t("gate_status_na"), 18);
+  }
 })();
