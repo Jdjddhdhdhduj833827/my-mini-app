@@ -1,21 +1,21 @@
-/* =========================================================
-   CRAFT ANALYTICS — app.js (FULL)
-   - Gate -> Main
-   - Real auth via /pb/auth (Telegram initData)
-   - Deposit notify after entry (0.5s)
-   - SoftLock blur if no deposit
-   - Full i18n RU/EN (except LONG/SHORT, AI, Premium, VIP)
-   - Premium chart demo + random scan duration
-========================================================= */
+/* app.js
+   ИДЕАЛЬНАЯ ЛОГИКА:
+   1) НЕ зарегистрирован -> окно "Нужна регистрация" (кнопка ведет на REG_URL), lock=false
+   2) Зарегистрирован, но dep_count < 1 -> "Нужен депозит" (кнопка ведет на DEPOSIT_URL), lock=true
+   3) Зарегистрирован и депозит есть -> окно не показываем, lock=false
+
+   Плюс:
+   - assets/timeframes грузим из assets.json (fallback на дефолт)
+   - notify кнопка меняется по режиму
+*/
 
 const CONFIG = {
   API_BASE: "https://hidden-fog-c1f2craft-analytics-api.ashirkhanlogubekov-833.workers.dev",
-  // Эти ссылки ты потом заменишь на реальные:
-  REG_URL: "https://example.com/register",     // куда ведёт кнопка "Открыть регистрацию"
-  DEPOSIT_URL: "https://example.com/deposit",  // куда ведёт "Открыть пополнение"
+  REG_URL: "https://example.com/register",
+  DEPOSIT_URL: "https://example.com/deposit",
+  ASSETS_JSON: "./assets.json",
 };
 
-// Telegram WebApp
 const tg = window.Telegram?.WebApp;
 if (tg) tg.expand();
 
@@ -33,20 +33,18 @@ const pillVipGate = $("pillVipGate");
 
 const btnLangGate = $("btnLangGate");
 const btnLangApp = $("btnLangApp");
-
 const pillVipTop = $("pillVipTop");
 
-const btnMenu = $("btnMenu");
 const btnCheckStatus = $("btnCheckStatus");
 const btnReset = $("btnReset");
 const btnAnalyze = $("btnAnalyze");
-
 const btnLong = $("btnLong");
 const btnShort = $("btnShort");
 
 const assetBtn = $("assetBtn");
 const tfBtn = $("tfBtn");
 const marketBtn = $("marketBtn");
+
 const assetValue = $("assetValue");
 const tfValue = $("tfValue");
 const marketValue = $("marketValue");
@@ -92,13 +90,15 @@ const backdrop = $("backdrop");
 const notify = $("notify");
 const notifyTitle = $("notifyTitle");
 const notifyText = $("notifyText");
-const btnOpenDeposit = $("btnOpenDeposit");
+const btnNotifyPrimary = $("btnNotifyPrimary");
+const notifyPrimaryLabel = $("notifyPrimaryLabel");
 const btnNotifyClose = $("btnNotifyClose");
 
 const softLock = $("softLock");
 
 // ---------- State ----------
-let LANG = "ru"; // default RU
+let LANG = "ru";
+let NOTIFY_MODE = "deposit"; // "reg" | "deposit"
 let AUTH = {
   ok: false,
   telegram_id: "",
@@ -107,40 +107,49 @@ let AUTH = {
   flags: { registered: 0, dep_count: 0, approved: 0 },
 };
 
+let ASSETS = {
+  Forex: ["EUR/USD","GBP/USD","USD/JPY","USD/CHF"],
+  Crypto: ["BTC/USD","ETH/USD"],
+  Stocks: ["AAPL","TSLA"],
+  Commodities: ["Gold","Oil"],
+};
+
+let TIMEFRAMES = ["15s","30s","1m"];
+
 // ---------- i18n ----------
 const I18N = {
   ru: {
-    gate_sub: "Premium terminal • Smart trading assistant",
-    gate_title: "Доступ к торговому терминалу",
-    gate_text_main: "Доступ открывается только для новых аккаунтов с внесённым депозитом.",
+    gate_sub: "Premium terminal • Smart assistant",
+    gate_title: "Доступ к терминалу",
+    gate_text_main: "Чтобы открыть интерфейс, подтвердите статус аккаунта.",
     gate_step1_t: "Регистрация",
     gate_step1_d: "Создайте новый аккаунт через кнопку ниже.",
-    gate_step2_t: "Активация",
-    gate_step2_d: "После регистрации нажмите «Получить доступ».",
-    gate_step3_t: "Trading Environment",
-    gate_step3_d: "AI-терминал открывает доступ к профессиональной торговой среде. После активации доступны все инструменты и аналитические модули системы.",
+    gate_step2_t: "Проверка статуса",
+    gate_step2_d: "Вернитесь и нажмите «Получить доступ».",
+    gate_step3_t: "Доступ",
+    gate_step3_d: "После подтверждения откроются модули интерфейса.",
     gate_btn_reg: "Открыть регистрацию",
     gate_btn_access: "Получить доступ",
     gate_status: "Статус:",
     gate_status_na: "не проверен",
-    gate_legal: "Premium AI-interface. Demo UI. Not a financial advice.",
+    gate_legal: "Demo UI. Not financial advice.",
     gate_meter: "SECURITY • initData required",
 
-    app_sub: "Premium AI Trading Terminal",
+    app_sub: "Premium UI Terminal",
     hero_title: "Terminal Overview",
-    hero_sub: "Smart mode • Adaptive execution • Premium UI",
+    hero_sub: "Smart mode • Premium UI",
     hero_mode: "MODE: SMART",
 
     cc_title: "CONTROL CENTER",
     cc_btn_check: "Проверить",
     cc_btn_reset: "Сброс",
-    cc_hint: "Нажмите «Запустить анализ» — получите сигнал и подтверждение на графике.",
+    cc_hint: "Нажмите «Запустить анализ» — получите демо-сигнал.",
     cc_btn_analyze: "Запустить анализ",
 
     chart_title: "MARKET VISUAL",
     chart_quality: "Quality: —",
     chart_conf: "Conf: —",
-    chart_scan: "Сканирование рынка…",
+    chart_scan: "Сканирование…",
 
     sig_label: "СИГНАЛ",
     sig_window: "окно:",
@@ -157,55 +166,55 @@ const I18N = {
     tf_title: "Выбор таймфрейма",
     lang_title: "Язык интерфейса",
 
-    footnote: "Реальная проверка доступа/VIP выполняется на сервере через Telegram initData.",
+    footnote: "Проверка статуса выполняется на сервере через Telegram initData.",
 
-    notify_btn_deposit: "Открыть пополнение",
     notify_btn_ok: "Понятно",
 
-    // runtime texts
     st_need_tg: "Откройте внутри Telegram",
     st_need_tg_d: "Мини-приложение работает только внутри Telegram.",
     st_checked: "проверено",
+
     st_reg_required: "Сначала создайте аккаунт",
-    st_reg_required_d: "Нажмите «Открыть регистрацию», создайте новый аккаунт и вернитесь сюда.",
+    st_reg_required_d: "Нажмите «Открыть регистрацию», создайте аккаунт и вернитесь сюда.",
     st_deposit_required: "Требуется депозит",
-    st_deposit_required_d: "Активируйте аккаунт внесением депозита — после этого терминал откроется автоматически.",
-    st_access_ok: "Доступ открыт",
-    st_vip_ok: "VIP активен",
+    st_deposit_required_d: "Чтобы открыть интерфейс, внесите депозит и снова нажмите «Проверить».",
+
+    btn_open_reg: "Открыть регистрацию",
+    btn_open_deposit: "Открыть пополнение"
   },
 
   en: {
-    gate_sub: "Premium terminal • Smart trading assistant",
+    gate_sub: "Premium terminal • Smart assistant",
     gate_title: "Terminal access",
-    gate_text_main: "Access is available only for new accounts with a deposit.",
+    gate_text_main: "Confirm your account status to open the UI.",
     gate_step1_t: "Registration",
     gate_step1_d: "Create a new account using the button below.",
-    gate_step2_t: "Activation",
-    gate_step2_d: "After registration, tap “Get access”.",
-    gate_step3_t: "Trading Environment",
-    gate_step3_d: "AI terminal unlocks a professional trading environment. After activation, all tools and analytics modules become available.",
+    gate_step2_t: "Status check",
+    gate_step2_d: "Come back and tap “Get access”.",
+    gate_step3_t: "Access",
+    gate_step3_d: "After confirmation, UI modules become available.",
     gate_btn_reg: "Open registration",
     gate_btn_access: "Get access",
     gate_status: "Status:",
     gate_status_na: "not checked",
-    gate_legal: "Premium AI-interface. Demo UI. Not a financial advice.",
+    gate_legal: "Demo UI. Not financial advice.",
     gate_meter: "SECURITY • initData required",
 
-    app_sub: "Premium AI Trading Terminal",
+    app_sub: "Premium UI Terminal",
     hero_title: "Terminal Overview",
-    hero_sub: "Smart mode • Adaptive execution • Premium UI",
+    hero_sub: "Smart mode • Premium UI",
     hero_mode: "MODE: SMART",
 
     cc_title: "CONTROL CENTER",
     cc_btn_check: "Check",
     cc_btn_reset: "Reset",
-    cc_hint: "Tap “Run analysis” to generate a signal and on-chart confirmation.",
+    cc_hint: "Tap “Run analysis” to get a demo signal.",
     cc_btn_analyze: "Run analysis",
 
     chart_title: "MARKET VISUAL",
     chart_quality: "Quality: —",
     chart_conf: "Conf: —",
-    chart_scan: "Scanning market…",
+    chart_scan: "Scanning…",
 
     sig_label: "SIGNAL",
     sig_window: "window:",
@@ -222,20 +231,21 @@ const I18N = {
     tf_title: "Select timeframe",
     lang_title: "Language",
 
-    footnote: "Access/VIP is verified on server using Telegram initData.",
+    footnote: "Status is verified on server using Telegram initData.",
 
-    notify_btn_deposit: "Open deposit",
     notify_btn_ok: "Got it",
 
     st_need_tg: "Open inside Telegram",
     st_need_tg_d: "This mini app works only inside Telegram.",
     st_checked: "checked",
+
     st_reg_required: "Create an account first",
-    st_reg_required_d: "Tap “Open registration”, create a new account, then come back.",
+    st_reg_required_d: "Tap “Open registration”, create an account, then come back.",
     st_deposit_required: "Deposit required",
-    st_deposit_required_d: "Activate your account with a deposit — the terminal unlocks automatically.",
-    st_access_ok: "Access granted",
-    st_vip_ok: "VIP active",
+    st_deposit_required_d: "To unlock the UI, make a deposit and tap “Check” again.",
+
+    btn_open_reg: "Open registration",
+    btn_open_deposit: "Open deposit"
   }
 };
 
@@ -261,7 +271,6 @@ function setGateStatus(text, meterPct){
 }
 
 function openURL(url){
-  // Внутри Telegram лучше так
   if (tg?.openLink) tg.openLink(url);
   else window.open(url, "_blank");
 }
@@ -296,89 +305,30 @@ function normalizeAuth(data){
   };
 }
 
-// ---------- Gate flow ----------
-async function gateCheckAndProceed(){
-  setGateStatus(t("gate_status_na"), 18);
+// ---------- Smart Notify ----------
+function premiumNotify(mode, title, text, opts = { lock:false }){
+  NOTIFY_MODE = mode;
 
-  if (!tg?.initData) {
-    setGateStatus(t("st_need_tg"), 22);
-    premiumNotify(t("st_need_tg"), t("st_need_tg_d"), { lock: false });
-    return;
-  }
+  notifyTitle.textContent = title;
+  notifyText.textContent = text;
 
-  setGateStatus("…", 32);
-
-  const data = normalizeAuth(await auth());
-  AUTH = data;
-
-  // VIP badge visual
-  if (AUTH.vip) show(pillVipGate); else hide(pillVipGate);
-
-  // 1) Если НЕ зарегистрирован — не пускаем в app, просим регу
-  if (!AUTH.flags.registered) {
-    setGateStatus(t("st_reg_required"), 24);
-    premiumNotify(t("st_reg_required"), t("st_reg_required_d"), { lock:false });
-    return;
-  }
-
-  // 2) Зарегистрирован -> переходим в app (как ты хотел).
-  // Депозит проверим уже внутри и там же покажем уведомление через 0.5 сек.
-  setGateStatus(t("st_checked"), 62);
-  enterApp();
-}
-
-// ---------- Enter main app ----------
-function enterApp(){
-  hide(gate);
-  show(app);
-
-  // обновим чипы
-  chipSession.textContent = "SESSION: " + (AUTH.telegram_id ? AUTH.telegram_id.slice(-6) : "—");
-  chipAccess.textContent = "ACCESS: " + (AUTH.access ? "OPEN" : "PENDING");
-
-  if (AUTH.vip) show(pillVipTop); else hide(pillVipTop);
-  if (AUTH.vip) show(vipBadge); else hide(vipBadge);
-
-  // РЕАЛЬНАЯ проверка депозита/доступа — ещё раз (обязательно)
-  setTimeout(async () => {
-    await refreshAuthAndEnforce();
-  }, 500);
-
-  // Рендерим графики (премиум демо)
-  drawChartDemo();
-  drawMiniChartDemo();
-}
-
-// ---------- Enforce deposit gate inside main ----------
-async function refreshAuthAndEnforce(){
-  const data = normalizeAuth(await auth());
-  if (data.ok) AUTH = data;
-
-  chipAccess.textContent = "ACCESS: " + (AUTH.access ? "OPEN" : "PENDING");
-
-  if (AUTH.vip) { show(pillVipTop); show(vipBadge); }
-  else { hide(pillVipTop); hide(vipBadge); }
-
-  // Если нет депозита (dep_count < 1) — показываем премиальное уведомление + softLock
-  if (AUTH.flags.dep_count < 1) {
-    premiumNotify(
-      t("st_deposit_required"),
-      t("st_deposit_required_d"),
-      { lock:true }
-    );
-    setLocked(true);
+  if (mode === "reg") {
+    notifyPrimaryLabel.textContent = t("btn_open_reg");
   } else {
-    // депозит есть — снять лок и уведомления
-    hide(notify);
-    setLocked(false);
+    notifyPrimaryLabel.textContent = t("btn_open_deposit");
   }
+
+  show(notify);
+
+  if (opts.lock) setLocked(true);
+  else setLocked(false);
 }
 
 function setLocked(isLocked){
   if (isLocked) show(softLock);
   else hide(softLock);
 
-  // Блокируем ключевые действия, но UI остаётся видимым.
+  // блокируем ключевые действия
   btnAnalyze.disabled = isLocked;
   btnLong.disabled = isLocked;
   btnShort.disabled = isLocked;
@@ -388,14 +338,99 @@ function setLocked(isLocked){
   btnShort.style.opacity = isLocked ? ".55" : "";
 }
 
-// ---------- Premium notify ----------
-function premiumNotify(title, text, opts = { lock:false }){
-  notifyTitle.textContent = title;
-  notifyText.textContent = text;
-  show(notify);
+// ---------- Gate flow ----------
+async function gateCheckAndProceed(){
+  setGateStatus(t("gate_status_na"), 18);
 
-  // если lock=false — просто уведомление, интерфейс не блокируем
-  if (!opts.lock) hide(softLock);
+  if (!tg?.initData) {
+    setGateStatus(t("st_need_tg"), 22);
+    premiumNotify("reg", t("st_need_tg"), t("st_need_tg_d"), { lock:false });
+    return;
+  }
+
+  setGateStatus("…", 32);
+
+  const data = normalizeAuth(await auth());
+  AUTH = data;
+
+  if (AUTH.vip) show(pillVipGate); else hide(pillVipGate);
+
+  // НЕ зарегистрирован -> показываем ТОЛЬКО регистрацию (и не пускаем в app)
+  if (!AUTH.flags.registered) {
+    setGateStatus(t("st_reg_required"), 24);
+    premiumNotify("reg", t("st_reg_required"), t("st_reg_required_d"), { lock:false });
+    return;
+  }
+
+  // Зарегистрирован -> заходим в app, депозит проверим уже внутри
+  setGateStatus(t("st_checked"), 62);
+  enterApp();
+}
+
+function enterApp(){
+  hide(gate);
+  show(app);
+
+  chipSession.textContent = "SESSION: " + (AUTH.telegram_id ? AUTH.telegram_id.slice(-6) : "—");
+  chipAccess.textContent = "ACCESS: " + (AUTH.access ? "OPEN" : "PENDING");
+
+  if (AUTH.vip) show(pillVipTop); else hide(pillVipTop);
+  if (AUTH.vip) show(vipBadge); else hide(vipBadge);
+
+  setTimeout(async () => {
+    await refreshAuthAndEnforce();
+  }, 400);
+
+  drawChartDemo();
+  drawMiniChartDemo();
+}
+
+async function refreshAuthAndEnforce(){
+  if (!tg?.initData) {
+    // если вдруг пользователь открыл не в TG — мягко покажем инфо, но не ломаем всё
+    premiumNotify("reg", t("st_need_tg"), t("st_need_tg_d"), { lock:false });
+    return;
+  }
+
+  const data = normalizeAuth(await auth());
+  if (data.ok) AUTH = data;
+
+  chipAccess.textContent = "ACCESS: " + (AUTH.access ? "OPEN" : "PENDING");
+
+  if (AUTH.vip) { show(pillVipTop); show(vipBadge); }
+  else { hide(pillVipTop); hide(vipBadge); }
+
+  // ВАЖНО: если вдруг registered = 0 (например сервер обновился) — возвращаем на gate
+  if (!AUTH.flags.registered) {
+    // вернем пользователя на gate (корректно)
+    hide(app); show(gate);
+    setLocked(false);
+    premiumNotify("reg", t("st_reg_required"), t("st_reg_required_d"), { lock:false });
+    return;
+  }
+
+  // Зарегистрирован, но депозит отсутствует -> депозитное окно + lock
+  if (AUTH.flags.dep_count < 1) {
+    premiumNotify("deposit", t("st_deposit_required"), t("st_deposit_required_d"), { lock:true });
+    return;
+  }
+
+  // Депозит есть -> всё открыто
+  hide(notify);
+  setLocked(false);
+}
+
+// ---------- Assets loader (assets.json) ----------
+async function loadAssetsJson(){
+  try {
+    const r = await fetch(CONFIG.ASSETS_JSON, { cache: "no-store" });
+    if (!r.ok) throw new Error("assets.json not ok");
+    const j = await r.json();
+    if (j?.categories) ASSETS = j.categories;
+    if (Array.isArray(j?.timeframes)) TIMEFRAMES = j.timeframes;
+  } catch (e) {
+    // fallback оставляем дефолт (ASSETS/TIMEFRAMES выше)
+  }
 }
 
 // ---------- Modals ----------
@@ -423,6 +458,10 @@ function openLangModal(){
       LANG = it.id;
       localStorage.setItem("lang", LANG);
       applyI18n();
+      // обновим подпись кнопки notify (если открыто)
+      if (!notify.classList.contains("hidden")) {
+        notifyPrimaryLabel.textContent = (NOTIFY_MODE === "reg") ? t("btn_open_reg") : t("btn_open_deposit");
+      }
       closeModal(langModal);
     });
     langList.appendChild(row);
@@ -430,39 +469,14 @@ function openLangModal(){
   openModal(langModal);
 }
 
-// ---------- Assets / TF data (база) ----------
-/*
-  ВАЖНО: “абсолютно все активы Pocket Option” без их официального списка
-  нельзя гарантировать с 1 раза. Поэтому сделано так:
-  - структура категорий готова
-  - список легко расширяется одним массивом
-  - ты можешь прислать список/экспорт — и мы вставим полностью
-*/
-const ASSETS = {
-  Forex: [
-    "EUR/USD","GBP/USD","USD/JPY","USD/CHF","AUD/USD","USD/CAD","NZD/USD",
-    "EUR/GBP","EUR/JPY","GBP/JPY","EUR/CHF","AUD/JPY","CAD/JPY","CHF/JPY"
-  ],
-  Crypto: [
-    "BTC/USD","ETH/USD","SOL/USD","XRP/USD","BNB/USD","DOGE/USD","ADA/USD"
-  ],
-  Stocks: [
-    "AAPL","TSLA","AMZN","NVDA","MSFT","META","GOOGL"
-  ],
-  Commodities: [
-    "Gold","Silver","Oil","Natural Gas"
-  ],
-};
-
-const TIMEFRAMES = ["5s","15s","30s","1m","2m","5m"];
-
+// ---------- Assets/TF UI ----------
 function openAssets(){
   assetTabs.innerHTML = "";
   assetList.innerHTML = "";
   assetSearch.value = "";
 
   const cats = Object.keys(ASSETS);
-  let activeCat = cats[0];
+  let activeCat = cats[0] || "Forex";
 
   const render = () => {
     assetList.innerHTML = "";
@@ -476,7 +490,7 @@ function openAssets(){
         row.addEventListener("click", () => {
           assetValue.textContent = sym;
           closeModal(assetsModal);
-          drawChartDemo(); // обновить демо-график под актив (визуально)
+          drawChartDemo();
         });
         assetList.appendChild(row);
       });
@@ -520,22 +534,19 @@ function toggleMarket(){
   drawChartDemo();
 }
 
-// ---------- ANALYSIS (random time + premium overlay) ----------
+// ---------- Analysis (demo) ----------
 async function runAnalysis(direction /* "long" | "short" */){
-  // если lock — ничего не делаем
+  // если депозит не внесен — не даем нажимать
   if (AUTH.flags.dep_count < 1) {
-    premiumNotify(t("st_deposit_required"), t("st_deposit_required_d"), { lock:true });
-    setLocked(true);
+    premiumNotify("deposit", t("st_deposit_required"), t("st_deposit_required_d"), { lock:true });
     return;
   }
 
-  // random duration 0.6–1.6s
   const dur = 600 + Math.floor(Math.random() * 1000);
 
   show(chartOverlay);
   overlayFill.style.width = "0%";
 
-  // pseudo progress
   const start = Date.now();
   const tick = setInterval(() => {
     const p = Math.min(100, Math.floor(((Date.now() - start) / dur) * 100));
@@ -544,15 +555,13 @@ async function runAnalysis(direction /* "long" | "short" */){
   }, 60);
 
   await new Promise(r => setTimeout(r, dur));
-
   hide(chartOverlay);
 
-  // generate “premium” result
   const isLong = direction === "long";
   setSignal(isLong ? "LONG-TREND" : "SHORT-TREND", isLong);
 
-  const quality = 72 + Math.floor(Math.random() * 18); // 72-89
-  const conf = 60 + Math.floor(Math.random() * 30);    // 60-89
+  const quality = 72 + Math.floor(Math.random() * 18);
+  const conf = 60 + Math.floor(Math.random() * 30);
 
   chipQuality.textContent = `Quality: ${quality}`;
   chipConf.textContent = `Conf: ${conf}`;
@@ -567,7 +576,6 @@ async function runAnalysis(direction /* "long" | "short" */){
   rWindow.textContent = tfValue.textContent || "30s";
   rUntil.textContent = `${String(until.getHours()).padStart(2,"0")}:${String(until.getMinutes()).padStart(2,"0")}`;
 
-  // update demo charts slightly
   drawChartDemo(isLong ? 1 : -1);
   drawMiniChartDemo(isLong ? 1 : -1);
 }
@@ -590,32 +598,25 @@ function setSignal(text, isUp){
   }
 }
 
-// ---------- Premium chart demo renderer ----------
+// ---------- Demo charts ----------
 function drawChartDemo(bias = 0){
   if (!chart) return;
   const ctx = chart.getContext("2d");
   const w = chart.width;
   const h = chart.height;
 
-  // bg
   ctx.clearRect(0,0,w,h);
   ctx.fillStyle = "rgba(0,0,0,.22)";
   ctx.fillRect(0,0,w,h);
 
-  // subtle grid
   ctx.globalAlpha = 0.22;
   ctx.strokeStyle = "rgba(255,255,255,.10)";
   ctx.lineWidth = 1;
   const step = 46;
-  for (let x=0; x<w; x+=step){
-    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke();
-  }
-  for (let y=0; y<h; y+=step){
-    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
-  }
+  for (let x=0; x<w; x+=step){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+  for (let y=0; y<h; y+=step){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
   ctx.globalAlpha = 1;
 
-  // generate candles
   const candles = 48;
   const cw = Math.floor(w / candles);
   let price = h * 0.55;
@@ -626,16 +627,13 @@ function drawChartDemo(bias = 0){
     const close = price + drift;
     const high = Math.max(open, close) + (Math.random()*10);
     const low  = Math.min(open, close) - (Math.random()*10);
-
     price = close;
 
     const x = i * cw + 12;
     const bodyTop = Math.min(open, close);
     const bodyBot = Math.max(open, close);
-
     const up = close >= open;
 
-    // wick
     ctx.strokeStyle = "rgba(255,255,255,.26)";
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -643,15 +641,14 @@ function drawChartDemo(bias = 0){
     ctx.lineTo(x + cw/2, low);
     ctx.stroke();
 
-    // body
     ctx.fillStyle = up ? "rgba(119,243,178,.26)" : "rgba(255,90,110,.22)";
     ctx.strokeStyle = up ? "rgba(119,243,178,.48)" : "rgba(255,90,110,.42)";
     ctx.lineWidth = 2;
+
     ctx.fillRect(x, bodyTop, Math.max(8, cw-18), Math.max(6, bodyBot-bodyTop));
     ctx.strokeRect(x, bodyTop, Math.max(8, cw-18), Math.max(6, bodyBot-bodyTop));
   }
 
-  // premium top glow
   const grd = ctx.createLinearGradient(0,0,0,h);
   grd.addColorStop(0, "rgba(124,92,255,.14)");
   grd.addColorStop(0.45, "rgba(0,178,255,.08)");
@@ -670,19 +667,13 @@ function drawMiniChartDemo(bias = 0){
   ctx.fillStyle = "rgba(0,0,0,.22)";
   ctx.fillRect(0,0,w,h);
 
-  // small grid
   ctx.globalAlpha = 0.22;
   ctx.strokeStyle = "rgba(255,255,255,.10)";
   ctx.lineWidth = 1;
-  for (let x=0; x<w; x+=52){
-    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke();
-  }
-  for (let y=0; y<h; y+=44){
-    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
-  }
+  for (let x=0; x<w; x+=52){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+  for (let y=0; y<h; y+=44){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
   ctx.globalAlpha = 1;
 
-  // line
   let y = h*0.6;
   ctx.lineWidth = 3;
   ctx.strokeStyle = "rgba(255,255,255,.70)";
@@ -695,7 +686,6 @@ function drawMiniChartDemo(bias = 0){
   }
   ctx.stroke();
 
-  // glow
   ctx.globalAlpha = 0.30;
   ctx.lineWidth = 10;
   ctx.strokeStyle = bias >= 0 ? "rgba(119,243,178,.26)" : "rgba(255,90,110,.22)";
@@ -705,24 +695,25 @@ function drawMiniChartDemo(bias = 0){
 
 // ---------- Events ----------
 btnOpenReg.addEventListener("click", () => openURL(CONFIG.REG_URL));
-
-btnGetAccess.addEventListener("click", async () => {
-  // “получить доступ” = делаем реальную проверку registered
-  await gateCheckAndProceed();
-});
+btnGetAccess.addEventListener("click", gateCheckAndProceed);
 
 btnLangGate.addEventListener("click", openLangModal);
 btnLangApp.addEventListener("click", openLangModal);
 
-btnOpenDeposit.addEventListener("click", () => openURL(CONFIG.DEPOSIT_URL));
-btnNotifyClose.addEventListener("click", () => hide(notify));
-
-btnCheckStatus.addEventListener("click", async () => {
-  await refreshAuthAndEnforce();
+btnNotifyPrimary.addEventListener("click", () => {
+  if (NOTIFY_MODE === "reg") openURL(CONFIG.REG_URL);
+  else openURL(CONFIG.DEPOSIT_URL);
+});
+btnNotifyClose.addEventListener("click", () => {
+  hide(notify);
+  // если зарегистрирован и депозита нет — lock оставляем
+  if (AUTH.flags.registered && AUTH.flags.dep_count < 1) setLocked(true);
+  else setLocked(false);
 });
 
+btnCheckStatus.addEventListener("click", refreshAuthAndEnforce);
+
 btnReset.addEventListener("click", () => {
-  // reset UI only (без влияния на доступ)
   chipQuality.textContent = t("chart_quality");
   chipConf.textContent = t("chart_conf");
   rAcc.textContent = "—%";
@@ -742,7 +733,6 @@ assetBtn.addEventListener("click", openAssets);
 tfBtn.addEventListener("click", openTF);
 marketBtn.addEventListener("click", toggleMarket);
 
-// modal close
 backdrop.addEventListener("click", () => {
   closeModal(assetsModal);
   closeModal(tfModal);
@@ -753,16 +743,17 @@ closeTf.addEventListener("click", () => closeModal(tfModal));
 closeLang.addEventListener("click", () => closeModal(langModal));
 
 // ---------- Boot ----------
-(function boot(){
+(async function boot(){
   LANG = localStorage.getItem("lang") || "ru";
   applyI18n();
 
-  // начальные значения
+  // assets.json
+  await loadAssetsJson();
+
   setGateStatus(t("gate_status_na"), 14);
   setSignal("LONG-TREND", true);
 
-  // Пробуем “мягко” подтянуть статус заранее (не ломает gate)
-  // Если нет initData — просто оставим gate.
+  // лёгкая проверка VIP (не перекидываем, только значок)
   if (tg?.initData) {
     auth().then(d => {
       AUTH = normalizeAuth(d);
