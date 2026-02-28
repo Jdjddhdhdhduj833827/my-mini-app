@@ -22,6 +22,8 @@ if (tg) tg.expand();
 // ---------- DOM ----------
 const $ = (id) => document.getElementById(id);
 
+const gateDebug = $("gateDebug");
+
 const gate = $("gate");
 const app = $("app");
 
@@ -354,7 +356,10 @@ async function gateCheckAndProceed(){
 
   const data = normalizeAuth(await auth());
   AUTH = data;
-
+  
+   if (gateDebug) {
+  gateDebug.textContent = "AUTH: " + JSON.stringify(AUTH);
+}
   if (AUTH.vip) show(pillVipGate); else hide(pillVipGate);
 
   // НЕ зарегистрирован -> показываем ТОЛЬКО регистрацию (и не пускаем в app)
