@@ -407,21 +407,18 @@
 
     console.log("AUTH RESPONSE:", data);
 
-    if (!data.ok) {
-      document.body.innerHTML = "<h2>Ошибка авторизации</h2>";
-      return;
-    }
+   if (!data.ok) return;
+if (!data.access) return;
 
-    if (!data.access) {
-      document.body.innerHTML = "<h2>Нет доступа. Сделайте депозит или дождитесь одобрения.</h2>";
-      return;
-    }
-
-    if (data.vip) {
-      document.body.innerHTML = "<h1>VIP ДОСТУП АКТИВЕН 👑</h1>";
-    } else {
-      document.body.innerHTML = "<h1>ДОСТУП АКТИВЕН ✅</h1>";
-    }
+if (data.vip) {
+  document.getElementById("accessTitle").textContent = "VIP активен 👑";
+  document.getElementById("accessText").textContent = "Доступ открыт";
+  document.getElementById("accessStatus").style.display = "block";
+} else {
+  document.getElementById("accessTitle").textContent = "Доступ открыт ✅";
+  document.getElementById("accessText").textContent = "Добро пожаловать";
+  document.getElementById("accessStatus").style.display = "block";
+}
   }
 
   checkAccess();
