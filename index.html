@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!doctype html>
 <html lang="ru">
 <head>
@@ -10,7 +11,7 @@
   <meta name="format-detection" content="telephone=no" />
 
   <title>CRAFT ANALYTICS</title>
-  <meta name="description" content="CRAFT ANALYTICS — Premium AI Trading Terminal (Telegram Mini App)" />
+  <meta name="description" content="CRAFT ANALYTICS — Premium UI (Telegram Mini App)" />
 
   <!-- Telegram WebApp SDK (ОДИН РАЗ) -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -40,7 +41,7 @@
           </div>
           <div class="brandText">
             <div class="brandName">CRAFT ANALYTICS</div>
-            <div class="brandSub" data-i="gate_sub">Premium terminal • Smart trading assistant</div>
+            <div class="brandSub" data-i="gate_sub">Premium terminal • Smart assistant</div>
           </div>
         </div>
 
@@ -52,10 +53,10 @@
       </header>
 
       <div class="gateHero">
-        <h1 class="gateTitle" data-i="gate_title">Доступ к торговому терминалу</h1>
+        <h1 class="gateTitle" data-i="gate_title">Доступ к терминалу</h1>
 
         <p class="gateText" data-i="gate_text_main">
-          Доступ открывается только для новых аккаунтов с внесённым депозитом.
+          Чтобы открыть интерфейс, подтвердите статус аккаунта.
         </p>
 
         <div class="gateSteps" aria-label="Steps">
@@ -70,18 +71,17 @@
           <div class="step">
             <div class="stepNum">2</div>
             <div class="stepBody">
-              <div class="stepTitle" data-i="gate_step2_t">Активация</div>
-              <div class="stepDesc" data-i="gate_step2_d">После регистрации нажмите «Получить доступ».</div>
+              <div class="stepTitle" data-i="gate_step2_t">Проверка статуса</div>
+              <div class="stepDesc" data-i="gate_step2_d">Вернитесь и нажмите «Получить доступ».</div>
             </div>
           </div>
 
           <div class="step">
             <div class="stepNum">3</div>
             <div class="stepBody">
-              <div class="stepTitle" data-i="gate_step3_t">Trading Environment</div>
+              <div class="stepTitle" data-i="gate_step3_t">Доступ</div>
               <div class="stepDesc" data-i="gate_step3_d">
-                AI-терминал открывает доступ к профессиональной торговой среде.
-                После активации доступны все инструменты и аналитические модули системы.
+                После подтверждения откроются модули интерфейса.
               </div>
             </div>
           </div>
@@ -106,7 +106,7 @@
         </div>
 
         <div class="legal" data-i="gate_legal">
-          Premium AI-interface. Demo UI. Not a financial advice.
+          Demo UI. Not financial advice.
         </div>
       </div>
 
@@ -134,7 +134,7 @@
           </div>
           <div class="brandText">
             <div class="brandName sm">CRAFT ANALYTICS</div>
-            <div class="brandSub sm" data-i="app_sub">Premium AI Trading Terminal</div>
+            <div class="brandSub sm" data-i="app_sub">Premium UI Terminal</div>
           </div>
         </div>
       </div>
@@ -147,12 +147,11 @@
     </header>
 
     <main class="content">
-
       <!-- HERO -->
       <section class="hero">
         <div class="heroLeft">
           <div class="heroTitle" data-i="hero_title">Terminal Overview</div>
-          <div class="heroSub" data-i="hero_sub">Smart mode • Adaptive execution • Premium UI</div>
+          <div class="heroSub" data-i="hero_sub">Smart mode • Premium UI</div>
         </div>
 
         <div class="heroRight">
@@ -199,7 +198,7 @@
         </div>
 
         <div class="hint" id="hintText" data-i="cc_hint">
-          Нажмите «Запустить анализ» — получите сигнал и подтверждение на графике.
+          Нажмите «Запустить анализ» — получите демо-сигнал.
         </div>
 
         <div class="actions">
@@ -238,7 +237,7 @@
 
           <div class="chartOverlay hidden" id="chartOverlay" aria-hidden="true">
             <div class="overlayTitle">SCANNING</div>
-            <div class="overlayLine" id="overlayLine" data-i="chart_scan">Сканирование рынка…</div>
+            <div class="overlayLine" id="overlayLine" data-i="chart_scan">Сканирование…</div>
             <div class="overlayBar"><div class="overlayFill" id="overlayFill"></div></div>
           </div>
         </div>
@@ -291,7 +290,7 @@
         </div>
 
         <div class="footnote" data-i="footnote">
-          Реальная проверка доступа/VIP выполняется на сервере через Telegram initData.
+          Проверка статуса выполняется на сервере через Telegram initData.
         </div>
       </section>
     </main>
@@ -302,7 +301,6 @@
   ========================== -->
   <div class="backdrop hidden" id="backdrop" aria-hidden="true"></div>
 
-  <!-- Assets modal -->
   <section class="modal hidden" id="assetsModal" role="dialog" aria-modal="true" aria-label="Assets modal">
     <div class="modalTop">
       <div class="modalTitle" data-i="assets_title">Выбор актива</div>
@@ -313,7 +311,6 @@
     <div class="list" id="assetList" aria-label="Assets list"></div>
   </section>
 
-  <!-- Timeframes modal -->
   <section class="modal hidden" id="tfModal" role="dialog" aria-modal="true" aria-label="Timeframe modal">
     <div class="modalTop">
       <div class="modalTitle" data-i="tf_title">Выбор таймфрейма</div>
@@ -322,7 +319,6 @@
     <div class="list" id="tfList" aria-label="Timeframes list"></div>
   </section>
 
-  <!-- Language modal -->
   <section class="modal hidden" id="langModal" role="dialog" aria-modal="true" aria-label="Language modal">
     <div class="modalTop">
       <div class="modalTitle" data-i="lang_title">Язык интерфейса</div>
@@ -331,15 +327,15 @@
     <div class="list" id="langList" aria-label="Languages list"></div>
   </section>
 
-  <!-- Premium Notify (deposit gate inside MAIN) -->
+  <!-- Smart Notify -->
   <div class="notify hidden" id="notify">
     <div class="notifyCard">
-      <div class="notifyTitle" id="notifyTitle">Access Notice</div>
+      <div class="notifyTitle" id="notifyTitle">Notice</div>
       <div class="notifyText" id="notifyText">—</div>
       <div class="notifyActions">
-        <button class="btn btnPrimary" id="btnOpenDeposit" type="button">
+        <button class="btn btnPrimary" id="btnNotifyPrimary" type="button">
           <span class="btnIcon">↗</span>
-          <span data-i="notify_btn_deposit">Открыть пополнение</span>
+          <span id="notifyPrimaryLabel">—</span>
           <span class="btnGlow" aria-hidden="true"></span>
         </button>
         <button class="btn btnGlass" id="btnNotifyClose" type="button" data-i="notify_btn_ok">Понятно</button>
