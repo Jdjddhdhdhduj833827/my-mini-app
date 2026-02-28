@@ -385,5 +385,46 @@
 
   <!-- App JS -->
   <script src="./app.js" defer></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<script>
+  const tg = window.Telegram.WebApp;
+  tg.expand();
+
+  async function checkAccess() {
+    const initData = tg.initData;
+
+    const response = await fetch(
+      "https://hidden-fog-c1f2craft-analytics-api.ashirkhanlogubekov-833.workers.dev/pb/auth",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ initData })
+      }
+    );
+
+    const data = await response.json();
+
+    console.log("AUTH RESPONSE:", data);
+
+    if (!data.ok) {
+      document.body.innerHTML = "<h2>Ошибка авторизации</h2>";
+      return;
+    }
+
+    if (!data.access) {
+      document.body.innerHTML = "<h2>Нет доступа. Сделайте депозит или дождитесь одобрения.</h2>";
+      return;
+    }
+
+    if (data.vip) {
+      document.body.innerHTML = "<h1>VIP ДОСТУП АКТИВЕН 👑</h1>";
+    } else {
+      document.body.innerHTML = "<h1>ДОСТУП АКТИВЕН ✅</h1>";
+    }
+  }
+
+  checkAccess();
+</script>
 </body>
 </html>
