@@ -4,13 +4,13 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="dark" />
-  <meta name="theme-color" content="#0b0c10" />
+  <meta name="theme-color" content="#080911" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
 
   <title>CRAFT ANALYTICS</title>
-  <meta name="description" content="CRAFT ANALYTICS — premium trading assistant (Telegram Mini App)" />
+  <meta name="description" content="CRAFT ANALYTICS — Premium AI Trading Terminal (Telegram Mini App)" />
 
   <!-- Telegram WebApp SDK (ОДИН РАЗ) -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -19,15 +19,16 @@
 </head>
 
 <body>
-  <!-- Background -->
+  <!-- Background (click-safe) -->
   <div class="bg" aria-hidden="true">
     <div class="bgAura"></div>
     <div class="bgGrid"></div>
     <div class="bgNoise"></div>
+    <div class="bgVignette"></div>
   </div>
 
   <!-- =========================
-       ACCESS / ONBOARDING GATE
+       GATE / ONBOARDING
   ========================== -->
   <section class="gate" id="gate">
     <div class="gateCard">
@@ -39,47 +40,49 @@
           </div>
           <div class="brandText">
             <div class="brandName">CRAFT ANALYTICS</div>
-            <div class="brandSub">Premium terminal • Smart trading assistant</div>
+            <div class="brandSub" data-i="gate_sub">Premium terminal • Smart trading assistant</div>
           </div>
         </div>
 
         <div class="statusPills" aria-label="Status">
           <span class="pill" id="pillConn">● online</span>
-          <span class="pill pillGold hidden" id="pillVip">VIP</span>
-
-          <!-- Язык доступен уже на первом экране -->
+          <span class="pill pillGold hidden" id="pillVipGate">VIP</span>
           <button class="iconBtn" id="btnLangGate" type="button" aria-label="Language">🌐</button>
         </div>
       </header>
 
       <div class="gateHero">
-        <h1 class="gateTitle" data-i18n="gate.title">Доступ к торговому терминалу</h1>
+        <h1 class="gateTitle" data-i="gate_title">Доступ к торговому терминалу</h1>
 
-        <!-- Центральный текст (тот, который вы уже утвердили) -->
-        <p class="gateText" data-i18n="gate.center">
-          Терминал активируется только для новых аккаунтов с внесённым депозитом.
+        <p class="gateText" data-i="gate_text_main">
+          Доступ открывается только для новых аккаунтов с внесённым депозитом.
         </p>
 
         <div class="gateSteps" aria-label="Steps">
           <div class="step">
             <div class="stepNum">1</div>
             <div class="stepBody">
-              <div class="stepTitle" data-i18n="gate.step1.t">Регистрация</div>
-              <div class="stepDesc" data-i18n="gate.step1.d">Откройте страницу регистрации в браузере.</div>
+              <div class="stepTitle" data-i="gate_step1_t">Регистрация</div>
+              <div class="stepDesc" data-i="gate_step1_d">Создайте новый аккаунт через кнопку ниже.</div>
             </div>
           </div>
+
           <div class="step">
             <div class="stepNum">2</div>
             <div class="stepBody">
-              <div class="stepTitle" data-i18n="gate.step2.t">Активация</div>
-              <div class="stepDesc" data-i18n="gate.step2.d">После регистрации нажмите «Получить доступ» в боте.</div>
+              <div class="stepTitle" data-i="gate_step2_t">Активация</div>
+              <div class="stepDesc" data-i="gate_step2_d">После регистрации нажмите «Получить доступ».</div>
             </div>
           </div>
+
           <div class="step">
             <div class="stepNum">3</div>
             <div class="stepBody">
-              <div class="stepTitle" data-i18n="gate.step3.t">Вход</div>
-              <div class="stepDesc" data-i18n="gate.step3.d">Доступ откроется автоматически после депозита.</div>
+              <div class="stepTitle" data-i="gate_step3_t">Trading Environment</div>
+              <div class="stepDesc" data-i="gate_step3_d">
+                AI-терминал открывает доступ к профессиональной торговой среде.
+                После активации доступны все инструменты и аналитические модули системы.
+              </div>
             </div>
           </div>
         </div>
@@ -88,41 +91,32 @@
       <div class="gateActions">
         <button class="btn btnPrimary" id="btnOpenReg" type="button">
           <span class="btnIcon">↗</span>
-          <span data-i18n="btn.openReg">Открыть регистрацию</span>
+          <span data-i="gate_btn_reg">Открыть регистрацию</span>
           <span class="btnGlow" aria-hidden="true"></span>
         </button>
 
         <button class="btn btnGlass" id="btnGetAccess" type="button">
-          <span class="btnIcon">🔓</span>
-          <span data-i18n="btn.getAccess">Получить доступ</span>
-        </button>
-
-        <button class="btn btnGlass" id="btnCheck" type="button">
-          <span class="btnIcon">◎</span>
-          <span data-i18n="btn.check">Проверить статус</span>
-        </button>
-
-        <button class="btn btnGlass" id="btnEnter" type="button" disabled>
-          <span class="btnIcon">⟶</span>
-          <span data-i18n="btn.enter">Войти в терминал</span>
+          <span class="btnIcon">⟡</span>
+          <span data-i="gate_btn_access">Получить доступ</span>
         </button>
 
         <div class="gateHint">
-          <span data-i18n="gate.status">Статус:</span> <b id="accessStatus">—</b>
+          <span data-i="gate_status">Статус:</span>
+          <b id="gateStatusText" data-i="gate_status_na">не проверен</b>
         </div>
 
-        <!-- Нижний “премиальный блок” вместо дисклеймера -->
-        <div class="legal" data-i18n="gate.footerPremium">
-          AI-терминал открывает доступ к профессиональной торговой среде.
-          После активации доступны все инструменты и аналитические модули системы.
+        <div class="legal" data-i="gate_legal">
+          Premium AI-interface. Demo UI. Not a financial advice.
         </div>
       </div>
 
       <footer class="gateFooter">
         <div class="meter" aria-label="Access meter">
-          <div class="meterFill" id="meterFill" style="width:10%"></div>
+          <div class="meterFill" id="gateMeter" style="width:14%"></div>
         </div>
-        <div class="meterText" id="meterText">SECURITY • initData required</div>
+        <div class="meterText" id="gateMeterText" data-i="gate_meter">
+          SECURITY • initData required
+        </div>
       </footer>
     </div>
   </section>
@@ -140,70 +134,222 @@
           </div>
           <div class="brandText">
             <div class="brandName sm">CRAFT ANALYTICS</div>
-            <div class="brandSub sm" id="subTitle">Smart trading assistant</div>
+            <div class="brandSub sm" data-i="app_sub">Premium AI Trading Terminal</div>
           </div>
         </div>
       </div>
 
       <div class="topRight">
-        <span class="pill hidden" id="pillRole">FREE</span>
-        <span class="pill pillGold hidden" id="pillVipTop">VIP</span>
-
-        <!-- Язык доступен и тут -->
-        <button class="iconBtn" id="btnLang" type="button" aria-label="Language">🌐</button>
+        <span class="pill hidden" id="pillVipTop">VIP</span>
+        <button class="iconBtn" id="btnLangApp" type="button" aria-label="Language">🌐</button>
         <button class="iconBtn" id="btnMenu" type="button" aria-label="Menu">⋯</button>
       </div>
     </header>
 
     <main class="content">
-      <!-- дальше твой интерфейс (панели, график, сигнал) -->
-      <!-- НИЧЕГО не удаляю — доработаем дальше в app.js и style.css -->
-      <!-- ... -->
+
+      <!-- HERO -->
+      <section class="hero">
+        <div class="heroLeft">
+          <div class="heroTitle" data-i="hero_title">Terminal Overview</div>
+          <div class="heroSub" data-i="hero_sub">Smart mode • Adaptive execution • Premium UI</div>
+        </div>
+
+        <div class="heroRight">
+          <div class="heroChip" id="chipSession">SESSION: —</div>
+          <div class="heroChip" id="chipAccess">ACCESS: —</div>
+          <div class="heroChip" id="chipMode" data-i="hero_mode">MODE: SMART</div>
+        </div>
+      </section>
+
+      <!-- CONTROL CENTER -->
+      <section class="panel">
+        <div class="panelHead">
+          <div class="panelTitle" data-i="cc_title">CONTROL CENTER</div>
+          <div class="panelRight">
+            <button class="chipBtn" id="btnCheckStatus" type="button" data-i="cc_btn_check">Проверить</button>
+            <button class="chipBtn" id="btnReset" type="button" data-i="cc_btn_reset">Сброс</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <button class="select" id="assetBtn" type="button">
+            <div class="selectLeft">
+              <span class="badge" aria-hidden="true">💱</span>
+              <span class="selectValue" id="assetValue">EUR/USD</span>
+            </div>
+            <span class="chev" aria-hidden="true">▾</span>
+          </button>
+
+          <button class="select compact" id="tfBtn" type="button">
+            <div class="selectLeft">
+              <span class="badge" aria-hidden="true">⏱</span>
+              <span class="selectValue" id="tfValue">30s</span>
+            </div>
+            <span class="chev" aria-hidden="true">▾</span>
+          </button>
+
+          <button class="select compact" id="marketBtn" type="button">
+            <div class="selectLeft">
+              <span class="badge" aria-hidden="true">🌐</span>
+              <span class="selectValue" id="marketValue">OTC</span>
+            </div>
+            <span class="chev" aria-hidden="true">↺</span>
+          </button>
+        </div>
+
+        <div class="hint" id="hintText" data-i="cc_hint">
+          Нажмите «Запустить анализ» — получите сигнал и подтверждение на графике.
+        </div>
+
+        <div class="actions">
+          <button class="btn btnPrimary btnWide" id="btnAnalyze" type="button">
+            <span class="btnIcon">⟡</span>
+            <span data-i="cc_btn_analyze">Запустить анализ</span>
+            <span class="btnGlow" aria-hidden="true"></span>
+          </button>
+
+          <div class="trendRow">
+            <button class="trendBtn trendLong" id="btnLong" type="button">
+              <span class="trendLabel">LONG-TREND</span>
+              <span class="trendArrow" aria-hidden="true">↗</span>
+            </button>
+
+            <button class="trendBtn trendShort" id="btnShort" type="button">
+              <span class="trendLabel">SHORT-TREND</span>
+              <span class="trendArrow" aria-hidden="true">↘</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- CHART -->
+      <section class="panel">
+        <div class="panelHead">
+          <div class="panelTitle" data-i="chart_title">MARKET VISUAL</div>
+          <div class="panelRight">
+            <span class="chip" id="chipQuality" data-i="chart_quality">Quality: —</span>
+            <span class="chip" id="chipConf" data-i="chart_conf">Conf: —</span>
+          </div>
+        </div>
+
+        <div class="chartWrap" id="chartWrap">
+          <canvas id="chart" width="920" height="420" aria-label="Chart"></canvas>
+
+          <div class="chartOverlay hidden" id="chartOverlay" aria-hidden="true">
+            <div class="overlayTitle">SCANNING</div>
+            <div class="overlayLine" id="overlayLine" data-i="chart_scan">Сканирование рынка…</div>
+            <div class="overlayBar"><div class="overlayFill" id="overlayFill"></div></div>
+          </div>
+        </div>
+
+        <div class="signalCard" id="signalCard">
+          <div class="signalLeft">
+            <div class="label" data-i="sig_label">СИГНАЛ</div>
+
+            <div class="signalLine">
+              <span class="dirArrow up" id="dirArrow" aria-hidden="true">↗</span>
+              <span class="dirText up" id="dirText">LONG-TREND</span>
+
+              <span class="signalMeta">
+                <span class="metaDot" aria-hidden="true"></span>
+                <span data-i="sig_window">окно:</span> <b id="rWindow">—</b>
+                <span class="metaSep">•</span>
+                <span data-i="sig_until">до</span> <b id="rUntil">--:--</b>
+              </span>
+
+              <span class="vipBadge hidden" id="vipBadge" aria-label="VIP">VIP</span>
+            </div>
+
+            <div class="miniMetrics">
+              <div class="m">
+                <div class="k" data-i="m_acc">Точность</div>
+                <div class="v" id="rAcc">—%</div>
+              </div>
+              <div class="m">
+                <div class="k" data-i="m_vol">Волатильность</div>
+                <div class="v" id="volFactor">—</div>
+              </div>
+              <div class="m">
+                <div class="k" data-i="m_mom">Импульс</div>
+                <div class="v" id="momFactor">—</div>
+              </div>
+              <div class="m">
+                <div class="k" data-i="m_liq">Ликвидность</div>
+                <div class="v" id="liqFactor">—</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="signalRight">
+            <div class="label" data-i="confirm_label">ПОДТВЕРЖДЕНИЕ</div>
+            <div class="miniChart">
+              <canvas id="signalChart" width="520" height="220" aria-label="Signal mini chart"></canvas>
+              <div class="miniChartHint" data-i="mini_hint">Mini chart • demo render</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footnote" data-i="footnote">
+          Реальная проверка доступа/VIP выполняется на сервере через Telegram initData.
+        </div>
+      </section>
     </main>
   </div>
 
   <!-- =========================
-      PREMIUM MAIN SCREEN LOCK
-      (видно всё, но слегка blur + клики блокируются)
+            MODALS
   ========================== -->
-  <div class="softLock hidden" id="softLock" aria-hidden="true">
-    <div class="softLockCard">
-      <div class="softLockTitle" data-i18n="lock.title">Access restricted</div>
-      <div class="softLockText" id="softLockText" data-i18n="lock.text">
-        Checking status...
-      </div>
-      <div class="softLockBtns">
-        <button class="btn btnPrimary" id="softLockReg" type="button">
+  <div class="backdrop hidden" id="backdrop" aria-hidden="true"></div>
+
+  <!-- Assets modal -->
+  <section class="modal hidden" id="assetsModal" role="dialog" aria-modal="true" aria-label="Assets modal">
+    <div class="modalTop">
+      <div class="modalTitle" data-i="assets_title">Выбор актива</div>
+      <button class="iconBtn" id="closeAssets" aria-label="Close" type="button">✕</button>
+    </div>
+    <input class="search" id="assetSearch" placeholder="Поиск…" autocomplete="off" />
+    <div class="tabs" id="assetTabs" aria-label="Categories"></div>
+    <div class="list" id="assetList" aria-label="Assets list"></div>
+  </section>
+
+  <!-- Timeframes modal -->
+  <section class="modal hidden" id="tfModal" role="dialog" aria-modal="true" aria-label="Timeframe modal">
+    <div class="modalTop">
+      <div class="modalTitle" data-i="tf_title">Выбор таймфрейма</div>
+      <button class="iconBtn" id="closeTf" aria-label="Close" type="button">✕</button>
+    </div>
+    <div class="list" id="tfList" aria-label="Timeframes list"></div>
+  </section>
+
+  <!-- Language modal -->
+  <section class="modal hidden" id="langModal" role="dialog" aria-modal="true" aria-label="Language modal">
+    <div class="modalTop">
+      <div class="modalTitle" data-i="lang_title">Язык интерфейса</div>
+      <button class="iconBtn" id="closeLang" aria-label="Close" type="button">✕</button>
+    </div>
+    <div class="list" id="langList" aria-label="Languages list"></div>
+  </section>
+
+  <!-- Premium Notify (deposit gate inside MAIN) -->
+  <div class="notify hidden" id="notify">
+    <div class="notifyCard">
+      <div class="notifyTitle" id="notifyTitle">Access Notice</div>
+      <div class="notifyText" id="notifyText">—</div>
+      <div class="notifyActions">
+        <button class="btn btnPrimary" id="btnOpenDeposit" type="button">
           <span class="btnIcon">↗</span>
-          <span data-i18n="btn.openReg">Открыть регистрацию</span>
+          <span data-i="notify_btn_deposit">Открыть пополнение</span>
+          <span class="btnGlow" aria-hidden="true"></span>
         </button>
-        <button class="btn btnGlass" id="softLockCheck" type="button">
-          <span class="btnIcon">◎</span>
-          <span data-i18n="btn.check">Проверить статус</span>
-        </button>
+        <button class="btn btnGlass" id="btnNotifyClose" type="button" data-i="notify_btn_ok">Понятно</button>
       </div>
     </div>
   </div>
 
-  <!-- =========================
-      PREMIUM NOTICE (0.5s after enter)
-  ========================== -->
-  <div class="notice hidden" id="notice" role="status" aria-live="polite">
-    <div class="noticeCard">
-      <div class="noticeTitle" id="noticeTitle">—</div>
-      <div class="noticeText" id="noticeText">—</div>
-      <button class="noticeClose" id="noticeClose" type="button" aria-label="Close">✕</button>
-    </div>
-  </div>
+  <!-- SoftLock blur layer -->
+  <div class="softLock hidden" id="softLock" aria-hidden="true"></div>
 
-  <!-- App JS (ОДИН раз) -->
-  <script>
-    // Конфиг, чтобы не хардкодить потом в app.js
-    window.CA_CONFIG = {
-      API_BASE: "https://hidden-fog-c1f2craft-analytics-api.ashirkhanlogubekov-833.workers.dev",
-      DEFAULT_LANG: "ru"
-    };
-  </script>
   <script src="./app.js" defer></script>
 </body>
 </html>
