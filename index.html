@@ -4,1216 +4,386 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="dark" />
-  <meta name="theme-color" content="#050710" />
-  <meta name="format-detection" content="telephone=no" />
+  <meta name="theme-color" content="#0b0c10" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
 
-  <title>CRAFT COSMOS • Quantum Console</title>
-  <meta name="description" content="World-class cosmic console UI for Telegram Mini Apps" />
+  <title>CRAFT ANALYTICS</title>
+  <meta name="description" content="CRAFT ANALYTICS — premium trading assistant (Telegram Mini App)" />
 
-  <link rel="preconnect" href="https://telegram.org" crossorigin />
+  <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-  <!-- IMPORTANT:
-    Подключи style.css и app.js рядом с index.html.
-    Этот HTML — архитектура космического уровня: экраны, панели, модалки, командная палитра, dock, консоль, лог, график, настройки.
-  -->
   <link rel="stylesheet" href="./style.css" />
 </head>
 
 <body>
-  <!-- FX canvases / layers (ДОЛЖНЫ быть pointer-events:none в CSS) -->
-  <canvas id="fxStars" aria-hidden="true"></canvas>
-  <canvas id="fxParticles" aria-hidden="true"></canvas>
-  <div class="fx" aria-hidden="true">
-    <div class="fxAurora"></div>
-    <div class="fxGrid"></div>
-    <div class="fxNoise"></div>
-    <div class="fxVignette"></div>
+  <!-- Background (must not block clicks; in CSS: pointer-events:none) -->
+  <div class="bg" aria-hidden="true">
+    <div class="bgAura"></div>
+    <div class="bgGrid"></div>
+    <div class="bgNoise"></div>
   </div>
 
-  <!-- ROOT -->
-  <div class="root" id="root">
-    <!-- TOPBAR -->
-    <header class="topbar" id="topbar">
-      <div class="topbarLeft">
+  <!-- =========================
+       ACCESS / ONBOARDING GATE
+  ========================== -->
+  <section class="gate" id="gate">
+    <div class="gateCard">
+      <header class="gateHeader">
         <div class="brand">
           <div class="brandMark" aria-hidden="true">
-            <span class="brandMarkText">CA</span>
-            <span class="brandMarkSheen" aria-hidden="true"></span>
+            <span class="brandMarkInner">CA</span>
+            <span class="brandMarkShine" aria-hidden="true"></span>
           </div>
           <div class="brandText">
-            <div class="brandTitle">CRAFT COSMOS</div>
-            <div class="brandSub" id="brandSub">Quantum-grade analytical console</div>
+            <div class="brandName">CRAFT ANALYTICS</div>
+            <div class="brandSub">Premium terminal • Smart trading assistant</div>
           </div>
         </div>
 
-        <div class="topPills" aria-label="Status pills">
-          <div class="pill pillLive" role="status">
-            <span class="dot dotLive" aria-hidden="true"></span>
-            <span class="pillText">LIVE ENGINE</span>
-            <span class="pillShine" aria-hidden="true"></span>
+        <div class="statusPills" aria-label="Status">
+          <span class="pill" id="pillConn">● online</span>
+          <span class="pill pillGold hidden" id="pillVip">VIP</span>
+          <button class="iconBtn hidden" id="btnOpenAdmin" type="button" aria-label="Admin console">
+            Admin
+          </button>
+        </div>
+      </header>
+
+      <div class="gateHero">
+        <h1 class="gateTitle" id="gateTitle">Доступ к интерфейсу</h1>
+        <p class="gateText" id="gateText">
+          Зарегистрируйтесь по кнопке ниже. После регистрации вы можете запросить доступ —
+          <b>вход откроется после моего одобрения</b>. Если система получит подтверждение депозита —
+          доступ откроется автоматически.
+        </p>
+
+        <div class="gateSteps" aria-label="Steps">
+          <div class="step">
+            <div class="stepNum">1</div>
+            <div class="stepBody">
+              <div class="stepTitle">Регистрация</div>
+              <div class="stepDesc">Открыть страницу регистрации в браузере.</div>
+            </div>
           </div>
-          <div class="pill pillHot" role="status">
-            <span class="dot dotHot" aria-hidden="true"></span>
-            <span class="pillText">HOT SIGNALS</span>
-            <span class="pillShine" aria-hidden="true"></span>
+          <div class="step">
+            <div class="stepNum">2</div>
+            <div class="stepBody">
+              <div class="stepTitle">Запрос доступа</div>
+              <div class="stepDesc">Нажать «Запросить доступ» — заявка уйдёт администратору.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="stepNum">3</div>
+            <div class="stepBody">
+              <div class="stepTitle">Авто-активация</div>
+              <div class="stepDesc">При подтверждённом депозите доступ откроется автоматически.</div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="topbarRight" aria-label="Toolbar">
-        <button class="iconBtn" id="btnCmd" type="button" aria-label="Command palette">⌘</button>
-        <button class="iconBtn" id="btnHaptics" type="button" aria-label="Haptics">〰️</button>
-        <button class="iconBtn" id="btnTheme" type="button" aria-label="Theme">🌓</button>
-        <button class="iconBtn" id="btnSound" type="button" aria-label="Sound">🔊</button>
+      <div class="gateActions">
+        <button class="btn btnPrimary" id="btnOpenReg" type="button">
+          <span class="btnIcon">↗</span>
+          <span>Открыть регистрацию</span>
+          <span class="btnGlow" aria-hidden="true"></span>
+        </button>
+
+        <button class="btn btnGlass" id="btnRequestAccess" type="button">
+          <span class="btnIcon">⟡</span>
+          <span>Запросить доступ</span>
+        </button>
+
+        <button class="btn btnGlass" id="btnEnter" type="button" disabled>
+          <span class="btnIcon">⟶</span>
+          <span>Войти в интерфейс</span>
+        </button>
+
+        <div class="gateHint" id="gateHint">
+          Статус: <b id="accessStatus">не авторизован</b>
+        </div>
+
+        <div class="legal">
+          Демо-интерфейс. Не является финансовой рекомендацией. Используйте на свой риск.
+        </div>
+      </div>
+
+      <footer class="gateFooter">
+        <div class="meter" aria-label="Access meter">
+          <div class="meterFill" id="meterFill" style="width:10%"></div>
+        </div>
+        <div class="meterText" id="meterText">SECURITY • initData required</div>
+      </footer>
+    </div>
+  </section>
+
+  <!-- =========================
+            MAIN APP
+  ========================== -->
+  <div class="app hidden" id="app">
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="topLeft">
+        <div class="brandMini">
+          <div class="brandMark sm" aria-hidden="true">
+            <span class="brandMarkInner">CA</span>
+            <span class="brandMarkShine" aria-hidden="true"></span>
+          </div>
+          <div class="brandText">
+            <div class="brandName sm">CRAFT ANALYTICS</div>
+            <div class="brandSub sm" id="subTitle">Smart trading assistant</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="topRight">
+        <span class="pill hidden" id="pillRole">FREE</span>
+        <span class="pill pillGold hidden" id="pillVipTop">VIP</span>
+
+        <button class="iconBtn" id="btnLang" type="button" aria-label="Language">🌐</button>
         <button class="iconBtn" id="btnMenu" type="button" aria-label="Menu">⋯</button>
       </div>
     </header>
 
-    <!-- MAIN VIEWPORT -->
-    <main class="viewport" id="viewport">
-      <!-- =========================
-           SCREEN: GATE / ONBOARDING
-      ========================== -->
-      <section class="screen" id="screenGate" data-screen="gate" aria-label="Access gate">
-        <div class="centerWrap">
-          <div class="card gateCard" role="dialog" aria-modal="true">
-            <header class="gateHeader">
-              <div class="gateBadge">
-                <div class="ring" aria-hidden="true"></div>
-                <div class="gateBadgeText">
-                  <div class="gateBadgeTitle">ORBITAL ACCESS</div>
-                  <div class="gateBadgeSub">Secure launch sequence</div>
-                </div>
-              </div>
+    <main class="content">
 
-              <div class="gateTitleBlock">
-                <h1 class="gateTitle" id="gateTitle">Доступ к космической консоли</h1>
-                <p class="gateText" id="gateText">
-                  Зарегистрируйся по ссылке ниже, активируй аккаунт пополнением баланса и вернись сюда.
-                  После этого нажми “Войти в интерфейс”.
-                </p>
-              </div>
-            </header>
+      <!-- DASH / STATUS -->
+      <section class="panel">
+        <div class="panelHead">
+          <div class="panelTitle">DASHBOARD</div>
+          <div class="panelRight">
+            <span class="chip" id="chipPing">PING: OK</span>
+            <span class="chip" id="chipMode">MODE: SMART</span>
+            <span class="chip chipGold hidden" id="chipVip">VIP ACTIVE</span>
+          </div>
+        </div>
 
-            <div class="gateGrid" aria-label="Launch controls">
-              <div class="miniCard">
-                <div class="miniLabel">SECURITY</div>
-                <div class="miniValue" id="secStatus">VERIFIED</div>
-                <div class="miniHint">Integrity check / token handshake</div>
-              </div>
-
-              <div class="miniCard">
-                <div class="miniLabel">LATENCY</div>
-                <div class="miniValue" id="latStatus">LOW</div>
-                <div class="miniHint">Realtime transport channel</div>
-              </div>
-
-              <div class="miniCard">
-                <div class="miniLabel">POWER</div>
-                <div class="miniValue" id="pwrStatus">READY</div>
-                <div class="miniHint">GPU-friendly render path</div>
-              </div>
-
-              <div class="miniCard">
-                <div class="miniLabel">MODE</div>
-                <div class="miniValue" id="modeStatus">COSMOS</div>
-                <div class="miniHint">Glass / Aurora / Holo UI</div>
-              </div>
-            </div>
-
-            <div class="gateActions" aria-label="Gate actions">
-              <button class="btn btnPrimary btnWide" id="btnReg" type="button">
-                <span class="btnIcon">↗</span>
-                <span class="btnText">Открыть регистрацию</span>
-                <span class="btnGlow" aria-hidden="true"></span>
-                <span class="btnSweep" aria-hidden="true"></span>
-              </button>
-
-              <label class="check" aria-label="Registration checkbox">
-                <input type="checkbox" id="chkReady" />
-                <span class="checkBox" aria-hidden="true"></span>
-                <span class="checkText">Я зарегистрировался</span>
-              </label>
-
-              <button class="btn btnGlass btnWide" id="btnEnter" type="button" disabled>
-                <span class="btnIcon">⟡</span>
-                <span class="btnText">Войти в интерфейс</span>
-              </button>
-
-              <div class="fineprint">
-                Демо-интерфейс. Не является финансовой рекомендацией.
-              </div>
-            </div>
-
-            <footer class="statusBar" aria-label="Launch status">
-              <div class="statusFill" id="gateFill"></div>
-              <div class="statusText" id="gateStatus">SYSTEM CHECK</div>
-              <div class="statusSheen" aria-hidden="true"></div>
-            </footer>
+        <div class="statusRow">
+          <div class="statusCard">
+            <div class="k">Сессия</div>
+            <div class="v" id="vSession">—</div>
+          </div>
+          <div class="statusCard">
+            <div class="k">Профиль</div>
+            <div class="v" id="vProfile">—</div>
+          </div>
+          <div class="statusCard">
+            <div class="k">Доступ</div>
+            <div class="v" id="vAccess">—</div>
           </div>
         </div>
       </section>
 
-      <!-- =========================
-           SCREEN: DASHBOARD
-      ========================== -->
-      <section class="screen hidden" id="screenDash" data-screen="dash" aria-label="Dashboard">
-        <div class="grid">
-          <!-- HERO CONSOLE -->
-          <section class="card heroCard" aria-label="Cosmos console">
-            <div class="heroTop">
-              <div class="pill pillLive">
-                <span class="dot dotLive"></span>
-                <span class="pillText">FLIGHT MODE</span>
-                <span class="pillShine"></span>
-              </div>
-              <div class="metaLine" id="metaLine">READY • LOW LATENCY • QUANTUM UI</div>
+      <!-- CONTROLS -->
+      <section class="panel">
+        <div class="panelHead">
+          <div class="panelTitle">CONTROL CENTER</div>
+          <div class="panelRight">
+            <button class="chipBtn" id="btnPresetSave" type="button">★ preset</button>
+            <button class="chipBtn" id="btnHistory" type="button">⧉ history</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <button class="select" id="assetBtn" type="button" aria-label="Select asset">
+            <div class="selectLeft">
+              <span class="badge" id="assetBadge" aria-hidden="true">💱</span>
+              <span class="selectValue" id="assetValue">EUR/USD</span>
             </div>
+            <span class="chev" aria-hidden="true">▾</span>
+          </button>
 
-            <div class="heroMain">
-              <div class="heroBig">Cosmos Scanner Console</div>
-              <div class="heroSmall">
-                Панель сканирования микросигналов. Чётко, быстро, визуально богато. Всё готово под расширение.
-              </div>
+          <button class="select compact" id="tfBtn" type="button" aria-label="Select timeframe">
+            <div class="selectLeft">
+              <span class="badge" aria-hidden="true">⏱</span>
+              <span class="selectValue" id="tfValue">30s</span>
             </div>
+            <span class="chev" aria-hidden="true">▾</span>
+          </button>
 
-            <div class="chips" aria-label="Selectors">
-              <button class="chip" id="chipAsset" type="button" aria-label="Select asset">
-                <span class="chipIco">🌍</span>
-                <span class="chipVal" id="assetVal">EUR/USD</span>
-                <span class="chipCar">▾</span>
-              </button>
-
-              <button class="chip" id="chipTf" type="button" aria-label="Select timeframe">
-                <span class="chipIco">⏱</span>
-                <span class="chipVal" id="tfVal">30s</span>
-                <span class="chipCar">▾</span>
-              </button>
-
-              <button class="chip" id="chipMarket" type="button" aria-label="Market mode">
-                <span class="chipIco">🌐</span>
-                <span class="chipVal" id="mktVal">OTC</span>
-                <span class="chipCar">↺</span>
-              </button>
-
-              <button class="chip chipGhost" id="chipRisk" type="button" aria-label="Risk">
-                <span class="chipIco">🧷</span>
-                <span class="chipVal" id="riskVal">AUTO</span>
-                <span class="chipCar">▾</span>
-              </button>
+          <button class="select compact" id="marketBtn" type="button" aria-label="Toggle market">
+            <div class="selectLeft">
+              <span class="badge" aria-hidden="true">🌐</span>
+              <span class="selectValue" id="marketValue">OTC</span>
             </div>
+            <span class="chev" aria-hidden="true">↺</span>
+          </button>
+        </div>
 
-            <div class="heroActions" aria-label="Primary actions">
-              <button class="btn btnPrimary btnWide" id="btnScan" type="button">
-                <span class="btnIcon">⟡</span>
-                <span class="btnText">Запустить сканирование</span>
-                <span class="btnGlow" aria-hidden="true"></span>
-                <span class="btnSweep" aria-hidden="true"></span>
-              </button>
+        <div class="hint" id="hintText">
+          Нажмите «Запустить анализ» — получите сигнал и подтверждение на графике.
+        </div>
 
-              <div class="row2">
-                <button class="btn btnGlass" id="btnReset" type="button">
-                  <span class="btnIcon">⟲</span><span class="btnText">Сброс</span>
-                </button>
-                <button class="btn btnGlass" id="btnCopy" type="button">
-                  <span class="btnIcon">⧉</span><span class="btnText">Copy</span>
-                </button>
-              </div>
+        <div class="actions">
+          <button class="btn btnPrimary btnWide" id="btnAnalyze" type="button">
+            <span class="btnIcon">⟡</span>
+            <span id="analyzeText">Запустить анализ</span>
+            <span class="btnGlow" aria-hidden="true"></span>
+          </button>
 
-              <div class="row3">
-                <button class="btn btnGlass" id="btnShare" type="button">⇪ Share</button>
-                <button class="btn btnGlass" id="btnSave" type="button">★ Save</button>
-                <button class="btn btnGlass" id="btnExport" type="button">⤓ Export</button>
-              </div>
-            </div>
-
-            <div class="microStatus" aria-label="Mini status">
-              <div class="microFill" id="microFill"></div>
-              <div class="microText" id="microText">IDLE</div>
-              <div class="microSheen" aria-hidden="true"></div>
-            </div>
-          </section>
-
-          <!-- MARKET VISUAL -->
-          <section class="card chartCard" aria-label="Market visual">
-            <div class="cardHeader">
-              <div class="cardTitle">MARKET VISUAL</div>
-              <div class="cardRight">
-                <button class="miniBtn" id="btnGrid" type="button">GRID</button>
-                <button class="miniBtn" id="btnGlow" type="button">GLOW</button>
-                <button class="miniBtn" id="btnFocus" type="button">FOCUS</button>
-              </div>
-            </div>
-
-            <div class="chartWrap" id="chartWrap">
-              <canvas id="chart" width="1200" height="540" aria-label="Chart"></canvas>
-              <div class="scanline" aria-hidden="true"></div>
-
-              <div class="chartOverlay" id="chartOverlay" aria-hidden="true">
-                <div class="overlayTitle">AI SCANNER</div>
-                <div class="overlayText" id="overlayText">Collecting micro-signals…</div>
-                <div class="bar"><div class="barFill" id="barFill"></div></div>
-                <div class="overlayHint">Не закрывает клики • pointer-events:none</div>
-              </div>
-
-              <div class="hud" aria-hidden="true">
-                <div class="hudItem">SNR <b id="hudSnr">—</b></div>
-                <div class="hudItem">ΔVOL <b id="hudVol">—</b></div>
-                <div class="hudItem">TPS <b id="hudTps">—</b></div>
-              </div>
-            </div>
-
-            <div class="metricsGrid" aria-label="Diagnostics">
-              <div class="metric">
-                <div class="mLabel">VOLATILITY</div>
-                <div class="mValue" id="mVol">—</div>
-                <div class="mBar"><div class="mFill" id="mVolFill"></div></div>
-              </div>
-              <div class="metric">
-                <div class="mLabel">MOMENTUM</div>
-                <div class="mValue" id="mMom">—</div>
-                <div class="mBar"><div class="mFill" id="mMomFill"></div></div>
-              </div>
-              <div class="metric">
-                <div class="mLabel">STRENGTH</div>
-                <div class="mValue" id="mStr">—</div>
-                <div class="mBar"><div class="mFill" id="mStrFill"></div></div>
-              </div>
-              <div class="metric">
-                <div class="mLabel">LIQUIDITY</div>
-                <div class="mValue" id="mLiq">—</div>
-                <div class="mBar"><div class="mFill" id="mLiqFill"></div></div>
-              </div>
-            </div>
-          </section>
-
-          <!-- RESULT PACKAGE -->
-          <section class="card resultCard hidden" id="resultCard" aria-label="Result package">
-            <div class="cardHeader">
-              <div class="cardTitle">RESULT PACKAGE</div>
-              <div class="cardRight">
-                <div class="pill pillHot">
-                  <span class="dot dotHot"></span>
-                  <span class="pillText">CONFIRMED</span>
-                  <span class="pillShine"></span>
-                </div>
-              </div>
-            </div>
-
-            <div class="resultGrid">
-              <div class="rCard wide">
-                <div class="rLabel">ASSET</div>
-                <div class="rValue big" id="rAsset">EUR/USD</div>
-              </div>
-
-              <div class="rCard">
-                <div class="rLabel">TIMEFRAME</div>
-                <div class="rValue" id="rTf">30s</div>
-              </div>
-
-              <div class="rCard">
-                <div class="rLabel">CONFIDENCE</div>
-                <div class="rValue" id="rAcc">—%</div>
-              </div>
-
-              <div class="rCard wide">
-                <div class="rLabel">DIRECTION</div>
-                <div class="dirRow">
-                  <span class="dirDot" id="dirDot" aria-hidden="true"></span>
-                  <span class="rValue" id="dirText">—</span>
-                  <span class="rHint">до <b id="rUntil">—:—</b></span>
-                </div>
-              </div>
-
-              <div class="rCard wide">
-                <div class="rLabel">WINDOW</div>
-                <div class="prog"><div class="progFill" id="progFill"></div></div>
-                <div class="rHint" id="timerText">— / —</div>
-              </div>
-            </div>
-
-            <div class="fineprint">
-              Демо-интерфейс. Никакой финансовой рекомендации.
-            </div>
-          </section>
-
-          <!-- AI CONSOLE LOG -->
-          <section class="card logCard" aria-label="Console log">
-            <div class="cardHeader">
-              <div class="cardTitle">EXECUTION LOG</div>
-              <div class="cardRight">
-                <button class="miniBtn" id="btnClearLog" type="button">CLEAR</button>
-                <button class="miniBtn" id="btnPinLog" type="button">PIN</button>
-              </div>
-            </div>
-
-            <div class="log" id="log" role="log" aria-live="polite">
-              <div class="logItem"><span class="logTag ok">OK</span><span class="logText">Console ready.</span><span class="logTime">00:00</span></div>
-              <div class="logItem"><span class="logTag info">INFO</span><span class="logText">Waiting for scan…</span><span class="logTime">00:00</span></div>
-            </div>
-
-            <div class="logInputRow" aria-label="Quick command">
-              <input class="logInput" id="logInput" placeholder="Type command… (ex: /scan, /reset)" autocomplete="off" />
-              <button class="btn btnGlass" id="btnSendCmd" type="button">SEND</button>
-            </div>
-          </section>
+          <button class="btn btnGlass" id="btnReset" type="button">
+            <span class="btnIcon">⟲</span>
+            <span id="resetText">Сброс</span>
+          </button>
         </div>
       </section>
 
-      <!-- =========================
-           SCREEN: SIGNALS (HISTORY)
-      ========================== -->
-      <section class="screen hidden" id="screenSignals" data-screen="signals" aria-label="Signals history">
-        <div class="screenHeader">
-          <div class="screenTitle">Signals</div>
-          <div class="screenSub">История и “пакеты” результатов (готово под подключение).</div>
+      <!-- VISUAL + SIGNAL -->
+      <section class="panel">
+        <div class="panelHead">
+          <div class="panelTitle">SIGNAL PANEL</div>
+          <div class="panelRight">
+            <span class="chip" id="chipQuality">Quality: —</span>
+            <span class="chip" id="chipConf">Conf: —</span>
+          </div>
         </div>
 
-        <div class="card">
-          <div class="cardHeader">
-            <div class="cardTitle">HISTORY FEED</div>
-            <div class="cardRight">
-              <button class="miniBtn" id="btnFilter" type="button">FILTER</button>
-              <button class="miniBtn" id="btnSort" type="button">SORT</button>
+        <!-- Main chart area (visual) -->
+        <div class="chartWrap" id="chartWrap">
+          <canvas id="chart" width="920" height="420" aria-label="Chart"></canvas>
+          <div class="chartOverlay hidden" id="chartOverlay" aria-hidden="true">
+            <div class="overlayTitle">SCANNING</div>
+            <div class="overlayLine" id="overlayLine">Сканирование рынка…</div>
+            <div class="overlayBar"><div class="overlayFill" id="overlayFill"></div></div>
+          </div>
+        </div>
+
+        <!-- Result block -->
+        <div class="signalCard" id="signalCard">
+          <div class="signalLeft">
+            <div class="label">СИГНАЛ</div>
+
+            <!-- IMPORTANT: up/down changed to "повышение/понижение" + arrow + colors -->
+            <div class="signalLine">
+              <span class="dirArrow up" id="dirArrow" aria-hidden="true">▲</span>
+              <span class="dirText up" id="dirText">повышение</span>
+
+              <span class="signalMeta">
+                <span class="metaDot" aria-hidden="true"></span>
+                <span>окно:</span> <b id="rWindow">—</b>
+                <span class="metaSep">•</span>
+                <span>до</span> <b id="rUntil">--:--</b>
+              </span>
+
+              <span class="vipBadge hidden" id="vipBadge" aria-label="VIP">VIP</span>
+            </div>
+
+            <div class="miniMetrics">
+              <div class="m">
+                <div class="k">Точность</div>
+                <div class="v" id="rAcc">—%</div>
+              </div>
+              <div class="m">
+                <div class="k">Волатильность</div>
+                <div class="v" id="volFactor">—</div>
+              </div>
+              <div class="m">
+                <div class="k">Импульс</div>
+                <div class="v" id="momFactor">—</div>
+              </div>
+              <div class="m">
+                <div class="k">Ликвидность</div>
+                <div class="v" id="liqFactor">—</div>
+              </div>
             </div>
           </div>
 
-          <div class="feed" id="feed">
-            <!-- cards injected by JS -->
-            <article class="feedItem">
-              <div class="feedTop">
-                <div class="pill pillHot"><span class="dot dotHot"></span><span class="pillText">SIGNAL</span><span class="pillShine"></span></div>
-                <div class="feedMeta">EUR/USD • 30s • OTC</div>
-              </div>
-              <div class="feedMain">
-                <div class="feedDir up">UP</div>
-                <div class="feedAcc">88%</div>
-                <div class="feedTime">until 12:48</div>
-              </div>
-              <div class="feedActions">
-                <button class="btn btnGlass" type="button">OPEN</button>
-                <button class="btn btnGlass" type="button">COPY</button>
-                <button class="btn btnGlass" type="button">PIN</button>
-              </div>
-            </article>
+          <!-- Mini chart for signal confirmation -->
+          <div class="signalRight">
+            <div class="label">ПОДТВЕРЖДЕНИЕ</div>
+            <div class="miniChart">
+              <canvas id="signalChart" width="520" height="220" aria-label="Signal mini chart"></canvas>
+              <div class="miniChartHint" id="miniChartHint">Мини-график • демо-рендер (позже подключим реальные данные)</div>
+            </div>
           </div>
         </div>
-      </section>
 
-      <!-- =========================
-           SCREEN: SETTINGS
-      ========================== -->
-      <section class="screen hidden" id="screenSettings" data-screen="settings" aria-label="Settings">
-        <div class="screenHeader">
-          <div class="screenTitle">Settings</div>
-          <div class="screenSub">Тонкая настройка UI/FX/Performance/Telegram.</div>
-        </div>
-
-        <div class="gridSettings">
-          <section class="card">
-            <div class="cardHeader">
-              <div class="cardTitle">VISUAL</div>
-            </div>
-
-            <div class="settingsList">
-              <label class="toggleRow">
-                <span class="toggleText">Starfield</span>
-                <input type="checkbox" id="setStars" checked />
-                <span class="toggleUi" aria-hidden="true"></span>
-              </label>
-
-              <label class="toggleRow">
-                <span class="toggleText">Aurora</span>
-                <input type="checkbox" id="setAurora" checked />
-                <span class="toggleUi" aria-hidden="true"></span>
-              </label>
-
-              <label class="toggleRow">
-                <span class="toggleText">Noise</span>
-                <input type="checkbox" id="setNoise" checked />
-                <span class="toggleUi" aria-hidden="true"></span>
-              </label>
-
-              <label class="toggleRow">
-                <span class="toggleText">Scanline</span>
-                <input type="checkbox" id="setScanline" checked />
-                <span class="toggleUi" aria-hidden="true"></span>
-              </label>
-            </div>
-          </section>
-
-          <section class="card">
-            <div class="cardHeader">
-              <div class="cardTitle">PERFORMANCE</div>
-            </div>
-
-            <div class="settingsList">
-              <label class="toggleRow">
-                <span class="toggleText">60 FPS mode</span>
-                <input type="checkbox" id="set60fps" checked />
-                <span class="toggleUi" aria-hidden="true"></span>
-              </label>
-
-              <label class="toggleRow">
-                <span class="toggleText">Battery saver</span>
-                <input type="checkbox" id="setSaver" />
-                <span class="toggleUi" aria-hidden="true"></span>
-              </label>
-
-              <div class="sliderRow">
-                <div class="sliderText">FX intensity</div>
-                <input type="range" id="setFx" min="0" max="100" value="70" />
-              </div>
-            </div>
-          </section>
-
-          <section class="card">
-            <div class="cardHeader">
-              <div class="cardTitle">TELEGRAM</div>
-            </div>
-
-            <div class="settingsList">
-              <label class="toggleRow">
-                <span class="toggleText">Haptics</span>
-                <input type="checkbox" id="setHaptics" checked />
-                <span class="toggleUi" aria-hidden="true"></span>
-              </label>
-
-              <label class="toggleRow">
-                <span class="toggleText">Expand</span>
-                <input type="checkbox" id="setExpand" checked />
-                <span class="toggleUi" aria-hidden="true"></span>
-              </label>
-
-              <div class="hintBox">
-                Поддержка: openLink, safe-area, haptics, MainButton (подключается в JS).
-              </div>
-            </div>
-          </section>
+        <div class="footnote">
+          Демо-логика сигналов. Реальная верификация доступа/VIP делается через сервер + проверку Telegram initData.
         </div>
       </section>
     </main>
-
-    <!-- DOCK NAV -->
-    <nav class="dock" id="dock" aria-label="Dock navigation">
-      <button class="dockBtn active" id="navDash" type="button">
-        <span class="dockIco">⌂</span><span class="dockTxt">Console</span>
-      </button>
-      <button class="dockBtn" id="navSignals" type="button">
-        <span class="dockIco">⚡</span><span class="dockTxt">Signals</span>
-      </button>
-      <button class="dockBtn" id="navSettings" type="button">
-        <span class="dockIco">⚙</span><span class="dockTxt">Settings</span>
-      </button>
-    </nav>
-
-    <!-- BACKDROP -->
-    <div class="backdrop hidden" id="backdrop" aria-hidden="true"></div>
-
-    <!-- COMMAND PALETTE -->
-    <section class="modal hidden" id="cmdPalette" role="dialog" aria-modal="true" aria-label="Command palette">
-      <div class="modalTop">
-        <div class="modalTitle">COMMAND PALETTE</div>
-        <button class="iconBtn" id="closeCmd" type="button" aria-label="Close">✕</button>
-      </div>
-
-      <input class="search" id="cmdSearch" placeholder="Search commands… (scan, reset, open reg, theme)" autocomplete="off" />
-
-      <div class="cmdList" id="cmdList" aria-label="Commands">
-        <button class="cmdItem" type="button" data-cmd="scan">
-          <span class="cmdLeft">
-            <span class="cmdName">Run scan</span>
-            <span class="cmdHint">Start cosmic analysis sequence</span>
-          </span>
-          <span class="cmdKey">⏎</span>
-        </button>
-
-        <button class="cmdItem" type="button" data-cmd="reset">
-          <span class="cmdLeft">
-            <span class="cmdName">Reset</span>
-            <span class="cmdHint">Clear results & return to idle</span>
-          </span>
-          <span class="cmdKey">R</span>
-        </button>
-
-        <button class="cmdItem" type="button" data-cmd="reg">
-          <span class="cmdLeft">
-            <span class="cmdName">Open registration</span>
-            <span class="cmdHint">Open external link via Telegram.WebApp</span>
-          </span>
-          <span class="cmdKey">↗</span>
-        </button>
-
-        <button class="cmdItem" type="button" data-cmd="theme">
-          <span class="cmdLeft">
-            <span class="cmdName">Toggle theme</span>
-            <span class="cmdHint">Switch vibe & contrast profiles</span>
-          </span>
-          <span class="cmdKey">T</span>
-        </button>
-      </div>
-    </section>
-
-    <!-- MODAL: ASSET SELECT -->
-    <section class="modal hidden" id="assetModal" role="dialog" aria-modal="true" aria-label="Assets">
-      <div class="modalTop">
-        <div class="modalTitle">ASSETS</div>
-        <button class="iconBtn" id="closeAsset" type="button" aria-label="Close">✕</button>
-      </div>
-
-      <input class="search" id="assetSearch" placeholder="Search asset…" autocomplete="off" />
-
-      <div class="tabs" id="assetTabs" aria-label="Categories">
-        <button class="tab active" type="button" data-tab="fx">FX</button>
-        <button class="tab" type="button" data-tab="crypto">CRYPTO</button>
-        <button class="tab" type="button" data-tab="stocks">STOCKS</button>
-        <button class="tab" type="button" data-tab="otc">OTC</button>
-      </div>
-
-      <div class="list" id="assetList" aria-label="List">
-        <button class="listItem" type="button" data-value="EUR/USD">
-          <span class="liLeft"><span class="liName">EUR/USD</span><span class="liSub">FX Major</span></span>
-          <span class="liTag">HOT</span>
-        </button>
-        <button class="listItem" type="button" data-value="GBP/USD">
-          <span class="liLeft"><span class="liName">GBP/USD</span><span class="liSub">FX Major</span></span>
-          <span class="liTag">LIVE</span>
-        </button>
-      </div>
-    </section>
-
-    <!-- MODAL: TF SELECT -->
-    <section class="modal hidden" id="tfModal" role="dialog" aria-modal="true" aria-label="Timeframes">
-      <div class="modalTop">
-        <div class="modalTitle">TIMEFRAMES</div>
-        <button class="iconBtn" id="closeTf" type="button" aria-label="Close">✕</button>
-      </div>
-
-      <div class="list" id="tfList" aria-label="Timeframes list">
-        <button class="listItem" type="button" data-value="5s"><span class="liLeft"><span class="liName">5s</span><span class="liSub">Ultra scalping</span></span><span class="liTag">FAST</span></button>
-        <button class="listItem" type="button" data-value="15s"><span class="liLeft"><span class="liName">15s</span><span class="liSub">Quick</span></span><span class="liTag">HOT</span></button>
-        <button class="listItem" type="button" data-value="30s"><span class="liLeft"><span class="liName">30s</span><span class="liSub">Default</span></span><span class="liTag">PRO</span></button>
-        <button class="listItem" type="button" data-value="60s"><span class="liLeft"><span class="liName">60s</span><span class="liSub">Stable</span></span><span class="liTag">SAFE</span></button>
-      </div>
-    </section>
   </div>
 
-  <!-- AUDIO placeholders -->
-  <audio id="sfxScan" preload="auto" src="./scan.mp3"></audio>
+  <!-- =========================
+            MODALS
+  ========================== -->
+  <div class="backdrop hidden" id="backdrop" aria-hidden="true"></div>
 
-  <!-- SCRIPT -->
-  <script src="./app.js" defer></script>
-</body>
-</html><!doctype html>
-<html lang="ru">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="color-scheme" content="dark" />
-  <meta name="theme-color" content="#050710" />
-  <meta name="format-detection" content="telephone=no" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <!-- Assets -->
+  <section class="modal hidden" id="assetsModal" role="dialog" aria-modal="true" aria-label="Assets modal">
+    <div class="modalTop">
+      <div class="modalTitle" id="assetsTitle">Выбор актива</div>
+      <button class="iconBtn" id="closeAssets" aria-label="Close" type="button">✕</button>
+    </div>
+    <input class="search" id="assetSearch" placeholder="Поиск…" autocomplete="off" />
+    <div class="tabs" id="assetTabs" aria-label="Categories"></div>
+    <div class="list" id="assetList" aria-label="Assets list"></div>
+  </section>
 
-  <title>CRAFT COSMOS • Quantum Console</title>
-  <meta name="description" content="World-class cosmic console UI for Telegram Mini Apps" />
+  <!-- Timeframes -->
+  <section class="modal hidden" id="tfModal" role="dialog" aria-modal="true" aria-label="Timeframe modal">
+    <div class="modalTop">
+      <div class="modalTitle" id="tfTitle">Выбор таймфрейма</div>
+      <button class="iconBtn" id="closeTf" aria-label="Close" type="button">✕</button>
+    </div>
+    <div class="list" id="tfList" aria-label="Timeframes list"></div>
+  </section>
 
-  <link rel="preconnect" href="https://telegram.org" crossorigin />
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Language -->
+  <section class="modal hidden" id="langModal" role="dialog" aria-modal="true" aria-label="Language modal">
+    <div class="modalTop">
+      <div class="modalTitle" id="langTitle">Язык интерфейса</div>
+      <button class="iconBtn" id="closeLang" aria-label="Close" type="button">✕</button>
+    </div>
+    <div class="list" id="langList" aria-label="Languages list"></div>
+  </section>
 
-  <!-- IMPORTANT:
-    Подключи style.css и app.js рядом с index.html.
-    Этот HTML — архитектура космического уровня: экраны, панели, модалки, командная палитра, dock, консоль, лог, график, настройки.
-  -->
-  <link rel="stylesheet" href="./style.css" />
-</head>
+  <!-- Admin console (UI only; requires backend) -->
+  <section class="modal hidden" id="adminModal" role="dialog" aria-modal="true" aria-label="Admin console">
+    <div class="modalTop">
+      <div class="modalTitle">ADMIN CONSOLE</div>
+      <button class="iconBtn" id="closeAdmin" aria-label="Close" type="button">✕</button>
+    </div>
 
-<body>
-  <!-- FX canvases / layers (ДОЛЖНЫ быть pointer-events:none в CSS) -->
-  <canvas id="fxStars" aria-hidden="true"></canvas>
-  <canvas id="fxParticles" aria-hidden="true"></canvas>
-  <div class="fx" aria-hidden="true">
-    <div class="fxAurora"></div>
-    <div class="fxGrid"></div>
-    <div class="fxNoise"></div>
-    <div class="fxVignette"></div>
-  </div>
-
-  <!-- ROOT -->
-  <div class="root" id="root">
-    <!-- TOPBAR -->
-    <header class="topbar" id="topbar">
-      <div class="topbarLeft">
-        <div class="brand">
-          <div class="brandMark" aria-hidden="true">
-            <span class="brandMarkText">CA</span>
-            <span class="brandMarkSheen" aria-hidden="true"></span>
-          </div>
-          <div class="brandText">
-            <div class="brandTitle">CRAFT COSMOS</div>
-            <div class="brandSub" id="brandSub">Quantum-grade analytical console</div>
-          </div>
+    <div class="adminBody">
+      <div class="adminGrid">
+        <div class="adminCard">
+          <div class="k">Пользователи</div>
+          <div class="v" id="admUsers">—</div>
         </div>
-
-        <div class="topPills" aria-label="Status pills">
-          <div class="pill pillLive" role="status">
-            <span class="dot dotLive" aria-hidden="true"></span>
-            <span class="pillText">LIVE ENGINE</span>
-            <span class="pillShine" aria-hidden="true"></span>
-          </div>
-          <div class="pill pillHot" role="status">
-            <span class="dot dotHot" aria-hidden="true"></span>
-            <span class="pillText">HOT SIGNALS</span>
-            <span class="pillShine" aria-hidden="true"></span>
-          </div>
+        <div class="adminCard">
+          <div class="k">Ожидают одобрения</div>
+          <div class="v" id="admPending">—</div>
+        </div>
+        <div class="adminCard">
+          <div class="k">VIP активны</div>
+          <div class="v" id="admVip">—</div>
         </div>
       </div>
 
-      <div class="topbarRight" aria-label="Toolbar">
-        <button class="iconBtn" id="btnCmd" type="button" aria-label="Command palette">⌘</button>
-        <button class="iconBtn" id="btnHaptics" type="button" aria-label="Haptics">〰️</button>
-        <button class="iconBtn" id="btnTheme" type="button" aria-label="Theme">🌓</button>
-        <button class="iconBtn" id="btnSound" type="button" aria-label="Sound">🔊</button>
-        <button class="iconBtn" id="btnMenu" type="button" aria-label="Menu">⋯</button>
-      </div>
-    </header>
-
-    <!-- MAIN VIEWPORT -->
-    <main class="viewport" id="viewport">
-      <!-- =========================
-           SCREEN: GATE / ONBOARDING
-      ========================== -->
-      <section class="screen" id="screenGate" data-screen="gate" aria-label="Access gate">
-        <div class="centerWrap">
-          <div class="card gateCard" role="dialog" aria-modal="true">
-            <header class="gateHeader">
-              <div class="gateBadge">
-                <div class="ring" aria-hidden="true"></div>
-                <div class="gateBadgeText">
-                  <div class="gateBadgeTitle">ORBITAL ACCESS</div>
-                  <div class="gateBadgeSub">Secure launch sequence</div>
-                </div>
-              </div>
-
-              <div class="gateTitleBlock">
-                <h1 class="gateTitle" id="gateTitle">Доступ к космической консоли</h1>
-                <p class="gateText" id="gateText">
-                  Зарегистрируйся по ссылке ниже, активируй аккаунт пополнением баланса и вернись сюда.
-                  После этого нажми “Войти в интерфейс”.
-                </p>
-              </div>
-            </header>
-
-            <div class="gateGrid" aria-label="Launch controls">
-              <div class="miniCard">
-                <div class="miniLabel">SECURITY</div>
-                <div class="miniValue" id="secStatus">VERIFIED</div>
-                <div class="miniHint">Integrity check / token handshake</div>
-              </div>
-
-              <div class="miniCard">
-                <div class="miniLabel">LATENCY</div>
-                <div class="miniValue" id="latStatus">LOW</div>
-                <div class="miniHint">Realtime transport channel</div>
-              </div>
-
-              <div class="miniCard">
-                <div class="miniLabel">POWER</div>
-                <div class="miniValue" id="pwrStatus">READY</div>
-                <div class="miniHint">GPU-friendly render path</div>
-              </div>
-
-              <div class="miniCard">
-                <div class="miniLabel">MODE</div>
-                <div class="miniValue" id="modeStatus">COSMOS</div>
-                <div class="miniHint">Glass / Aurora / Holo UI</div>
-              </div>
-            </div>
-
-            <div class="gateActions" aria-label="Gate actions">
-              <button class="btn btnPrimary btnWide" id="btnReg" type="button">
-                <span class="btnIcon">↗</span>
-                <span class="btnText">Открыть регистрацию</span>
-                <span class="btnGlow" aria-hidden="true"></span>
-                <span class="btnSweep" aria-hidden="true"></span>
-              </button>
-
-              <label class="check" aria-label="Registration checkbox">
-                <input type="checkbox" id="chkReady" />
-                <span class="checkBox" aria-hidden="true"></span>
-                <span class="checkText">Я зарегистрировался</span>
-              </label>
-
-              <button class="btn btnGlass btnWide" id="btnEnter" type="button" disabled>
-                <span class="btnIcon">⟡</span>
-                <span class="btnText">Войти в интерфейс</span>
-              </button>
-
-              <div class="fineprint">
-                Демо-интерфейс. Не является финансовой рекомендацией.
-              </div>
-            </div>
-
-            <footer class="statusBar" aria-label="Launch status">
-              <div class="statusFill" id="gateFill"></div>
-              <div class="statusText" id="gateStatus">SYSTEM CHECK</div>
-              <div class="statusSheen" aria-hidden="true"></div>
-            </footer>
-          </div>
-        </div>
-      </section>
-
-      <!-- =========================
-           SCREEN: DASHBOARD
-      ========================== -->
-      <section class="screen hidden" id="screenDash" data-screen="dash" aria-label="Dashboard">
-        <div class="grid">
-          <!-- HERO CONSOLE -->
-          <section class="card heroCard" aria-label="Cosmos console">
-            <div class="heroTop">
-              <div class="pill pillLive">
-                <span class="dot dotLive"></span>
-                <span class="pillText">FLIGHT MODE</span>
-                <span class="pillShine"></span>
-              </div>
-              <div class="metaLine" id="metaLine">READY • LOW LATENCY • QUANTUM UI</div>
-            </div>
-
-            <div class="heroMain">
-              <div class="heroBig">Cosmos Scanner Console</div>
-              <div class="heroSmall">
-                Панель сканирования микросигналов. Чётко, быстро, визуально богато. Всё готово под расширение.
-              </div>
-            </div>
-
-            <div class="chips" aria-label="Selectors">
-              <button class="chip" id="chipAsset" type="button" aria-label="Select asset">
-                <span class="chipIco">🌍</span>
-                <span class="chipVal" id="assetVal">EUR/USD</span>
-                <span class="chipCar">▾</span>
-              </button>
-
-              <button class="chip" id="chipTf" type="button" aria-label="Select timeframe">
-                <span class="chipIco">⏱</span>
-                <span class="chipVal" id="tfVal">30s</span>
-                <span class="chipCar">▾</span>
-              </button>
-
-              <button class="chip" id="chipMarket" type="button" aria-label="Market mode">
-                <span class="chipIco">🌐</span>
-                <span class="chipVal" id="mktVal">OTC</span>
-                <span class="chipCar">↺</span>
-              </button>
-
-              <button class="chip chipGhost" id="chipRisk" type="button" aria-label="Risk">
-                <span class="chipIco">🧷</span>
-                <span class="chipVal" id="riskVal">AUTO</span>
-                <span class="chipCar">▾</span>
-              </button>
-            </div>
-
-            <div class="heroActions" aria-label="Primary actions">
-              <button class="btn btnPrimary btnWide" id="btnScan" type="button">
-                <span class="btnIcon">⟡</span>
-                <span class="btnText">Запустить сканирование</span>
-                <span class="btnGlow" aria-hidden="true"></span>
-                <span class="btnSweep" aria-hidden="true"></span>
-              </button>
-
-              <div class="row2">
-                <button class="btn btnGlass" id="btnReset" type="button">
-                  <span class="btnIcon">⟲</span><span class="btnText">Сброс</span>
-                </button>
-                <button class="btn btnGlass" id="btnCopy" type="button">
-                  <span class="btnIcon">⧉</span><span class="btnText">Copy</span>
-                </button>
-              </div>
-
-              <div class="row3">
-                <button class="btn btnGlass" id="btnShare" type="button">⇪ Share</button>
-                <button class="btn btnGlass" id="btnSave" type="button">★ Save</button>
-                <button class="btn btnGlass" id="btnExport" type="button">⤓ Export</button>
-              </div>
-            </div>
-
-            <div class="microStatus" aria-label="Mini status">
-              <div class="microFill" id="microFill"></div>
-              <div class="microText" id="microText">IDLE</div>
-              <div class="microSheen" aria-hidden="true"></div>
-            </div>
-          </section>
-
-          <!-- MARKET VISUAL -->
-          <section class="card chartCard" aria-label="Market visual">
-            <div class="cardHeader">
-              <div class="cardTitle">MARKET VISUAL</div>
-              <div class="cardRight">
-                <button class="miniBtn" id="btnGrid" type="button">GRID</button>
-                <button class="miniBtn" id="btnGlow" type="button">GLOW</button>
-                <button class="miniBtn" id="btnFocus" type="button">FOCUS</button>
-              </div>
-            </div>
-
-            <div class="chartWrap" id="chartWrap">
-              <canvas id="chart" width="1200" height="540" aria-label="Chart"></canvas>
-              <div class="scanline" aria-hidden="true"></div>
-
-              <div class="chartOverlay" id="chartOverlay" aria-hidden="true">
-                <div class="overlayTitle">AI SCANNER</div>
-                <div class="overlayText" id="overlayText">Collecting micro-signals…</div>
-                <div class="bar"><div class="barFill" id="barFill"></div></div>
-                <div class="overlayHint">Не закрывает клики • pointer-events:none</div>
-              </div>
-
-              <div class="hud" aria-hidden="true">
-                <div class="hudItem">SNR <b id="hudSnr">—</b></div>
-                <div class="hudItem">ΔVOL <b id="hudVol">—</b></div>
-                <div class="hudItem">TPS <b id="hudTps">—</b></div>
-              </div>
-            </div>
-
-            <div class="metricsGrid" aria-label="Diagnostics">
-              <div class="metric">
-                <div class="mLabel">VOLATILITY</div>
-                <div class="mValue" id="mVol">—</div>
-                <div class="mBar"><div class="mFill" id="mVolFill"></div></div>
-              </div>
-              <div class="metric">
-                <div class="mLabel">MOMENTUM</div>
-                <div class="mValue" id="mMom">—</div>
-                <div class="mBar"><div class="mFill" id="mMomFill"></div></div>
-              </div>
-              <div class="metric">
-                <div class="mLabel">STRENGTH</div>
-                <div class="mValue" id="mStr">—</div>
-                <div class="mBar"><div class="mFill" id="mStrFill"></div></div>
-              </div>
-              <div class="metric">
-                <div class="mLabel">LIQUIDITY</div>
-                <div class="mValue" id="mLiq">—</div>
-                <div class="mBar"><div class="mFill" id="mLiqFill"></div></div>
-              </div>
-            </div>
-          </section>
-
-          <!-- RESULT PACKAGE -->
-          <section class="card resultCard hidden" id="resultCard" aria-label="Result package">
-            <div class="cardHeader">
-              <div class="cardTitle">RESULT PACKAGE</div>
-              <div class="cardRight">
-                <div class="pill pillHot">
-                  <span class="dot dotHot"></span>
-                  <span class="pillText">CONFIRMED</span>
-                  <span class="pillShine"></span>
-                </div>
-              </div>
-            </div>
-
-            <div class="resultGrid">
-              <div class="rCard wide">
-                <div class="rLabel">ASSET</div>
-                <div class="rValue big" id="rAsset">EUR/USD</div>
-              </div>
-
-              <div class="rCard">
-                <div class="rLabel">TIMEFRAME</div>
-                <div class="rValue" id="rTf">30s</div>
-              </div>
-
-              <div class="rCard">
-                <div class="rLabel">CONFIDENCE</div>
-                <div class="rValue" id="rAcc">—%</div>
-              </div>
-
-              <div class="rCard wide">
-                <div class="rLabel">DIRECTION</div>
-                <div class="dirRow">
-                  <span class="dirDot" id="dirDot" aria-hidden="true"></span>
-                  <span class="rValue" id="dirText">—</span>
-                  <span class="rHint">до <b id="rUntil">—:—</b></span>
-                </div>
-              </div>
-
-              <div class="rCard wide">
-                <div class="rLabel">WINDOW</div>
-                <div class="prog"><div class="progFill" id="progFill"></div></div>
-                <div class="rHint" id="timerText">— / —</div>
-              </div>
-            </div>
-
-            <div class="fineprint">
-              Демо-интерфейс. Никакой финансовой рекомендации.
-            </div>
-          </section>
-
-          <!-- AI CONSOLE LOG -->
-          <section class="card logCard" aria-label="Console log">
-            <div class="cardHeader">
-              <div class="cardTitle">EXECUTION LOG</div>
-              <div class="cardRight">
-                <button class="miniBtn" id="btnClearLog" type="button">CLEAR</button>
-                <button class="miniBtn" id="btnPinLog" type="button">PIN</button>
-              </div>
-            </div>
-
-            <div class="log" id="log" role="log" aria-live="polite">
-              <div class="logItem"><span class="logTag ok">OK</span><span class="logText">Console ready.</span><span class="logTime">00:00</span></div>
-              <div class="logItem"><span class="logTag info">INFO</span><span class="logText">Waiting for scan…</span><span class="logTime">00:00</span></div>
-            </div>
-
-            <div class="logInputRow" aria-label="Quick command">
-              <input class="logInput" id="logInput" placeholder="Type command… (ex: /scan, /reset)" autocomplete="off" />
-              <button class="btn btnGlass" id="btnSendCmd" type="button">SEND</button>
-            </div>
-          </section>
-        </div>
-      </section>
-
-      <!-- =========================
-           SCREEN: SIGNALS (HISTORY)
-      ========================== -->
-      <section class="screen hidden" id="screenSignals" data-screen="signals" aria-label="Signals history">
-        <div class="screenHeader">
-          <div class="screenTitle">Signals</div>
-          <div class="screenSub">История и “пакеты” результатов (готово под подключение).</div>
-        </div>
-
-        <div class="card">
-          <div class="cardHeader">
-            <div class="cardTitle">HISTORY FEED</div>
-            <div class="cardRight">
-              <button class="miniBtn" id="btnFilter" type="button">FILTER</button>
-              <button class="miniBtn" id="btnSort" type="button">SORT</button>
-            </div>
-          </div>
-
-          <div class="feed" id="feed">
-            <!-- cards injected by JS -->
-            <article class="feedItem">
-              <div class="feedTop">
-                <div class="pill pillHot"><span class="dot dotHot"></span><span class="pillText">SIGNAL</span><span class="pillShine"></span></div>
-                <div class="feedMeta">EUR/USD • 30s • OTC</div>
-              </div>
-              <div class="feedMain">
-                <div class="feedDir up">UP</div>
-                <div class="feedAcc">88%</div>
-                <div class="feedTime">until 12:48</div>
-              </div>
-              <div class="feedActions">
-                <button class="btn btnGlass" type="button">OPEN</button>
-                <button class="btn btnGlass" type="button">COPY</button>
-                <button class="btn btnGlass" type="button">PIN</button>
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <!-- =========================
-           SCREEN: SETTINGS
-      ========================== -->
-      <section class="screen hidden" id="screenSettings" data-screen="settings" aria-label="Settings">
-        <div class="screenHeader">
-          <div class="screenTitle">Settings</div>
-          <div class="screenSub">Тонкая настройка UI/FX/Performance/Telegram.</div>
-        </div>
-
-        <div class="gridSettings">
-          <section class="card">
-            <div class="cardHeader">
-              <div class="cardTitle">VISUAL</div>
-            </div>
-
-            <div class="settingsList">
-              <label class="toggleRow">
-                <span class="toggleText">Starfield</span>
-                <input type="checkbox" id="setStars" checked />
-                <span class="toggleUi" aria-hidden="true"></span>
-              </label>
-
-              <label class="toggleRow">
-                <span class="toggleText">Aurora</span>
-                <input type="checkbox" id="setAurora" checked />
-                <span class="toggleUi" aria-hidden="true"></span>
-              </label>
-
-              <label class="toggleRow">
-                <span class="toggleText">Noise</span>
-                <input type="checkbox" id="setNoise" checked />
-                <span class="toggleUi" aria-hidden="true"></span>
-              </label>
-
-              <label class="toggleRow">
-                <span class="toggleText">Scanline</span>
-                <input type="checkbox" id="setScanline" checked />
-                <span class="toggleUi" aria-hidden="true"></span>
-              </label>
-            </div>
-          </section>
-
-          <section class="card">
-            <div class="cardHeader">
-              <div class="cardTitle">PERFORMANCE</div>
-            </div>
-
-            <div class="settingsList">
-              <label class="toggleRow">
-                <span class="toggleText">60 FPS mode</span>
-                <input type="checkbox" id="set60fps" checked />
-                <span class="toggleUi" aria-hidden="true"></span>
-              </label>
-
-              <label class="toggleRow">
-                <span class="toggleText">Battery saver</span>
-                <input type="checkbox" id="setSaver" />
-                <span class="toggleUi" aria-hidden="true"></span>
-              </label>
-
-              <div class="sliderRow">
-                <div class="sliderText">FX intensity</div>
-                <input type="range" id="setFx" min="0" max="100" value="70" />
-              </div>
-            </div>
-          </section>
-
-          <section class="card">
-            <div class="cardHeader">
-              <div class="cardTitle">TELEGRAM</div>
-            </div>
-
-            <div class="settingsList">
-              <label class="toggleRow">
-                <span class="toggleText">Haptics</span>
-                <input type="checkbox" id="setHaptics" checked />
-                <span class="toggleUi" aria-hidden="true"></span>
-              </label>
-
-              <label class="toggleRow">
-                <span class="toggleText">Expand</span>
-                <input type="checkbox" id="setExpand" checked />
-                <span class="toggleUi" aria-hidden="true"></span>
-              </label>
-
-              <div class="hintBox">
-                Поддержка: openLink, safe-area, haptics, MainButton (подключается в JS).
-              </div>
-            </div>
-          </section>
-        </div>
-      </section>
-    </main>
-
-    <!-- DOCK NAV -->
-    <nav class="dock" id="dock" aria-label="Dock navigation">
-      <button class="dockBtn active" id="navDash" type="button">
-        <span class="dockIco">⌂</span><span class="dockTxt">Console</span>
-      </button>
-      <button class="dockBtn" id="navSignals" type="button">
-        <span class="dockIco">⚡</span><span class="dockTxt">Signals</span>
-      </button>
-      <button class="dockBtn" id="navSettings" type="button">
-        <span class="dockIco">⚙</span><span class="dockTxt">Settings</span>
-      </button>
-    </nav>
-
-    <!-- BACKDROP -->
-    <div class="backdrop hidden" id="backdrop" aria-hidden="true"></div>
-
-    <!-- COMMAND PALETTE -->
-    <section class="modal hidden" id="cmdPalette" role="dialog" aria-modal="true" aria-label="Command palette">
-      <div class="modalTop">
-        <div class="modalTitle">COMMAND PALETTE</div>
-        <button class="iconBtn" id="closeCmd" type="button" aria-label="Close">✕</button>
+      <div class="adminActions">
+        <button class="btn btnGlass" id="btnAdmRefresh" type="button">⟲ Обновить</button>
+        <button class="btn btnGlass" id="btnAdmToggleUser" type="button">⛔ Вкл/Выкл доступ</button>
+        <button class="btn btnGlass" id="btnAdmApprove" type="button">✓ Одобрить</button>
+        <button class="btn btnGlass" id="btnAdmVip" type="button">✦ Выдать VIP</button>
       </div>
 
-      <input class="search" id="cmdSearch" placeholder="Search commands… (scan, reset, open reg, theme)" autocomplete="off" />
-
-      <div class="cmdList" id="cmdList" aria-label="Commands">
-        <button class="cmdItem" type="button" data-cmd="scan">
-          <span class="cmdLeft">
-            <span class="cmdName">Run scan</span>
-            <span class="cmdHint">Start cosmic analysis sequence</span>
-          </span>
-          <span class="cmdKey">⏎</span>
-        </button>
-
-        <button class="cmdItem" type="button" data-cmd="reset">
-          <span class="cmdLeft">
-            <span class="cmdName">Reset</span>
-            <span class="cmdHint">Clear results & return to idle</span>
-          </span>
-          <span class="cmdKey">R</span>
-        </button>
-
-        <button class="cmdItem" type="button" data-cmd="reg">
-          <span class="cmdLeft">
-            <span class="cmdName">Open registration</span>
-            <span class="cmdHint">Open external link via Telegram.WebApp</span>
-          </span>
-          <span class="cmdKey">↗</span>
-        </button>
-
-        <button class="cmdItem" type="button" data-cmd="theme">
-          <span class="cmdLeft">
-            <span class="cmdName">Toggle theme</span>
-            <span class="cmdHint">Switch vibe & contrast profiles</span>
-          </span>
-          <span class="cmdKey">T</span>
-        </button>
-      </div>
-    </section>
-
-    <!-- MODAL: ASSET SELECT -->
-    <section class="modal hidden" id="assetModal" role="dialog" aria-modal="true" aria-label="Assets">
-      <div class="modalTop">
-        <div class="modalTitle">ASSETS</div>
-        <button class="iconBtn" id="closeAsset" type="button" aria-label="Close">✕</button>
+      <div class="adminList">
+        <div class="label">Список (демо)</div>
+        <div class="list" id="adminUserList" aria-label="Admin user list"></div>
       </div>
 
-      <input class="search" id="assetSearch" placeholder="Search asset…" autocomplete="off" />
-
-      <div class="tabs" id="assetTabs" aria-label="Categories">
-        <button class="tab active" type="button" data-tab="fx">FX</button>
-        <button class="tab" type="button" data-tab="crypto">CRYPTO</button>
-        <button class="tab" type="button" data-tab="stocks">STOCKS</button>
-        <button class="tab" type="button" data-tab="otc">OTC</button>
+      <div class="footnote">
+        Эта панель станет рабочей после подключения backend (Cloudflare Worker/D1) и проверки Telegram initData.
       </div>
+    </div>
+  </section>
 
-      <div class="list" id="assetList" aria-label="List">
-        <button class="listItem" type="button" data-value="EUR/USD">
-          <span class="liLeft"><span class="liName">EUR/USD</span><span class="liSub">FX Major</span></span>
-          <span class="liTag">HOT</span>
-        </button>
-        <button class="listItem" type="button" data-value="GBP/USD">
-          <span class="liLeft"><span class="liName">GBP/USD</span><span class="liSub">FX Major</span></span>
-          <span class="liTag">LIVE</span>
-        </button>
-      </div>
-    </section>
-
-    <!-- MODAL: TF SELECT -->
-    <section class="modal hidden" id="tfModal" role="dialog" aria-modal="true" aria-label="Timeframes">
-      <div class="modalTop">
-        <div class="modalTitle">TIMEFRAMES</div>
-        <button class="iconBtn" id="closeTf" type="button" aria-label="Close">✕</button>
-      </div>
-
-      <div class="list" id="tfList" aria-label="Timeframes list">
-        <button class="listItem" type="button" data-value="5s"><span class="liLeft"><span class="liName">5s</span><span class="liSub">Ultra scalping</span></span><span class="liTag">FAST</span></button>
-        <button class="listItem" type="button" data-value="15s"><span class="liLeft"><span class="liName">15s</span><span class="liSub">Quick</span></span><span class="liTag">HOT</span></button>
-        <button class="listItem" type="button" data-value="30s"><span class="liLeft"><span class="liName">30s</span><span class="liSub">Default</span></span><span class="liTag">PRO</span></button>
-        <button class="listItem" type="button" data-value="60s"><span class="liLeft"><span class="liName">60s</span><span class="liSub">Stable</span></span><span class="liTag">SAFE</span></button>
-      </div>
-    </section>
-  </div>
-
-  <!-- AUDIO placeholders -->
-  <audio id="sfxScan" preload="auto" src="./scan.mp3"></audio>
-
-  <!-- SCRIPT -->
+  <!-- App JS -->
   <script src="./app.js" defer></script>
 </body>
 </html>
