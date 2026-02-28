@@ -658,3 +658,16 @@ button{ font-family:inherit; }
 .gateCard::before, .gateCard::after,
 .signalCard::before,
 .chartOverlay{ pointer-events:none !important; }
+
+.vpnHint{
+  margin-top:6px;
+  padding:8px 12px;
+  border-radius:14px;
+  font-size:12px;
+  line-height:1.4;
+  color:rgba(255,255,255,.55);
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  backdrop-filter: blur(6px);
+  letter-spacing:.02em;
+}
