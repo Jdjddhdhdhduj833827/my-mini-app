@@ -1,4 +1,4 @@
-<!-- index.html — IRONCLAD (Telegram Mini App) -->
+<!-- index.html (ИНТЕРФЕЙС НЕ МЕНЯЛ) -->
 <!doctype html>
 <html lang="ru">
 <head>
@@ -13,18 +13,14 @@
   <title>CRAFT ANALYTICS</title>
   <meta name="description" content="CRAFT ANALYTICS — Premium UI (Telegram Mini App)" />
 
-  <!-- CSP (оставляю максимально совместимым; если захочешь — ужесточим позже) -->
-  <meta http-equiv="Content-Security-Policy" content="default-src * data: blob: 'unsafe-inline' 'unsafe-eval'; connect-src *; img-src * data: blob:; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval';">
+  <!-- Telegram WebApp SDK (ОДИН РАЗ) -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-  <!-- Telegram WebApp SDK (один раз) -->
-  <script src="https://telegram.org/js/telegram-web-app.js" crossorigin="anonymous"></script>
-
-  <!-- Styles -->
-  <link rel="stylesheet" href="./style.css?v=1" />
+  <link rel="stylesheet" href="./style.css" />
 </head>
 
 <body>
-  <!-- Background -->
+  <!-- Background (click-safe) -->
   <div class="bg" aria-hidden="true">
     <div class="bgAura"></div>
     <div class="bgGrid"></div>
@@ -109,14 +105,18 @@
           <b id="gateStatusText" data-i="gate_status_na">не проверен</b>
         </div>
 
-        <div class="legal" data-i="gate_legal">Demo UI. Not financial advice.</div>
+        <div class="legal" data-i="gate_legal">
+          Demo UI. Not financial advice.
+        </div>
       </div>
 
       <footer class="gateFooter">
         <div class="meter" aria-label="Access meter">
           <div class="meterFill" id="gateMeter" style="width:14%"></div>
         </div>
-        <div class="meterText" id="gateMeterText" data-i="gate_meter">SECURITY • initData required</div>
+        <div class="meterText" id="gateMeterText" data-i="gate_meter">
+          SECURITY • initData required
+        </div>
       </footer>
     </div>
   </section>
@@ -188,7 +188,7 @@
             <span class="chev" aria-hidden="true">▾</span>
           </button>
 
-          <button class="select compact" id="marketBtn" type="button" aria-label="Toggle market">
+          <button class="select compact" id="marketBtn" type="button">
             <div class="selectLeft">
               <span class="badge" aria-hidden="true">🌐</span>
               <span class="selectValue" id="marketValue">OTC</span>
@@ -238,9 +238,7 @@
           <div class="chartOverlay hidden" id="chartOverlay" aria-hidden="true">
             <div class="overlayTitle">SCANNING</div>
             <div class="overlayLine" id="overlayLine" data-i="chart_scan">Сканирование…</div>
-            <div class="overlayBar">
-              <div class="overlayFill" id="overlayFill"></div>
-            </div>
+            <div class="overlayBar"><div class="overlayFill" id="overlayFill"></div></div>
           </div>
         </div>
 
@@ -263,10 +261,22 @@
             </div>
 
             <div class="miniMetrics">
-              <div class="m"><div class="k" data-i="m_acc">Точность</div><div class="v" id="rAcc">—%</div></div>
-              <div class="m"><div class="k" data-i="m_vol">Волатильность</div><div class="v" id="volFactor">—</div></div>
-              <div class="m"><div class="k" data-i="m_mom">Импульс</div><div class="v" id="momFactor">—</div></div>
-              <div class="m"><div class="k" data-i="m_liq">Ликвидность</div><div class="v" id="liqFactor">—</div></div>
+              <div class="m">
+                <div class="k" data-i="m_acc">Точность</div>
+                <div class="v" id="rAcc">—%</div>
+              </div>
+              <div class="m">
+                <div class="k" data-i="m_vol">Волатильность</div>
+                <div class="v" id="volFactor">—</div>
+              </div>
+              <div class="m">
+                <div class="k" data-i="m_mom">Импульс</div>
+                <div class="v" id="momFactor">—</div>
+              </div>
+              <div class="m">
+                <div class="k" data-i="m_liq">Ликвидность</div>
+                <div class="v" id="liqFactor">—</div>
+              </div>
             </div>
           </div>
 
@@ -317,7 +327,8 @@
     <div class="list" id="langList" aria-label="Languages list"></div>
   </section>
 
-  <div class="notify hidden" id="notify" role="dialog" aria-modal="true" aria-label="Notice">
+  <!-- Smart Notify -->
+  <div class="notify hidden" id="notify">
     <div class="notifyCard">
       <div class="notifyTitle" id="notifyTitle">Notice</div>
       <div class="notifyText" id="notifyText">—</div>
@@ -332,9 +343,9 @@
     </div>
   </div>
 
+  <!-- SoftLock blur layer -->
   <div class="softLock hidden" id="softLock" aria-hidden="true"></div>
 
-  <!-- App JS (only one!) -->
-  <script src="./app.js?v=1001" defer></script>
+  <script src="./app.js" defer></script>
 </body>
 </html>
