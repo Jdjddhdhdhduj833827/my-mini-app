@@ -731,10 +731,18 @@ console.log("APP.JS VERSION =", "v_debug_001");
     setGateStatus("…", 32);
 
    const raw = await authRequest();
-console.log("AUTH_RAW_GATE", raw);
+Telegram.WebApp.showPopup({
+  title: "AUTH_RAW",
+  message: JSON.stringify(raw, null, 2).slice(0, 3500),
+  buttons: [{ type: "close" }]
+});
 
 const data = normalizeAuth(raw);
-console.log("AUTH_NORM_GATE", data);
+Telegram.WebApp.showPopup({
+  title: "AUTH_NORM",
+  message: JSON.stringify(data, null, 2).slice(0, 3500),
+  buttons: [{ type: "close" }]
+});
 
 AUTH = data;
 
