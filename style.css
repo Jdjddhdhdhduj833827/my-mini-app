@@ -1,5 +1,3 @@
-/* style.css */
-
 :root{
   --bg0:#06070d;
   --bg1:#090a12;
@@ -198,7 +196,7 @@ button{ font-family:inherit; }
 
 .meter{ height:10px; border-radius:999px; background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.10); overflow:hidden; }
 .meterFill{
-  height:100%; width:14%;
+  height:100%;
   background: linear-gradient(90deg, rgba(124,92,255,.75), rgba(0,178,255,.48), rgba(245,211,138,.40));
   transition: width .25s var(--ease);
 }
@@ -263,6 +261,8 @@ button{ font-family:inherit; }
   cursor:pointer;
   box-shadow: 0 10px 26px rgba(0,0,0,.22);
   transition: transform .12s var(--ease), background .18s var(--ease), border-color .18s var(--ease);
+  position:relative;
+  z-index:50; /* чтобы точно нажималось */
 }
 .iconBtn:hover{ background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.18); }
 .iconBtn:active{ transform: translateY(1px) scale(.99); }
@@ -385,26 +385,6 @@ button{ font-family:inherit; }
 /* HINT / ACTIONS */
 .hint{ margin-top:10px; color:var(--muted); font-size:13px; line-height:1.45; position:relative; z-index:2; }
 .actions{ display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; position:relative; z-index:2; }
-.trendRow{ display:flex; gap:10px; width:100%; }
-.trendBtn{
-  flex:1; height:52px;
-  border-radius:18px;
-  border:1px solid rgba(255,255,255,.12);
-  background: rgba(255,255,255,.06);
-  box-shadow: 0 16px 46px rgba(0,0,0,.30);
-  display:flex; align-items:center; justify-content:space-between;
-  padding:0 14px;
-  cursor:pointer;
-  transition: transform .12s var(--ease), background .18s var(--ease), border-color .18s var(--ease);
-}
-.trendBtn:hover{ background: rgba(255,255,255,.085); border-color: rgba(255,255,255,.18); }
-.trendBtn:active{ transform: translateY(1px) scale(.995); }
-.trendLabel{ font-weight:1000; letter-spacing:.12em; font-size:12px; }
-.trendArrow{ font-weight:1000; font-size:18px; opacity:.95; }
-.trendLong{ border-color: rgba(119,243,178,.22); }
-.trendLong .trendArrow{ color: var(--good); text-shadow: 0 0 16px rgba(119,243,178,.25); }
-.trendShort{ border-color: rgba(255,90,110,.22); }
-.trendShort .trendArrow{ color: var(--bad); text-shadow: 0 0 16px rgba(255,90,110,.22); }
 
 /* CHARTS */
 .chartWrap{
@@ -642,7 +622,6 @@ button{ font-family:inherit; }
 @media (max-width: 520px){
   .signalCard{ grid-template-columns: 1fr; }
   .miniMetrics{ grid-template-columns: repeat(2, 1fr); }
-  .trendRow{ flex-direction:column; }
 }
 @media (prefers-reduced-motion: reduce){
   *{ animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
@@ -654,4 +633,4 @@ button{ font-family:inherit; }
 .panel::before, .panel::after,
 .gateCard::before, .gateCard::after,
 .signalCard::before,
-.chartOverlay{ pointer-events:none !important; }
+.chartOverlay, .hero::before { pointer-events:none !important; }
