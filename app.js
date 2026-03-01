@@ -121,7 +121,7 @@ const I18N = {
   ru: {
     gate_sub: "AI Market Intelligence • Smart Trading System",
     gate_title: "Доступ к терминалу",
-    gate_text_main: "Чтобы открыть интерфейс, нажмите «Получить доступ».",
+    gate_text_main: "Чтобы открыть интерфейс, подтвердите статус аккаунта.",
     gate_step1_t: "Регистрация",
     gate_step1_d: "Создайте новый аккаунт через кнопку ниже.",
     gate_step2_t: "Проверка статуса",
@@ -178,7 +178,7 @@ const I18N = {
   en: {
     gate_sub: "AI Market Intelligence • Smart Trading System",
     gate_title: "Terminal access",
-    gate_text_main: "Tap “Get access” to open the UI.",
+    gate_text_main: "Access to the terminal interface requires account status verification.",
     gate_step1_t: "Registration",
     gate_step1_d: "Create an account (optional) using the button below.",
     gate_step2_t: "Enter",
