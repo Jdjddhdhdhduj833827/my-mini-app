@@ -721,9 +721,13 @@
 
     setGateStatus("…", 32);
 
-    const raw = await authRequest();
-    const data = normalizeAuth(raw);
-    AUTH = data;
+   const raw = await authRequest();
+console.log("AUTH_RAW_GATE", raw);
+
+const data = normalizeAuth(raw);
+console.log("AUTH_NORM_GATE", data);
+
+AUTH = data;
 
     if (!data.ok){
       // VPN / Network hint
@@ -774,9 +778,13 @@
       return;
     }
 
-    const raw = await authRequest();
-    const data = normalizeAuth(raw);
-    if (data.ok) AUTH = data;
+   const raw = await authRequest();
+console.log("AUTH_RAW_APP", raw);
+
+const data = normalizeAuth(raw);
+console.log("AUTH_NORM_APP", data);
+
+if (data.ok) AUTH = data;
 
     safeText(chipAccess, "ACCESS: " + (AUTH.access ? "OPEN" : "PENDING"));
 
@@ -936,16 +944,17 @@
     // quick VIP badge attempt (silent, no popups)
     if (tg?.initData) {
       authRequest()
-        .then(raw => {
-          const data = normalizeAuth(raw);
-          if (data.ok) {
-            AUTH = data;
-            if (AUTH.vip) show(pillVipGate); else hide(pillVipGate);
+       .then(raw => {
+  console.log("AUTH_RAW_BOOT", raw);
 
-            // если уже зарегистрирован — можно сразу в app (без депозитов)
-            if (AUTH.flags.registered) enterApp();
-          }
-        })
+  const data = normalizeAuth(raw);
+  console.log("AUTH_NORM_BOOT", data);
+
+  if (data.ok) {
+    AUTH = data;
+    ...
+  }
+})
         .catch(() => {});
     }
 
