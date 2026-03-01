@@ -1,323 +1,122 @@
-console.log("APP.JS EXECUTED ✅", Date.now());
-
 (() => {
   "use strict";
 
-  // =========================
-  // CONFIG (меняешь только это)
-  // =========================
-  const CONFIG = {
-    API_BASE: "https://hidden-fog-c1f2craft-analytics-api.ashirkhanlogubekov-833.workers.dev",
-    AUTH_PATH: "/pb/auth",
-    HEALTH_PATH: "/health",
-    REG_URL:
-      "https://u3.shortink.io/register?utm_campaign=838492&utm_source=affiliate&utm_medium=sr&a=M2nsxBfYsujho1&ac=craft_academy&code=WELCOME50",
-    DEPOSIT_URL:
-      "https://u3.shortink.io/register?utm_campaign=838492&utm_source=affiliate&utm_medium=sr&a=M2nsxBfYsujho1&ac=craft_academy&code=WELCOME50",
-    DEBUG_POPUPS: true,
-  };
+  const API_BASE = "https://hidden-fog-c1f2craft-analytics-api.ashirkhanlogubekov-833.workers.dev";
+  const AUTH_URL = API_BASE + "/pb/auth";
 
-  // =========================
-  // Telegram WebApp
-  // =========================
-  const tg = window.Telegram?.WebApp || null;
+  const tg = window.Telegram?.WebApp;
 
-  // =========================
-  // Helpers
-  // =========================
-  const $ = (id) => document.getElementById(id);
-  const show = (el) => el && el.classList.remove("hidden");
-  const hide = (el) => el && el.classList.add("hidden");
-  const safeText = (el, v) => {
-    if (el) el.textContent = String(v ?? "");
-  };
+  const log = (...a) => console.log("[APP]", ...a);
 
-  const dbg = (...args) => console.log(...args);
+  function findRunButton() {
+    // 1) если есть id — лучше всего:
+    const byId =
+      document.getElementById("btnRunAnalysis") ||
+      document.getElementById("runAnalysis") ||
+      document.getElementById("btnAnalyze");
 
-  function popup(title, obj) {
-    if (!CONFIG.DEBUG_POPUPS) return;
-    const msg = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);
-    try {
-      if (tg?.showPopup) {
-        tg.showPopup({
-          title,
-          message: msg.slice(0, 3500),
-          buttons: [{ type: "close" }],
-        });
-      } else {
-        // fallback
-        console.log("[POPUP]", title, msg);
-      }
-    } catch (e) {
-      console.log("[POPUP_FAIL]", title, e);
-    }
+    if (byId) return byId;
+
+    // 2) ищем по тексту на кнопках
+    const buttons = Array.from(document.querySelectorAll("button, a"));
+    return buttons.find((el) => (el.textContent || "").trim().includes("Запустить анализ")) || null;
   }
 
-  function openURL(url) {
-    if (!url) return;
-    try {
-      // Telegram way
-      if (tg?.openLink) tg.openLink(url);
-      else window.open(url, "_blank", "noopener,noreferrer");
-    } catch {
-      window.open(url, "_blank", "noopener,noreferrer");
-    }
-  }
-
-  // =========================
-  // UI refs
-  // =========================
-  let gate, app, btnOpenReg, btnGetAccess, gateStatusText, gateMeter;
-  let notify, notifyTitle, notifyText, btnNotifyPrimary, notifyPrimaryLabel, btnNotifyClose;
-
-  function setGateStatus(text, pct) {
-    safeText(gateStatusText, text);
-    if (gateMeter && typeof pct === "number") gateMeter.style.width = pct + "%";
-  }
-
-  function showNotify({ title, text, primaryLabel, primaryAction }) {
-    // notify optional
-    if (!notify) {
-      // fallback: обычный alert
-      alert(`${title}\n\n${text}`);
-      try { primaryAction?.(); } catch {}
-      return;
+  async function auth() {
+    if (!tg?.initData) {
+      return { ok: false, error: "NO_TELEGRAM", details: "Open inside Telegram" };
     }
 
-    safeText(notifyTitle, title);
-    safeText(notifyText, text);
-    safeText(notifyPrimaryLabel, primaryLabel || "OK");
+    const payload = { initData: tg.initData };
 
-    if (btnNotifyPrimary) {
-      btnNotifyPrimary.onclick = null;
-      btnNotifyPrimary.onclick = () => {
-        try { primaryAction?.(); } catch {}
-      };
-    }
-
-    show(notify);
-  }
-
-  function hideNotify() {
-    hide(notify);
-  }
-
-  function enterApp() {
-    hide(gate);
-    show(app);
-    hideNotify();
-  }
-
-  // =========================
-  // Network: safe fetch JSON
-  // =========================
-  async function fetchJson(url, options = {}) {
-    const resp = await fetch(url, {
-      mode: "cors",
-      credentials: "omit", // ✅ критично для WebView
+    const r = await fetch(AUTH_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(payload),
+      credentials: "omit",
       cache: "no-store",
-      ...options,
-      headers: {
-        "Accept": "application/json",
-        ...(options.headers || {}),
-      },
     });
 
-    const text = await resp.text().catch(() => "");
-    let data = null;
-    try { data = text ? JSON.parse(text) : null; }
-    catch { data = { ok: false, error: "bad_json", raw: text.slice(0, 200) }; }
+    const text = await r.text();
+    let data;
+    try { data = JSON.parse(text); } catch { data = { ok: false, error: "BAD_JSON", raw: text.slice(0, 200) }; }
 
-    return { ok: resp.ok, status: resp.status, data };
+    if (!r.ok) return { ok: false, error: "HTTP_" + r.status, details: data };
+    return data;
   }
 
-  // =========================
-  // Diagnostics
-  // =========================
-  async function healthCheck() {
-    try {
-      const { ok, status, data } = await fetchJson(CONFIG.API_BASE + CONFIG.HEALTH_PATH, {
-        method: "GET",
+  function showDemoResult() {
+    // Демка: чтобы кнопка “жила”
+    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    const directions = ["UP ✅", "DOWN ✅", "WAIT ⏸️"];
+    const conf = (Math.random() * 0.35 + 0.6).toFixed(2);
+
+    const result = {
+      signal: pick(directions),
+      confidence: conf,
+      ts: Date.now(),
+    };
+
+    log("ANALYSIS RESULT:", result);
+
+    if (tg?.showPopup) {
+      tg.showPopup({
+        title: "ANALYSIS (demo)",
+        message: `Signal: ${result.signal}\nConfidence: ${result.confidence}\nTS: ${result.ts}`,
+        buttons: [{ type: "close" }],
       });
-      return { ok, status, data };
-    } catch (e) {
-      return { ok: false, status: 0, data: { ok: false, error: "network_fail", details: String(e?.message || e) } };
+    } else {
+      alert(`Signal: ${result.signal}\nConfidence: ${result.confidence}`);
     }
   }
 
-  // =========================
-  // Auth (железо-бетон)
-  // =========================
-  async function authRequest() {
-    const initData = tg?.initData || "";
-    const telegram_id = tg?.initDataUnsafe?.user?.id;
-
-    // если не Telegram-среда
-    if (!tg || !initData || !telegram_id) {
-      return {
-        ok: false,
-        error: "not_in_telegram",
-        details: {
-          has_tg: !!tg,
-          initData_len: initData?.length || 0,
-          telegram_id: telegram_id || null,
-        },
-      };
-    }
-
-    // отправляем сразу telegram_id + initData
+  async function onRunAnalysisClick() {
     try {
-      const { ok, status, data } = await fetchJson(CONFIG.API_BASE + CONFIG.AUTH_PATH, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ telegram_id, initData }),
-      });
+      log("Run analysis clicked");
 
-      if (!ok) {
-        return { ok: false, error: "http_" + status, details: data };
+      const a = await auth();
+      log("AUTH:", a);
+
+      if (!a?.ok) {
+        alert("Auth failed: " + (a?.error || "unknown"));
+        return;
+      }
+      if (a?.flags?.registered !== 1) {
+        alert("Нет доступа: зарегистрируйтесь и вернитесь.");
+        return;
       }
 
-      return data || { ok: false, error: "empty_response" };
+      // ✅ Вот теперь действие гарантировано:
+      showDemoResult();
     } catch (e) {
-      return { ok: false, error: "network_fail", details: String(e?.message || e) };
+      console.error(e);
+      alert("Ошибка: " + (e?.message || e));
     }
   }
 
-  function normalizeAuth(raw) {
-    const flags = raw?.flags || {};
-    return {
-      ok: !!raw?.ok,
-      telegram_id: String(raw?.telegram_id || ""),
-      access: !!raw?.access,
-      vip: !!raw?.vip,
-      flags: {
-        registered: Number(flags.registered ?? 0),
-        dep_count: Number(flags.dep_count ?? 0),
-        approved: Number(flags.approved ?? 0),
-      },
-      error: String(raw?.error || raw?.message || raw?.reason || ""),
-      _raw: raw,
-    };
-  }
+  function boot() {
+    try {
+      tg?.ready?.();
+      tg?.expand?.();
+    } catch {}
 
-  // =========================
-  // Main gate flow
-  // =========================
-  async function gateCheckAndProceed() {
-    setGateStatus("checking…", 25);
-
-    // 1) environment check
-    if (!tg || !tg.initDataUnsafe?.user?.id || !tg.initData) {
-      setGateStatus("open inside Telegram", 18);
-      popup("ENV", {
-        has_tg: !!tg,
-        initData_len: tg?.initData?.length || 0,
-        user: tg?.initDataUnsafe?.user || null,
-      });
-
-      showNotify({
-        title: "Открой внутри Telegram",
-        text: "Это мини-приложение работает только внутри Telegram WebApp (через кнопку/бота).",
-        primaryLabel: "Открыть регистрацию",
-        primaryAction: () => openURL(CONFIG.REG_URL),
-      });
+    const btn = findRunButton();
+    if (!btn) {
+      log("Run button not found (no handler attached). Проверь текст/ID кнопки.");
       return;
     }
 
-    // 2) optional health check (быстро даст понять жив ли worker)
-    const hc = await healthCheck();
-    popup("HEALTH", hc);
+    // чтобы не навешивать повторно
+    if (btn.dataset.bound === "1") return;
+    btn.dataset.bound = "1";
 
-    // 3) auth
-    setGateStatus("auth…", 40);
-    const raw = await authRequest();
-    popup("AUTH_RAW", raw);
-
-    const AUTH = normalizeAuth(raw);
-    popup("AUTH_NORM", AUTH);
-
-    if (!AUTH.ok) {
-      setGateStatus("network", 20);
-      showNotify({
-        title: "Ошибка сети / API",
-        text:
-          "Worker не ответил корректно. Проверь:\n" +
-          "• URL API_BASE\n• CORS/OPTIONS в Worker\n• что открыто именно внутри Telegram\n\n" +
-          "Детали: " + (AUTH.error || "unknown"),
-        primaryLabel: "Повторить",
-        primaryAction: () => gateCheckAndProceed(),
-      });
-      return;
-    }
-
-    if (!AUTH.flags.registered) {
-      setGateStatus("need register", 30);
-      showNotify({
-        title: "Сначала регистрация",
-        text: "Создай аккаунт по кнопке ниже, затем вернись и нажми «Получить доступ».",
-        primaryLabel: "Открыть регистрацию",
-        primaryAction: () => openURL(CONFIG.REG_URL),
-      });
-      return;
-    }
-
-    // (если захочешь — можно требовать депозит/approve)
-    // if (!AUTH.flags.dep_count) { ... }
-
-    setGateStatus("ok", 85);
-    enterApp();
-  }
-
-  // =========================
-  // Boot
-  // =========================
-  function start() {
-    gate = $("gate");
-    app = $("app");
-    btnOpenReg = $("btnOpenReg");
-    btnGetAccess = $("btnGetAccess");
-    gateStatusText = $("gateStatusText");
-    gateMeter = $("gateMeter");
-
-    notify = $("notify");
-    notifyTitle = $("notifyTitle");
-    notifyText = $("notifyText");
-    btnNotifyPrimary = $("btnNotifyPrimary");
-    notifyPrimaryLabel = $("notifyPrimaryLabel");
-    btnNotifyClose = $("btnNotifyClose");
-
-    // basic HTML check
-    if (!gate || !app || !btnOpenReg || !btnGetAccess) {
-      console.error(
-        "[BOOT] Missing required DOM ids. Need: gate, app, btnOpenReg, btnGetAccess (+ gateStatusText/gateMeter optional)"
-      );
-      alert("Ошибка верстки: нет нужных элементов (gate/app/btnOpenReg/btnGetAccess).");
-      return;
-    }
-
-    // Telegram ready
-    try { tg?.ready?.(); tg?.expand?.(); } catch {}
-
-    // init UI
-    show(gate);
-    hide(app);
-    hideNotify();
-    setGateStatus("not checked", 10);
-
-    // events
-    btnOpenReg.addEventListener("click", () => openURL(CONFIG.REG_URL));
-    btnGetAccess.addEventListener("click", () => gateCheckAndProceed());
-    btnNotifyClose?.addEventListener("click", hideNotify);
-
-    // Можно включить авто-проверку при загрузке:
-    // gateCheckAndProceed();
-
-    dbg("[BOOT] tg?", !!tg, "initData len:", tg?.initData?.length || 0);
+    btn.addEventListener("click", onRunAnalysisClick);
+    log("Bound handler to:", btn);
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", start, { once: true });
+    document.addEventListener("DOMContentLoaded", boot, { once: true });
   } else {
-    start();
+    boot();
   }
 })();
