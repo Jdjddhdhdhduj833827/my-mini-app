@@ -1,8 +1,8 @@
 /* =====================================================
-   CRAFT ANALYTICS — FINAL CLEAN STYLE.CSS
-   Без дублей :root
-   Без конфликтов
-   Совместим с последним index.html + app.js
+   CRAFT ANALYTICS — FINAL CLEAN STYLE.CSS (IRONCLAD)
+   Fixes:
+   ✅ chartOverlay теперь НЕ может перекрыть весь экран
+   ✅ z-index слоёв сделан явным и стабильным
 ===================================================== */
 
 /* ================= BASE ================= */
@@ -306,6 +306,7 @@ button{
   border-bottom:1px solid var(--stroke);
   backdrop-filter: blur(14px);
   background:rgba(0,0,0,.4);
+  z-index:10;
 }
 
 .content{
@@ -393,6 +394,7 @@ button{
 /* ================= CHART ================= */
 
 .chartWrap{
+  position:relative; /* ✅ FIX: overlay теперь привязан к графику, а не к body */
   border-radius:22px;
   overflow:hidden;
   border:1px solid var(--stroke);
@@ -413,6 +415,7 @@ canvas{
   justify-content:center;
   align-items:center;
   background:rgba(0,0,0,.6);
+  z-index:2;
 }
 
 .overlayBar{
@@ -471,12 +474,14 @@ canvas{
   font-weight:800;
 }
 
-/* ================= MODALS ================= */
+/* ================= MODALS / OVERLAYS ================= */
 
+/* ✅ Явная слоистость, чтобы ничего не перекрывало неожиданно */
 .backdrop{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,.6);
+  z-index:1000;
 }
 
 .modal{
@@ -492,6 +497,7 @@ canvas{
   background:rgba(18,26,46,.9);
   backdrop-filter:blur(16px);
   box-shadow:var(--shadow);
+  z-index:1001;
 }
 
 .modalTop{
@@ -527,6 +533,7 @@ canvas{
   align-items:center;
   justify-content:center;
   background:rgba(0,0,0,.65);
+  z-index:1100;
 }
 
 .notifyCard{
@@ -556,10 +563,12 @@ canvas{
   flex-wrap:wrap;
 }
 
+/* SoftLock слой (если когда-то включишь) */
 .softLock{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,.3);
+  z-index:900; /* ниже модалок/notify */
 }
 
 /* ================= RESPONSIVE ================= */
