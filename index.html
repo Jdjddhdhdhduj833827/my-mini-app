@@ -12,7 +12,7 @@
   <title>CRAFT ANALYTICS</title>
   <meta name="description" content="CRAFT ANALYTICS — Premium UI (Telegram Mini App)" />
 
-  <!-- Telegram WebApp SDK -->
+  <!-- Telegram WebApp SDK (ОДИН РАЗ) -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <link rel="stylesheet" href="./style.css" />
@@ -55,7 +55,7 @@
         <h1 class="gateTitle" data-i="gate_title">Доступ к терминалу</h1>
 
         <p class="gateText" data-i="gate_text_main">
-          Нажмите «Получить доступ» — терминал откроется.
+          Чтобы открыть интерфейс, нажмите «Получить доступ».
         </p>
 
         <div class="gateSteps" aria-label="Steps">
@@ -63,23 +63,23 @@
             <div class="stepNum">1</div>
             <div class="stepBody">
               <div class="stepTitle" data-i="gate_step1_t">Регистрация</div>
-              <div class="stepDesc" data-i="gate_step1_d">Кнопка ниже ведёт на регистрацию.</div>
+              <div class="stepDesc" data-i="gate_step1_d">Создайте аккаунт (по желанию) через кнопку ниже.</div>
             </div>
           </div>
 
           <div class="step">
             <div class="stepNum">2</div>
             <div class="stepBody">
-              <div class="stepTitle" data-i="gate_step2_t">Депозит</div>
-              <div class="stepDesc" data-i="gate_step2_d">Кнопка меню (⋯) откроет депозит/отчёт.</div>
+              <div class="stepTitle" data-i="gate_step2_t">Вход</div>
+              <div class="stepDesc" data-i="gate_step2_d">Нажмите «Получить доступ» — терминал откроется сразу.</div>
             </div>
           </div>
 
           <div class="step">
             <div class="stepNum">3</div>
             <div class="stepBody">
-              <div class="stepTitle" data-i="gate_step3_t">Терминал</div>
-              <div class="stepDesc" data-i="gate_step3_d">Доступ открыт для любого пользователя.</div>
+              <div class="stepTitle" data-i="gate_step3_t">Анализ</div>
+              <div class="stepDesc" data-i="gate_step3_d">Запускайте анализ — сигнал выбирается случайно.</div>
             </div>
           </div>
         </div>
@@ -99,7 +99,7 @@
 
         <div class="gateHint">
           <span data-i="gate_status">Статус:</span>
-          <b id="gateStatusText" data-i="gate_status_ok">готово</b>
+          <b id="gateStatusText" data-i="gate_status_na">готов</b>
         </div>
 
         <div class="legal" data-i="gate_legal">
@@ -109,10 +109,10 @@
 
       <footer class="gateFooter">
         <div class="meter" aria-label="Access meter">
-          <div class="meterFill" id="gateMeter" style="width:62%"></div>
+          <div class="meterFill" id="gateMeter" style="width:18%"></div>
         </div>
         <div class="meterText" id="gateMeterText" data-i="gate_meter">
-          TERMINAL • realtime render
+          UI • local render
         </div>
       </footer>
     </div>
@@ -239,7 +239,9 @@
                 <span class="metaDot" aria-hidden="true"></span>
                 <span data-i="sig_window">окно:</span> <b id="rWindow">—</b>
                 <span class="metaSep">•</span>
-                <span data-i="sig_until">до</span> <b id="rUntil">00:30</b>
+                <span data-i="sig_until">до</span> <b id="rUntil">--:--</b>
+                <span class="metaSep">•</span>
+                <span data-i="sig_timer">таймер</span> <b id="rTimer">--:--</b>
               </span>
 
               <span class="vipBadge hidden" id="vipBadge" aria-label="VIP">VIP</span>
@@ -275,7 +277,7 @@
         </div>
 
         <div class="footnote" data-i="footnote">
-          Realtime render • UI terminal mode
+          UI работает локально. Анализ — демонстрационный.
         </div>
       </section>
     </main>
@@ -312,7 +314,7 @@
     <div class="list" id="langList" aria-label="Languages list"></div>
   </section>
 
-  <!-- Smart Notify (используем как Menu popup тоже) -->
+  <!-- Smart Notify -->
   <div class="notify hidden" id="notify">
     <div class="notifyCard">
       <div class="notifyTitle" id="notifyTitle">Notice</div>
@@ -328,7 +330,7 @@
     </div>
   </div>
 
-  <!-- SoftLock (оставляем, но не блокируем вход) -->
+  <!-- SoftLock (не используем для блокировки, но оставляем слой как в твоём UI) -->
   <div class="softLock hidden" id="softLock" aria-hidden="true"></div>
 
   <script src="./app.js" defer></script>
