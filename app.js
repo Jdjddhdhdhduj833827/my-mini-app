@@ -1,3 +1,4 @@
+alert("NEW APP VERSION LOADED");
 console.log("APP.JS VERSION =", "v_debug_001");
 /* app.js — FULL REWRITE (stable)
    ✅ ЛОГИКА КАК ТЫ ПРОСИЛ:
