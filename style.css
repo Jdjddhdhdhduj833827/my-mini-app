@@ -196,7 +196,7 @@ button{ font-family:inherit; }
 
 .meter{ height:10px; border-radius:999px; background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.10); overflow:hidden; }
 .meterFill{
-  height:100%;
+  height:100%; width:14%;
   background: linear-gradient(90deg, rgba(124,92,255,.75), rgba(0,178,255,.48), rgba(245,211,138,.40));
   transition: width .25s var(--ease);
 }
@@ -262,7 +262,8 @@ button{ font-family:inherit; }
   box-shadow: 0 10px 26px rgba(0,0,0,.22);
   transition: transform .12s var(--ease), background .18s var(--ease), border-color .18s var(--ease);
   position:relative;
-  z-index:50; /* чтобы точно нажималось */
+  z-index:40; /* FIX: чтобы "…" всегда кликабельно */
+  pointer-events:auto;
 }
 .iconBtn:hover{ background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.18); }
 .iconBtn:active{ transform: translateY(1px) scale(.99); }
@@ -384,7 +385,7 @@ button{ font-family:inherit; }
 
 /* HINT / ACTIONS */
 .hint{ margin-top:10px; color:var(--muted); font-size:13px; line-height:1.45; position:relative; z-index:2; }
-.actions{ display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; position:relative; z-index:2; }
+.actions{ display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; position:relative; z-index:2; width:100%; }
 
 /* CHARTS */
 .chartWrap{
@@ -396,7 +397,12 @@ button{ font-family:inherit; }
   box-shadow: 0 18px 55px rgba(0,0,0,.34), inset 0 0 0 1px rgba(0,0,0,.22);
   transform: translateZ(0);
 }
-#chart{ display:block; width:100%; height:auto; filter: saturate(1.05) contrast(1.04); }
+#chart{
+  display:block;
+  width:100%;
+  height:auto;
+  filter: saturate(1.12) contrast(1.10);
+}
 .chartOverlay{
   position:absolute; inset:0;
   display:flex; flex-direction:column; justify-content:center; align-items:center; gap:10px;
@@ -633,4 +639,4 @@ button{ font-family:inherit; }
 .panel::before, .panel::after,
 .gateCard::before, .gateCard::after,
 .signalCard::before,
-.chartOverlay, .hero::before { pointer-events:none !important; }
+.chartOverlay{ pointer-events:none !important; }
