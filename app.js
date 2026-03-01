@@ -974,4 +974,11 @@ if (data.ok) AUTH = data;
   bindEvents();
   boot();
 
-})();
+ const tg = window.Telegram?.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand();
+
+  console.log("[TG] exists?", !!window.Telegram?.WebApp);
+  console.log("[TG] initData length =", window.Telegram?.WebApp?.initData?.length || 0);
+}
