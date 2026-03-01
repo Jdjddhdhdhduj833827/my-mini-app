@@ -14,8 +14,8 @@
 */
 
 const CONFIG = {
-  REG_URL: "https://example.com/register",
-  DEPOSIT_URL: "https://example.com/deposit",
+  REG_URL: "https://u3.shortink.io/register?utm_campaign=838492&utm_source=affiliate&utm_medium=sr&a=M2nsxBfYsujho1&ac=craft_academy&code=WELCOME50",
+  DEPOSIT_URL: "https://u3.shortink.io/register?utm_campaign=838492&utm_source=affiliate&utm_medium=sr&a=M2nsxBfYsujho1&ac=craft_academy&code=WELCOME50",
   ASSETS_JSON: "./assets.json"
 };
 
