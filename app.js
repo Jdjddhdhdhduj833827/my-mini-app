@@ -1,806 +1,665 @@
-(() => {
-  "use strict";
+/* app.js — CRAFT ANALYTICS (Terminal UI)
+   Твои требования:
+   - УБРАТЬ long/short кнопки под анализом (в HTML их уже нет)
+   - 1 кнопка "Запустить анализ" -> абсолютный рандом LONG/SHORT
+   - При КАЖДОМ анализе всплывает notify "Создайте аккаунт" (как на фото)
+     - "Открыть регистрацию" -> REG_URL
+     - "Понятно" -> запускает анализ
+   - Графики: терминальный линейный стиль, разные при смене актива/таймфрейма/market
+   - Mini chart: линейный, меняется при смене актива, текст "Mini chart • render"
+   - Таймфреймы: 5s,10s,15s,30s,1m,3m,5m,30m,1h,3h,6h
+   - Таймер обратного отсчёта рядом с сигналом на выбранный таймфрейм
+   - Кнопка "..." кликабельна
+   - Никаких серверных auth/депозит/регистрация чеков (чтобы не было network_fail)
+*/
 
-  // =========================
-  // CONFIG
-  // =========================
-  const CONFIG = {
-    REG_URL: "https://example.com/register",
-    DEPOSIT_URL: "https://example.com/deposit",
-    REPORT_URL: "https://example.com/report",
-    ASSETS_JSON: "./assets.json",
-    DEBUG: true,
+const CONFIG = {
+  REG_URL: "https://example.com/register",
+  DEPOSIT_URL: "https://example.com/deposit",
+  ASSETS_JSON: "./assets.json"
+};
+
+const tg = window.Telegram?.WebApp || null;
+try { tg?.ready?.(); tg?.expand?.(); } catch {}
+
+// ---------- DOM ----------
+const $ = (id) => document.getElementById(id);
+
+const gate = $("gate");
+const app = $("app");
+
+const btnOpenReg = $("btnOpenReg");
+const btnGetAccess = $("btnGetAccess");
+const gateStatusText = $("gateStatusText");
+const gateMeter = $("gateMeter");
+
+const btnLangGate = $("btnLangGate");
+const btnLangApp = $("btnLangApp");
+const btnMenu = $("btnMenu");
+
+const btnCheckStatus = $("btnCheckStatus");
+const btnReset = $("btnReset");
+const btnAnalyze = $("btnAnalyze");
+
+const assetBtn = $("assetBtn");
+const tfBtn = $("tfBtn");
+const marketBtn = $("marketBtn");
+
+const assetValue = $("assetValue");
+const tfValue = $("tfValue");
+const marketValue = $("marketValue");
+
+const chipSession = $("chipSession");
+const chipAccess = $("chipAccess");
+
+const chart = $("chart");
+const chartOverlay = $("chartOverlay");
+const overlayFill = $("overlayFill");
+
+const chipQuality = $("chipQuality");
+const chipConf = $("chipConf");
+
+const dirArrow = $("dirArrow");
+const dirText = $("dirText");
+const rWindow = $("rWindow");
+const rUntil = $("rUntil");
+const rTimer = $("rTimer");
+
+const rAcc = $("rAcc");
+const volFactor = $("volFactor");
+const momFactor = $("momFactor");
+const liqFactor = $("liqFactor");
+
+const signalChart = $("signalChart");
+
+const assetsModal = $("assetsModal");
+const assetList = $("assetList");
+const assetSearch = $("assetSearch");
+const assetTabs = $("assetTabs");
+const closeAssets = $("closeAssets");
+
+const tfModal = $("tfModal");
+const tfList = $("tfList");
+const closeTf = $("closeTf");
+
+const langModal = $("langModal");
+const langList = $("langList");
+const closeLang = $("closeLang");
+
+const backdrop = $("backdrop");
+
+const notify = $("notify");
+const notifyTitle = $("notifyTitle");
+const notifyText = $("notifyText");
+const btnNotifyPrimary = $("btnNotifyPrimary");
+const notifyPrimaryLabel = $("notifyPrimaryLabel");
+const btnNotifyClose = $("btnNotifyClose");
+
+// ---------- State ----------
+let LANG = "ru";
+
+let ASSETS = {
+  Forex: ["EUR/USD","GBP/USD","USD/JPY","USD/CHF"],
+  Crypto: ["BTC/USD","ETH/USD"],
+  Stocks: ["AAPL","TSLA"],
+  Commodities: ["Gold","Oil"],
+  Indices: ["S&P 500","NASDAQ 100"]
+};
+
+let TIMEFRAMES = ["5s","10s","15s","30s","1m","3m","5m","30m","1h","3h","6h"];
+
+let seriesMain = [];
+let seriesMini = [];
+
+let countdown = {
+  tmr: null,
+  endMs: 0
+};
+
+// ---------- i18n ----------
+const I18N = {
+  ru: {
+    gate_sub: "Premium terminal • Smart assistant",
+    gate_title: "Доступ к терминалу",
+    gate_text_main: "Чтобы открыть интерфейс, нажмите «Получить доступ».",
+    gate_step1_t: "Регистрация",
+    gate_step1_d: "Создайте аккаунт (по желанию) через кнопку ниже.",
+    gate_step2_t: "Вход",
+    gate_step2_d: "Нажмите «Получить доступ» — терминал откроется сразу.",
+    gate_step3_t: "Анализ",
+    gate_step3_d: "Сигнал выбирается случайно при каждом анализе.",
+    gate_btn_reg: "Открыть регистрацию",
+    gate_btn_access: "Получить доступ",
+    gate_status: "Статус:",
+    gate_status_na: "готов",
+    gate_legal: "Demo UI. Not financial advice.",
+    gate_meter: "UI • local render",
+
+    app_sub: "Premium UI Terminal",
+    hero_title: "Terminal Overview",
+    hero_sub: "Smart mode • Premium UI",
+    hero_mode: "MODE: SMART",
+
+    cc_title: "CONTROL CENTER",
+    cc_btn_check: "Проверить",
+    cc_btn_reset: "Сброс",
+    cc_hint: "Нажмите «Запустить анализ» — получите сигнал.",
+    cc_btn_analyze: "Запустить анализ",
+
+    chart_title: "MARKET VISUAL",
+    chart_quality: "Quality: —",
+    chart_conf: "Conf: —",
+    chart_scan: "Сканирование…",
+
+    sig_label: "СИГНАЛ",
+    sig_window: "окно:",
+    sig_until: "до",
+    sig_timer: "таймер",
+    confirm_label: "ПОДТВЕРЖДЕНИЕ",
+    mini_hint: "Mini chart • render",
+
+    m_acc: "Точность",
+    m_vol: "Волатильность",
+    m_mom: "Импульс",
+    m_liq: "Ликвидность",
+
+    assets_title: "Выбор актива",
+    tf_title: "Выбор таймфрейма",
+    lang_title: "Язык интерфейса",
+
+    footnote: "UI работает локально. Анализ — демонстрационный.",
+    notify_btn_ok: "Понятно",
+
+    popup_need_acc_title: "Сначала создайте аккаунт",
+    popup_need_acc_text: "Нажмите «Открыть регистрацию», создайте аккаунт и вернитесь сюда.",
+    btn_open_reg: "Открыть регистрацию"
+  },
+
+  en: {
+    gate_sub: "Premium terminal • Smart assistant",
+    gate_title: "Terminal access",
+    gate_text_main: "Tap “Get access” to open the UI.",
+    gate_step1_t: "Registration",
+    gate_step1_d: "Create an account (optional) using the button below.",
+    gate_step2_t: "Enter",
+    gate_step2_d: "Tap “Get access” — the terminal opens instantly.",
+    gate_step3_t: "Analysis",
+    gate_step3_d: "Signal is chosen randomly on each analysis.",
+    gate_btn_reg: "Open registration",
+    gate_btn_access: "Get access",
+    gate_status: "Status:",
+    gate_status_na: "ready",
+    gate_legal: "Demo UI. Not financial advice.",
+    gate_meter: "UI • local render",
+
+    app_sub: "Premium UI Terminal",
+    hero_title: "Terminal Overview",
+    hero_sub: "Smart mode • Premium UI",
+    hero_mode: "MODE: SMART",
+
+    cc_title: "CONTROL CENTER",
+    cc_btn_check: "Check",
+    cc_btn_reset: "Reset",
+    cc_hint: "Tap “Run analysis” to get a signal.",
+    cc_btn_analyze: "Run analysis",
+
+    chart_title: "MARKET VISUAL",
+    chart_quality: "Quality: —",
+    chart_conf: "Conf: —",
+    chart_scan: "Scanning…",
+
+    sig_label: "SIGNAL",
+    sig_window: "window:",
+    sig_until: "until",
+    sig_timer: "timer",
+    confirm_label: "CONFIRMATION",
+    mini_hint: "Mini chart • render",
+
+    m_acc: "Accuracy",
+    m_vol: "Volatility",
+    m_mom: "Momentum",
+    m_liq: "Liquidity",
+
+    assets_title: "Select asset",
+    tf_title: "Select timeframe",
+    lang_title: "Language",
+
+    footnote: "UI is local. Analysis is demo.",
+    notify_btn_ok: "Got it",
+
+    popup_need_acc_title: "Create an account first",
+    popup_need_acc_text: "Tap “Open registration”, create an account, then come back.",
+    btn_open_reg: "Open registration"
+  }
+};
+
+function t(key){
+  return (I18N[LANG] && I18N[LANG][key]) ? I18N[LANG][key] : key;
+}
+function applyI18n(){
+  document.documentElement.lang = LANG;
+  document.querySelectorAll("[data-i]").forEach(el => {
+    const k = el.getAttribute("data-i");
+    el.textContent = t(k);
+  });
+}
+
+// ---------- UI helpers ----------
+function show(el){ el?.classList.remove("hidden"); }
+function hide(el){ el?.classList.add("hidden"); }
+
+function setGateStatus(text, meterPct){
+  if (gateStatusText) gateStatusText.textContent = text;
+  if (gateMeter && typeof meterPct === "number") gateMeter.style.width = `${meterPct}%`;
+}
+
+function openURL(url){
+  try {
+    if (tg?.openLink) tg.openLink(url);
+    else window.open(url, "_blank");
+  } catch {
+    window.open(url, "_blank");
+  }
+}
+
+// ---------- Seeded RNG (чтобы графики "реально менялись" от выбранных параметров) ----------
+function hashStr(s){
+  let h = 2166136261;
+  for (let i=0;i<s.length;i++){
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+function mulberry32(seed){
+  return function() {
+    let t = seed += 0x6D2B79F5;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
+}
+// абсолютный рандом (не seeded) для сигнала
+function trueRandBit(){
+  // crypto если доступно
+  try {
+    const u = new Uint32Array(1);
+    crypto.getRandomValues(u);
+    return (u[0] & 1) ? 1 : 0;
+  } catch {
+    return Math.random() < 0.5 ? 0 : 1;
+  }
+}
 
-  const tg = window.Telegram?.WebApp || null;
-  try { tg?.ready?.(); tg?.expand?.(); } catch {}
+// ---------- Data generators ----------
+function genSeries(seedKey, n, amp=1){
+  const rnd = mulberry32(hashStr(seedKey));
+  const arr = new Array(n);
+  let v = 0.55;
+  let drift = (rnd()-0.5) * 0.03;
 
-  const log = (...a) => CONFIG.DEBUG && console.log("[APP]", ...a);
+  for (let i=0;i<n;i++){
+    drift += (rnd()-0.5)*0.02;
+    drift *= 0.92;
+    v += drift + (rnd()-0.5)*0.03;
+    v = Math.max(0.12, Math.min(0.92, v));
+    arr[i] = v * amp;
+  }
+  return arr;
+}
 
-  // =========================
-  // DOM
-  // =========================
-  const $ = (id) => document.getElementById(id);
+function currentKey(){
+  return `${assetValue.textContent}|${tfValue.textContent}|${marketValue.textContent}`;
+}
 
-  const gate = $("gate");
-  const app = $("app");
+// ---------- Charts render ----------
+function drawGrid(ctx, w, h){
+  ctx.save();
+  ctx.globalAlpha = 0.22;
+  ctx.strokeStyle = "rgba(255,255,255,.10)";
+  ctx.lineWidth = 1;
 
-  const btnOpenReg = $("btnOpenReg");
-  const btnGetAccess = $("btnGetAccess");
-  const gateStatusText = $("gateStatusText");
+  const gx = 52;
+  const gy = 44;
+  for (let x=0; x<=w; x+=gx){
+    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke();
+  }
+  for (let y=0; y<=h; y+=gy){
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
+  }
+  ctx.restore();
+}
 
-  const btnLangGate = $("btnLangGate");
-  const btnLangApp = $("btnLangApp");
-  const btnMenu = $("btnMenu");
+function drawMountainTint(ctx, w, h){
+  // лёгкий "фон" под терминал (не картинка, а процедурный силуэт)
+  ctx.save();
+  ctx.globalAlpha = 0.10;
+  ctx.fillStyle = "rgba(0,178,255,.25)";
+  ctx.beginPath();
+  ctx.moveTo(0, h*0.80);
+  ctx.lineTo(w*0.15, h*0.62);
+  ctx.lineTo(w*0.28, h*0.72);
+  ctx.lineTo(w*0.43, h*0.50);
+  ctx.lineTo(w*0.58, h*0.68);
+  ctx.lineTo(w*0.70, h*0.54);
+  ctx.lineTo(w*0.86, h*0.70);
+  ctx.lineTo(w, h*0.58);
+  ctx.lineTo(w, h);
+  ctx.lineTo(0, h);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
 
-  const btnCheckStatus = $("btnCheckStatus");
-  const btnReset = $("btnReset");
-  const btnAnalyze = $("btnAnalyze");
+function drawLineSeries(canvas, series, opts){
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width;
+  const h = canvas.height;
+  ctx.clearRect(0,0,w,h);
 
-  const assetBtn = $("assetBtn");
-  const tfBtn = $("tfBtn");
-  const marketBtn = $("marketBtn");
+  // base
+  ctx.fillStyle = "rgba(0,0,0,.20)";
+  ctx.fillRect(0,0,w,h);
 
-  const assetValue = $("assetValue");
-  const tfValue = $("tfValue");
-  const marketValue = $("marketValue");
+  drawMountainTint(ctx, w, h);
+  drawGrid(ctx, w, h);
 
-  const chipSession = $("chipSession");
-  const chipAccess = $("chipAccess");
+  // map
+  const padX = 14;
+  const padY = 16;
+  const x0 = padX, x1 = w - padX;
+  const y0 = padY, y1 = h - padY;
 
-  const chart = $("chart");
-  const chartOverlay = $("chartOverlay");
-  const overlayFill = $("overlayFill");
+  // normalize
+  let mn = Infinity, mx = -Infinity;
+  for (const v of series){ if (v<mn) mn=v; if (v>mx) mx=v; }
+  const rng = Math.max(1e-6, mx-mn);
 
-  const chipQuality = $("chipQuality");
-  const chipConf = $("chipConf");
+  const X = (i) => x0 + (i/(series.length-1))*(x1-x0);
+  const Y = (v) => y1 - ((v-mn)/rng)*(y1-y0);
 
-  const dirArrow = $("dirArrow");
-  const dirText = $("dirText");
-  const rWindow = $("rWindow");
-  const rUntil = $("rUntil");
-  const rAcc = $("rAcc");
-  const volFactor = $("volFactor");
-  const momFactor = $("momFactor");
-  const liqFactor = $("liqFactor");
+  const isUp = !!opts.isUp;
 
-  const signalChart = $("signalChart");
+  // glow
+  ctx.save();
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.lineWidth = 8;
+  ctx.globalAlpha = 0.20;
+  ctx.strokeStyle = isUp ? "rgba(119,243,178,.65)" : "rgba(255,90,110,.65)";
+  ctx.beginPath();
+  for (let i=0;i<series.length;i++){
+    const x = X(i), y = Y(series[i]);
+    if (i===0) ctx.moveTo(x,y);
+    else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  ctx.restore();
 
-  const assetsModal = $("assetsModal");
-  const assetList = $("assetList");
-  const assetSearch = $("assetSearch");
-  const assetTabs = $("assetTabs");
-  const closeAssets = $("closeAssets");
+  // main line
+  ctx.save();
+  ctx.lineWidth = 3;
+  ctx.globalAlpha = 0.85;
+  ctx.strokeStyle = "rgba(255,255,255,.85)";
+  ctx.beginPath();
+  for (let i=0;i<series.length;i++){
+    const x = X(i), y = Y(series[i]);
+    if (i===0) ctx.moveTo(x,y);
+    else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  ctx.restore();
 
-  const tfModal = $("tfModal");
-  const tfList = $("tfList");
-  const closeTf = $("closeTf");
+  // fill
+  ctx.save();
+  const grd = ctx.createLinearGradient(0, y0, 0, y1);
+  grd.addColorStop(0, isUp ? "rgba(119,243,178,.18)" : "rgba(255,90,110,.16)");
+  grd.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = grd;
+  ctx.beginPath();
+  ctx.moveTo(X(0), Y(series[0]));
+  for (let i=1;i<series.length;i++){
+    ctx.lineTo(X(i), Y(series[i]));
+  }
+  ctx.lineTo(X(series.length-1), y1);
+  ctx.lineTo(X(0), y1);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
 
-  const langModal = $("langModal");
-  const langList = $("langList");
-  const closeLang = $("closeLang");
+  // corner labels (терминальный вайб)
+  ctx.save();
+  ctx.globalAlpha = 0.55;
+  ctx.fillStyle = "rgba(255,255,255,.75)";
+  ctx.font = "12px ui-sans-serif, -apple-system, system-ui, Segoe UI, Roboto, Arial";
+  ctx.fillText(`${assetValue.textContent} • ${marketValue.textContent}`, 14, 20);
+  ctx.restore();
+}
 
-  const backdrop = $("backdrop");
+function refreshChartsVisual(isUpHint = true){
+  const key = currentKey();
 
-  const notify = $("notify");
-  const notifyTitle = $("notifyTitle");
-  const notifyText = $("notifyText");
-  const btnNotifyPrimary = $("btnNotifyPrimary");
-  const notifyPrimaryLabel = $("notifyPrimaryLabel");
-  const btnNotifyClose = $("btnNotifyClose");
+  // main = плотнее
+  seriesMain = genSeries("MAIN|" + key, 92, 1);
+  // mini = проще
+  seriesMini = genSeries("MINI|" + key, 44, 1);
 
-  // =========================
-  // STATE
-  // =========================
-  let LANG = localStorage.getItem("lang") || "ru";
+  drawLineSeries(chart, seriesMain, { isUp: isUpHint });
+  drawLineSeries(signalChart, seriesMini, { isUp: isUpHint });
+}
 
-  let ASSETS = {
-    Forex: ["EUR/USD","GBP/USD","USD/JPY","USD/CHF","AUD/USD","USD/CAD","NZD/USD","EUR/JPY","GBP/JPY"],
-    Crypto: ["BTC/USD","ETH/USD","SOL/USD","XRP/USD"],
-    Stocks: ["AAPL","TSLA","NVDA","MSFT"],
-    Commodities: ["Gold","Oil","Brent","Natural Gas"],
-    Indices: ["S&P 500","NASDAQ 100","DAX 40"]
-  };
-
-  let TIMEFRAMES = ["5s","10s","15s","30s","1m","3m","5m","30m","1h","3h","6h"];
-
-  const TF_SECONDS = {
-    "5s":5,"10s":10,"15s":15,"30s":30,
-    "1m":60,"3m":180,"5m":300,"30m":1800,
-    "1h":3600,"3h":10800,"6h":21600
-  };
-
-  // Chart engine
-  let candleSeries = [];
-  let lastTickTs = 0;
-  let liveTimer = null;
-  let rafId = null;
-
-  // crosshair
-  let cross = { on:false, x:0, y:0 };
-
-  // countdown
-  let countdownInterval = null;
-  let countdownRemaining = 30;
-
-  // =========================
-  // i18n
-  // =========================
-  const I18N = {
-    ru: {
-      gate_sub: "Premium terminal • Smart assistant",
-      gate_title: "Доступ к терминалу",
-      gate_text_main: "Нажмите «Получить доступ» — терминал откроется.",
-      gate_step1_t: "Регистрация",
-      gate_step1_d: "Кнопка ниже ведёт на регистрацию.",
-      gate_step2_t: "Депозит",
-      gate_step2_d: "Меню (⋯) откроет депозит/отчёт.",
-      gate_step3_t: "Терминал",
-      gate_step3_d: "Доступ открыт для любого пользователя.",
-      gate_btn_reg: "Открыть регистрацию",
-      gate_btn_access: "Получить доступ",
-      gate_status: "Статус:",
-      gate_status_ok: "готово",
-      gate_legal: "Demo UI. Not financial advice.",
-      gate_meter: "TERMINAL • realtime render",
-
-      app_sub: "Premium UI Terminal",
-      hero_title: "Terminal Overview",
-      hero_sub: "Smart mode • Premium UI",
-      hero_mode: "MODE: SMART",
-
-      cc_title: "CONTROL CENTER",
-      cc_btn_check: "Проверить",
-      cc_btn_reset: "Сброс",
-      cc_hint: "Нажмите «Запустить анализ» — получите сигнал.",
-      cc_btn_analyze: "Запустить анализ",
-
-      chart_title: "MARKET VISUAL",
-      chart_quality: "Quality: —",
-      chart_conf: "Conf: —",
-      chart_scan: "Сканирование…",
-
-      sig_label: "СИГНАЛ",
-      sig_window: "окно:",
-      sig_until: "до",
-      confirm_label: "ПОДТВЕРЖДЕНИЕ",
-      mini_hint: "Mini chart • render",
-
-      m_acc: "Точность",
-      m_vol: "Волатильность",
-      m_mom: "Импульс",
-      m_liq: "Ликвидность",
-
-      assets_title: "Выбор актива",
-      tf_title: "Выбор таймфрейма",
-      lang_title: "Язык интерфейса",
-
-      footnote: "Realtime render • UI terminal mode",
-      notify_btn_ok: "Понятно"
-    },
-
-    en: {
-      gate_sub: "Premium terminal • Smart assistant",
-      gate_title: "Terminal access",
-      gate_text_main: "Tap “Get access” to open terminal.",
-      gate_step1_t: "Registration",
-      gate_step1_d: "Button below opens registration.",
-      gate_step2_t: "Deposit",
-      gate_step2_d: "Menu (⋯) opens deposit/report.",
-      gate_step3_t: "Terminal",
-      gate_step3_d: "Access is open for any user.",
-      gate_btn_reg: "Open registration",
-      gate_btn_access: "Get access",
-      gate_status: "Status:",
-      gate_status_ok: "ready",
-      gate_legal: "Demo UI. Not financial advice.",
-      gate_meter: "TERMINAL • realtime render",
-
-      app_sub: "Premium UI Terminal",
-      hero_title: "Terminal Overview",
-      hero_sub: "Smart mode • Premium UI",
-      hero_mode: "MODE: SMART",
-
-      cc_title: "CONTROL CENTER",
-      cc_btn_check: "Check",
-      cc_btn_reset: "Reset",
-      cc_hint: "Tap “Run analysis” to get a signal.",
-      cc_btn_analyze: "Run analysis",
-
-      chart_title: "MARKET VISUAL",
-      chart_quality: "Quality: —",
-      chart_conf: "Conf: —",
-      chart_scan: "Scanning…",
-
-      sig_label: "SIGNAL",
-      sig_window: "window:",
-      sig_until: "until",
-      confirm_label: "CONFIRMATION",
-      mini_hint: "Mini chart • render",
-
-      m_acc: "Accuracy",
-      m_vol: "Volatility",
-      m_mom: "Momentum",
-      m_liq: "Liquidity",
-
-      assets_title: "Select asset",
-      tf_title: "Select timeframe",
-      lang_title: "Language",
-
-      footnote: "Realtime render • UI terminal mode",
-      notify_btn_ok: "Got it"
+// ---------- Timer ----------
+function tfToSeconds(tf){
+  const s = String(tf || "").trim().toLowerCase();
+  if (s.endsWith("s")) return parseInt(s,10) || 0;
+  if (s.endsWith("m")) return (parseInt(s,10) || 0) * 60;
+  if (s.endsWith("h")) return (parseInt(s,10) || 0) * 3600;
+  return 30;
+}
+function fmtMMSS(totalSec){
+  totalSec = Math.max(0, Math.floor(totalSec));
+  const mm = Math.floor(totalSec/60);
+  const ss = totalSec % 60;
+  return `${String(mm).padStart(2,"0")}:${String(ss).padStart(2,"0")}`;
+}
+function stopCountdown(){
+  if (countdown.tmr) clearInterval(countdown.tmr);
+  countdown.tmr = null;
+  countdown.endMs = 0;
+  rTimer.textContent = "--:--";
+}
+function startCountdown(seconds){
+  stopCountdown();
+  const end = Date.now() + seconds*1000;
+  countdown.endMs = end;
+  countdown.tmr = setInterval(() => {
+    const left = (countdown.endMs - Date.now())/1000;
+    if (left <= 0){
+      rTimer.textContent = "00:00";
+      stopCountdown();
+      return;
     }
+    rTimer.textContent = fmtMMSS(left);
+  }, 200);
+  rTimer.textContent = fmtMMSS(seconds);
+}
+
+// ---------- Signal UI ----------
+function setSignal(text, isUp){
+  dirText.textContent = text;
+
+  if (isUp) {
+    dirArrow.textContent = "↗";
+    dirArrow.classList.remove("down");
+    dirText.classList.remove("down");
+    dirArrow.classList.add("up");
+    dirText.classList.add("up");
+  } else {
+    dirArrow.textContent = "↘";
+    dirArrow.classList.remove("up");
+    dirText.classList.remove("up");
+    dirArrow.classList.add("down");
+    dirText.classList.add("down");
+  }
+}
+
+// ---------- Notify (как на фото) ----------
+function showNeedAccountNotify(onOkRun){
+  notifyTitle.textContent = t("popup_need_acc_title");
+  notifyText.textContent = t("popup_need_acc_text");
+  notifyPrimaryLabel.textContent = t("btn_open_reg");
+  show(notify);
+
+  // важно: каждый раз назначаем "одноразовый" запуск
+  btnNotifyClose.onclick = () => {
+    hide(notify);
+    onOkRun?.();
   };
+  btnNotifyPrimary.onclick = () => openURL(CONFIG.REG_URL);
+}
 
-  function t(key){ return (I18N[LANG] && I18N[LANG][key]) ? I18N[LANG][key] : key; }
+// ---------- Assets loader ----------
+async function loadAssetsJson(){
+  try {
+    const r = await fetch(CONFIG.ASSETS_JSON, { cache: "no-store" });
+    if (!r.ok) throw new Error("assets.json not ok");
+    const j = await r.json();
+    if (j?.categories) ASSETS = j.categories;
+    if (Array.isArray(j?.timeframes)) TIMEFRAMES = j.timeframes;
+  } catch {
+    // fallback: оставляем дефолт
+  }
+}
 
-  function applyI18n(){
-    document.documentElement.lang = LANG;
-    document.querySelectorAll("[data-i]").forEach(el => {
-      const k = el.getAttribute("data-i");
-      el.textContent = t(k);
+// ---------- Modals ----------
+function openModal(modal){
+  show(backdrop);
+  show(modal);
+}
+function closeModal(modal){
+  hide(modal);
+  hide(backdrop);
+}
+
+// ---------- Language ----------
+function openLangModal(){
+  langList.innerHTML = "";
+  const items = [
+    { id:"ru", label:"Русский" },
+    { id:"en", label:"English" }
+  ];
+  items.forEach(it => {
+    const row = document.createElement("div");
+    row.className = "item";
+    row.innerHTML = `<div>${it.label}</div><div>${it.id.toUpperCase()}</div>`;
+    row.addEventListener("click", () => {
+      LANG = it.id;
+      localStorage.setItem("lang", LANG);
+      applyI18n();
+      closeModal(langModal);
     });
-  }
+    langList.appendChild(row);
+  });
+  openModal(langModal);
+}
 
-  // =========================
-  // UI helpers
-  // =========================
-  function show(el){ el?.classList.remove("hidden"); }
-  function hide(el){ el?.classList.add("hidden"); }
+// ---------- Assets/TF UI ----------
+function openAssets(){
+  assetTabs.innerHTML = "";
+  assetList.innerHTML = "";
+  assetSearch.value = "";
 
-  function openURL(url){
-    try {
-      if (tg?.openLink) tg.openLink(url);
-      else window.open(url, "_blank");
-    } catch {
-      window.open(url, "_blank");
-    }
-  }
+  const cats = Object.keys(ASSETS);
+  let activeCat = cats[0] || "Forex";
 
-  function openModal(modal){
-    show(backdrop); show(modal);
-  }
-  function closeModal(modal){
-    hide(modal); hide(backdrop);
-  }
-
-  function notifyPopup(title, text, primaryLabel, primaryAction){
-    notifyTitle.textContent = title;
-    notifyText.textContent = text;
-    notifyPrimaryLabel.textContent = primaryLabel;
-
-    btnNotifyPrimary.onclick = () => primaryAction?.();
-    show(notify);
-  }
-
-  // =========================
-  // Assets loader
-  // =========================
-  async function loadAssetsJson(){
-    try {
-      const r = await fetch(CONFIG.ASSETS_JSON, { cache:"no-store" });
-      if (!r.ok) throw new Error("assets.json fetch failed");
-      const j = await r.json();
-      if (j?.categories) ASSETS = j.categories;
-      if (Array.isArray(j?.timeframes)) TIMEFRAMES = j.timeframes;
-    } catch (e) {
-      log("assets.json fallback:", e?.message || e);
-    }
-  }
-
-  // =========================
-  // Session / Access
-  // =========================
-  function getSessionId(){
-    // Telegram user id if exists, else random stable per browser
-    const unsafeId = tg?.initDataUnsafe?.user?.id;
-    if (unsafeId) return String(unsafeId);
-
-    const k = "craft_session";
-    let v = localStorage.getItem(k);
-    if (!v){
-      v = String(Math.floor(100000 + Math.random()*900000));
-      localStorage.setItem(k, v);
-    }
-    return v;
-  }
-
-  function enterApp(){
-    hide(gate);
-    show(app);
-
-    const sid = getSessionId();
-    chipSession.textContent = "SESSION: " + sid.slice(-6);
-    chipAccess.textContent = "ACCESS: OPEN";
-
-    // start engines
-    rebuildMarket("init");
-    startLive();
-  }
-
-  // =========================
-  // Modals: Language
-  // =========================
-  function openLangModal(){
-    langList.innerHTML = "";
-    const items = [
-      { id:"ru", label:"Русский" },
-      { id:"en", label:"English" }
-    ];
-    items.forEach(it => {
-      const row = document.createElement("div");
-      row.className = "item";
-      row.innerHTML = `<div>${it.label}</div><div>${it.id.toUpperCase()}</div>`;
-      row.addEventListener("click", () => {
-        LANG = it.id;
-        localStorage.setItem("lang", LANG);
-        applyI18n();
-        closeModal(langModal);
-      });
-      langList.appendChild(row);
-    });
-    openModal(langModal);
-  }
-
-  // =========================
-  // Modals: Assets
-  // =========================
-  function openAssets(){
-    assetTabs.innerHTML = "";
+  const render = () => {
     assetList.innerHTML = "";
-    assetSearch.value = "";
-
-    const cats = Object.keys(ASSETS);
-    let activeCat = cats[0] || "Forex";
-
-    const render = () => {
-      assetList.innerHTML = "";
-      const q = assetSearch.value.trim().toLowerCase();
-      (ASSETS[activeCat] || [])
-        .filter(x => !q || x.toLowerCase().includes(q))
-        .forEach(sym => {
-          const row = document.createElement("div");
-          row.className = "item";
-          row.innerHTML = `<div>${sym}</div><div>${activeCat}</div>`;
-          row.addEventListener("click", () => {
-            assetValue.textContent = sym;
-            closeModal(assetsModal);
-            rebuildMarket("asset");
-          });
-          assetList.appendChild(row);
+    const q = assetSearch.value.trim().toLowerCase();
+    (ASSETS[activeCat] || [])
+      .filter(x => !q || x.toLowerCase().includes(q))
+      .forEach(sym => {
+        const row = document.createElement("div");
+        row.className = "item";
+        row.innerHTML = `<div>${sym}</div><div>${activeCat}</div>`;
+        row.addEventListener("click", () => {
+          assetValue.textContent = sym;
+          closeModal(assetsModal);
+          // графики должны меняться при смене валют
+          refreshChartsVisual(dirText.classList.contains("up"));
+          stopCountdown();
         });
-    };
-
-    cats.forEach(cat => {
-      const tab = document.createElement("button");
-      tab.className = "chipBtn";
-      tab.type = "button";
-      tab.textContent = cat;
-      tab.addEventListener("click", () => { activeCat = cat; render(); });
-      assetTabs.appendChild(tab);
-    });
-
-    assetSearch.oninput = render;
-    render();
-    openModal(assetsModal);
-  }
-
-  // =========================
-  // Modals: TF
-  // =========================
-  function openTF(){
-    tfList.innerHTML = "";
-    TIMEFRAMES.forEach(tf => {
-      const row = document.createElement("div");
-      row.className = "item";
-      row.innerHTML = `<div>${tf}</div><div>Timeframe</div>`;
-      row.addEventListener("click", () => {
-        tfValue.textContent = tf;
-        closeModal(tfModal);
-        rebuildMarket("tf");
+        assetList.appendChild(row);
       });
-      tfList.appendChild(row);
-    });
-    openModal(tfModal);
-  }
+  };
 
-  // =========================
-  // Market toggle
-  // =========================
-  function toggleMarket(){
-    marketValue.textContent = (marketValue.textContent === "OTC") ? "Market" : "OTC";
-    rebuildMarket("market");
-  }
-
-  // =========================
-  // Random signal + countdown
-  // =========================
-  function setSignal(text, isUp){
-    dirText.textContent = text;
-    if (isUp) {
-      dirArrow.textContent = "↗";
-      dirArrow.classList.remove("down");
-      dirText.classList.remove("down");
-      dirArrow.classList.add("up");
-      dirText.classList.add("up");
-    } else {
-      dirArrow.textContent = "↘";
-      dirArrow.classList.remove("up");
-      dirText.classList.remove("up");
-      dirArrow.classList.add("down");
-      dirText.classList.add("down");
-    }
-  }
-
-  function startCountdown(tf){
-    const secs = TF_SECONDS[tf] ?? 30;
-    countdownRemaining = secs;
-
-    if (countdownInterval) clearInterval(countdownInterval);
-    const render = () => {
-      const m = Math.floor(countdownRemaining / 60);
-      const s = countdownRemaining % 60;
-      rUntil.textContent = `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
-    };
-
-    render();
-    countdownInterval = setInterval(() => {
-      countdownRemaining--;
+  cats.forEach(cat => {
+    const tab = document.createElement("button");
+    tab.className = "chipBtn";
+    tab.type = "button";
+    tab.textContent = cat;
+    tab.addEventListener("click", () => {
+      activeCat = cat;
       render();
-      if (countdownRemaining <= 0){
-        clearInterval(countdownInterval);
-      }
-    }, 1000);
-  }
+    });
+    assetTabs.appendChild(tab);
+  });
 
-  // =========================
-  // “TradingView-like” chart engine (no libs)
-  // =========================
-  function hashSeed(str){
-    let h = 2166136261;
-    for (let i=0; i<str.length; i++){
-      h ^= str.charCodeAt(i);
-      h = Math.imul(h, 16777619);
-    }
-    return (h >>> 0);
-  }
+  assetSearch.oninput = render;
+  render();
+  openModal(assetsModal);
+}
 
-  function mulberry32(a){
-    return function() {
-      let t = a += 0x6D2B79F5;
-      t = Math.imul(t ^ (t >>> 15), t | 1);
-      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  }
+function openTF(){
+  tfList.innerHTML = "";
+  TIMEFRAMES.forEach(tf => {
+    const row = document.createElement("div");
+    row.className = "item";
+    row.innerHTML = `<div>${tf}</div><div>Timeframe</div>`;
+    row.addEventListener("click", () => {
+      tfValue.textContent = tf;
+      closeModal(tfModal);
+      // смена таймфрейма -> новые графики
+      refreshChartsVisual(dirText.classList.contains("up"));
+      stopCountdown();
+    });
+    tfList.appendChild(row);
+  });
+  openModal(tfModal);
+}
 
-  function makeSeriesKey(){
-    return `${assetValue.textContent}|${marketValue.textContent}|${tfValue.textContent}`;
-  }
+// ---------- Market toggle ----------
+function toggleMarket(){
+  marketValue.textContent = (marketValue.textContent === "OTC") ? "Market" : "OTC";
+  refreshChartsVisual(dirText.classList.contains("up"));
+  stopCountdown();
+}
 
-  function genInitialCandles(count=120){
-    const key = makeSeriesKey();
-    const rnd = mulberry32(hashSeed(key));
+// ---------- Analysis flow ----------
+async function runAnalysis(){
+  // каждый раз показываем попап "нужен аккаунт" как ты хочешь
+  showNeedAccountNotify(async () => {
+    // после "Понятно" — анализ
+    const dur = 650 + Math.floor(Math.random() * 950);
 
-    const base = 1.0 + rnd()*2.0;  // just pseudo-scale
-    let price = base;
-
-    const series = [];
-    for (let i=0; i<count; i++){
-      const vol = 0.002 + rnd()*0.006;
-      const drift = (rnd()-0.5) * vol;
-
-      const open = price;
-      const close = open * (1 + drift);
-
-      const wick = vol * (0.6 + rnd()*1.6);
-      const high = Math.max(open, close) * (1 + wick);
-      const low  = Math.min(open, close) * (1 - wick);
-
-      series.push({ open, high, low, close, t: Date.now() - (count-i)*1000 });
-      price = close;
-    }
-    return series;
-  }
-
-  function rebuildMarket(reason){
-    // reset crosshair and timers, rebuild candles and re-render
-    cross.on = false;
-
-    candleSeries = genInitialCandles(140);
-    lastTickTs = Date.now();
-
-    // reset metrics on param change
-    chipQuality.textContent = t("chart_quality");
-    chipConf.textContent = t("chart_conf");
-    rAcc.textContent = "—%";
-    volFactor.textContent = "—";
-    momFactor.textContent = "—";
-    liqFactor.textContent = "—";
-
-    // update window label + reset timer label to TF
-    rWindow.textContent = tfValue.textContent || "30s";
-    startCountdown(tfValue.textContent || "30s");
-
-    drawAll();
-    log("rebuildMarket:", reason, makeSeriesKey());
-  }
-
-  function nextCandle(){
-    // generate next candle based on last
-    const key = makeSeriesKey();
-    const rnd = mulberry32(hashSeed(key + "|" + String(Date.now()).slice(0,8)));
-
-    const last = candleSeries[candleSeries.length - 1] || { close: 1.0 };
-    const tf = tfValue.textContent || "30s";
-    const tfSec = TF_SECONDS[tf] ?? 30;
-
-    // volatility depends on tf
-    const baseVol = Math.min(0.02, 0.002 + tfSec/6000);
-    const vol = baseVol * (0.7 + rnd()*1.0);
-
-    const open = last.close;
-    const drift = (rnd()-0.5) * vol;
-    const close = open * (1 + drift);
-
-    const wick = vol * (0.6 + rnd()*1.8);
-    const high = Math.max(open, close) * (1 + wick);
-    const low  = Math.min(open, close) * (1 - wick);
-
-    candleSeries.push({ open, high, low, close, t: Date.now() });
-    if (candleSeries.length > 180) candleSeries.shift();
-  }
-
-  function startLive(){
-    stopLive();
-
-    // Add a new candle every ~1.1s for live feel (visual, not real market feed)
-    liveTimer = setInterval(() => {
-      nextCandle();
-    }, 1100);
-
-    const loop = () => {
-      drawAll();
-      rafId = requestAnimationFrame(loop);
-    };
-    rafId = requestAnimationFrame(loop);
-  }
-
-  function stopLive(){
-    if (liveTimer) { clearInterval(liveTimer); liveTimer = null; }
-    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-  }
-
-  function drawAll(){
-    drawMainChart();
-    drawMiniChart();
-  }
-
-  function drawMainChart(){
-    if (!chart) return;
-    const ctx = chart.getContext("2d");
-    const w = chart.width, h = chart.height;
-
-    // background
-    ctx.clearRect(0,0,w,h);
-    const g = ctx.createLinearGradient(0,0,0,h);
-    g.addColorStop(0, "rgba(14,22,36,0.95)");
-    g.addColorStop(1, "rgba(7,10,18,0.95)");
-    ctx.fillStyle = g;
-    ctx.fillRect(0,0,w,h);
-
-    // subtle “mountain” feel (procedural)
-    ctx.globalAlpha = 0.25;
-    ctx.fillStyle = "rgba(70,100,140,0.20)";
-    ctx.beginPath();
-    ctx.moveTo(0, h*0.55);
-    for (let x=0; x<=w; x+=18){
-      const y = h*0.55 + Math.sin((x/w)*6.2 + 1.3)*24 + Math.sin((x/w)*14.2)*10;
-      ctx.lineTo(x, y);
-    }
-    ctx.lineTo(w, h);
-    ctx.lineTo(0, h);
-    ctx.closePath();
-    ctx.fill();
-    ctx.globalAlpha = 1;
-
-    // grid
-    ctx.globalAlpha = 0.22;
-    ctx.strokeStyle = "rgba(255,255,255,.10)";
-    ctx.lineWidth = 1;
-    const gx = 46, gy = 42;
-    for (let x=0; x<w; x+=gx){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
-    for (let y=0; y<h; y+=gy){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
-    ctx.globalAlpha = 1;
-
-    if (!candleSeries.length) return;
-
-    // scale
-    const visible = candleSeries.slice(-90);
-    let min = Infinity, max = -Infinity;
-    for (const c of visible){
-      if (c.low < min) min = c.low;
-      if (c.high > max) max = c.high;
-    }
-    const pad = (max-min)*0.08 || 1;
-    min -= pad; max += pad;
-
-    const toY = (p) => {
-      const t = (p - min) / (max - min);
-      return h - (t*h);
-    };
-
-    // right price axis labels (minimal)
-    ctx.globalAlpha = 0.65;
-    ctx.fillStyle = "rgba(255,255,255,.85)";
-    ctx.font = "12px -apple-system, system-ui, Segoe UI, Roboto, Arial";
-    const ticks = 5;
-    for (let i=0;i<=ticks;i++){
-      const p = min + (i/ticks)*(max-min);
-      const y = toY(p);
-      ctx.fillText(p.toFixed(5), w-88, y-4);
-      ctx.globalAlpha = 0.12;
-      ctx.strokeStyle = "rgba(255,255,255,.25)";
-      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
-      ctx.globalAlpha = 0.65;
-    }
-    ctx.globalAlpha = 1;
-
-    // candles
-    const n = visible.length;
-    const cw = Math.max(6, Math.floor((w-20)/n));
-    const startX = w - (n*cw) - 10;
-
-    for (let i=0;i<n;i++){
-      const c = visible[i];
-      const x = startX + i*cw;
-
-      const yO = toY(c.open);
-      const yC = toY(c.close);
-      const yH = toY(c.high);
-      const yL = toY(c.low);
-
-      const up = c.close >= c.open;
-
-      // wick
-      ctx.strokeStyle = "rgba(255,255,255,.28)";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(x + cw*0.5, yH);
-      ctx.lineTo(x + cw*0.5, yL);
-      ctx.stroke();
-
-      // body
-      const bodyTop = Math.min(yO,yC);
-      const bodyBot = Math.max(yO,yC);
-      const bw = Math.max(5, cw-10);
-
-      ctx.fillStyle = up ? "rgba(119,243,178,.22)" : "rgba(255,90,110,.18)";
-      ctx.strokeStyle = up ? "rgba(119,243,178,.55)" : "rgba(255,90,110,.48)";
-      ctx.lineWidth = 2;
-
-      ctx.fillRect(x + (cw-bw)/2, bodyTop, bw, Math.max(6, bodyBot-bodyTop));
-      ctx.strokeRect(x + (cw-bw)/2, bodyTop, bw, Math.max(6, bodyBot-bodyTop));
-    }
-
-    // last price marker
-    const last = visible[visible.length-1];
-    const lastY = toY(last.close);
-    ctx.globalAlpha = 0.9;
-    ctx.fillStyle = "rgba(110,170,255,.20)";
-    ctx.fillRect(w-120, lastY-14, 120, 28);
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = "rgba(255,255,255,.92)";
-    ctx.fillText(last.close.toFixed(5), w-110, lastY+5);
-
-    // crosshair
-    if (cross.on){
-      ctx.globalAlpha = 0.55;
-      ctx.strokeStyle = "rgba(180,200,255,.55)";
-      ctx.lineWidth = 1;
-
-      ctx.beginPath();
-      ctx.moveTo(cross.x, 0); ctx.lineTo(cross.x, h);
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.moveTo(0, cross.y); ctx.lineTo(w, cross.y);
-      ctx.stroke();
-
-      // value at cross y
-      const p = min + (1 - cross.y/h)*(max-min);
-      ctx.globalAlpha = 0.9;
-      ctx.fillStyle = "rgba(0,0,0,.45)";
-      ctx.fillRect(w-120, cross.y-14, 120, 28);
-      ctx.fillStyle = "rgba(255,255,255,.92)";
-      ctx.globalAlpha = 1;
-      ctx.fillText(p.toFixed(5), w-110, cross.y+5);
-    }
-  }
-
-  function drawMiniChart(){
-    if (!signalChart) return;
-    const ctx = signalChart.getContext("2d");
-    const w = signalChart.width, h = signalChart.height;
-
-    // background
-    const g = ctx.createLinearGradient(0,0,0,h);
-    g.addColorStop(0, "rgba(10,14,22,0.92)");
-    g.addColorStop(1, "rgba(6,8,14,0.92)");
-    ctx.fillStyle = g;
-    ctx.fillRect(0,0,w,h);
-
-    // grid
-    ctx.globalAlpha = 0.18;
-    ctx.strokeStyle = "rgba(255,255,255,.10)";
-    ctx.lineWidth = 1;
-    for (let x=0; x<w; x+=52){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
-    for (let y=0; y<h; y+=44){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
-    ctx.globalAlpha = 1;
-
-    const visible = candleSeries.slice(-60);
-    if (visible.length < 2) return;
-
-    const closes = visible.map(c => c.close);
-    let min = Math.min(...closes);
-    let max = Math.max(...closes);
-    const pad = (max-min)*0.10 || 1;
-    min -= pad; max += pad;
-
-    const toY = (p) => {
-      const t = (p - min) / (max - min);
-      return h - (t*h);
-    };
-
-    // glow line
-    ctx.lineWidth = 10;
-    ctx.strokeStyle = "rgba(140,180,255,.14)";
-    ctx.beginPath();
-    for (let i=0;i<closes.length;i++){
-      const x = (i/(closes.length-1))*(w-20)+10;
-      const y = toY(closes[i]);
-      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-    }
-    ctx.stroke();
-
-    // main line
-    ctx.lineWidth = 2.5;
-    ctx.strokeStyle = "rgba(200,220,255,.88)";
-    ctx.beginPath();
-    for (let i=0;i<closes.length;i++){
-      const x = (i/(closes.length-1))*(w-20)+10;
-      const y = toY(closes[i]);
-      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-    }
-    ctx.stroke();
-  }
-
-  // =========================
-  // Analysis (ABSOLUTE RANDOM)
-  // =========================
-  async function runAnalysis(){
-    const tf = tfValue.textContent || "30s";
-
-    // overlay progress
-    const dur = 550 + Math.floor(Math.random()*900);
     show(chartOverlay);
     overlayFill.style.width = "0%";
 
     const start = Date.now();
     const tick = setInterval(() => {
-      const p = Math.min(100, Math.floor(((Date.now()-start)/dur)*100));
+      const p = Math.min(100, Math.floor(((Date.now() - start) / dur) * 100));
       overlayFill.style.width = p + "%";
       if (p >= 100) clearInterval(tick);
-    }, 50);
+    }, 60);
 
     await new Promise(r => setTimeout(r, dur));
     hide(chartOverlay);
 
-    // ABSOLUTE RANDOM direction
-    const isLong = Math.random() < 0.5;
+    // абсолютный рандом LONG/SHORT
+    const isLong = trueRandBit() === 1;
+
     setSignal(isLong ? "LONG-TREND" : "SHORT-TREND", isLong);
 
-    // metrics
+    // метрики
     const quality = 72 + Math.floor(Math.random() * 18);
     const conf = 60 + Math.floor(Math.random() * 30);
 
@@ -812,175 +671,104 @@
     momFactor.textContent = ["Soft","Stable","Strong"][Math.floor(Math.random()*3)];
     liqFactor.textContent = ["Thin","Normal","Deep"][Math.floor(Math.random()*3)];
 
-    // window + countdown timer
-    rWindow.textContent = tf;
-    startCountdown(tf);
+    // окно + until
+    const sec = tfToSeconds(tfValue.textContent || "30s");
+    const now = new Date();
+    const until = new Date(Date.now() + sec*1000);
 
-    // add a small bias to series (feels responsive to signal)
-    // push few candles to reflect direction quickly
-    for (let i=0;i<3;i++){
-      const last = candleSeries[candleSeries.length-1];
-      if (!last) break;
-      const bias = isLong ? 1 : -1;
-      const bump = 1 + bias * 0.0025;
-      last.close *= bump;
-      last.high = Math.max(last.high, last.close);
-      last.low  = Math.min(last.low, last.close);
-      nextCandle();
+    rWindow.textContent = tfValue.textContent || "30s";
+    rUntil.textContent = `${String(until.getHours()).padStart(2,"0")}:${String(until.getMinutes()).padStart(2,"0")}`;
+
+    // таймер
+    startCountdown(sec);
+
+    // графики должны меняться под сигнал (вверх/вниз) и под параметры
+    refreshChartsVisual(isLong);
+  });
+}
+
+// ---------- Gate / Enter ----------
+function enterApp(){
+  hide(gate);
+  show(app);
+
+  const uid = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : "";
+  chipSession.textContent = "SESSION: " + (uid ? uid.slice(-6) : "—");
+  chipAccess.textContent = "ACCESS: OPEN";
+}
+
+// ---------- Menu ----------
+function openMenu(){
+  const msg = `CRAFT MENU\n\n• Asset: ${assetValue.textContent}\n• TF: ${tfValue.textContent}\n• Market: ${marketValue.textContent}\n\n(Это меню можно расширить дальше.)`;
+  try {
+    if (tg?.showPopup) {
+      tg.showPopup({
+        title: "MENU",
+        message: msg.slice(0, 3500),
+        buttons: [{ type: "close" }]
+      });
+      return;
     }
-  }
+  } catch {}
+  alert(msg);
+}
 
-  // =========================
-  // Menu (⋯) — работает
-  // =========================
-  function openMenu(){
-    // Using notify as premium menu popup
-    notifyPopup(
-      "MENU",
-      `Asset: ${assetValue.textContent}\nTF: ${tfValue.textContent}\nMarket: ${marketValue.textContent}`,
-      "Open registration",
-      () => openURL(CONFIG.REG_URL)
-    );
+// ---------- Events ----------
+btnOpenReg.addEventListener("click", () => openURL(CONFIG.REG_URL));
+btnGetAccess.addEventListener("click", () => {
+  setGateStatus(t("gate_status_na"), 62);
+  enterApp();
+});
 
-    // add 2 extra actions via Telegram popup if available
-    try {
-      if (tg?.showPopup){
-        tg.showPopup({
-          title: "CRAFT MENU",
-          message: "Choose action",
-          buttons: [
-            { id:"reg", type:"default", text:"Registration" },
-            { id:"dep", type:"default", text:"Deposit" },
-            { id:"rep", type:"default", text:"Report" },
-            { type:"close" }
-          ]
-        }, (btnId) => {
-          if (btnId === "reg") openURL(CONFIG.REG_URL);
-          if (btnId === "dep") openURL(CONFIG.DEPOSIT_URL);
-          if (btnId === "rep") openURL(CONFIG.REPORT_URL);
-        });
-        // close notify (avoid double)
-        hide(notify);
-        return;
-      }
-    } catch {}
-  }
+btnLangGate.addEventListener("click", openLangModal);
+btnLangApp.addEventListener("click", openLangModal);
 
-  // =========================
-  // Crosshair interaction
-  // =========================
-  function bindCrosshair(){
-    if (!chart) return;
+btnMenu.addEventListener("click", openMenu);
 
-    const rectOf = () => chart.getBoundingClientRect();
+btnCheckStatus.addEventListener("click", () => {
+  // без сервера: просто обновим UI и графики (чтобы кнопка работала)
+  refreshChartsVisual(dirText.classList.contains("up"));
+});
 
-    const set = (clientX, clientY) => {
-      const r = rectOf();
-      const x = (clientX - r.left) * (chart.width / r.width);
-      const y = (clientY - r.top)  * (chart.height / r.height);
-      cross.on = true;
-      cross.x = Math.max(0, Math.min(chart.width, x));
-      cross.y = Math.max(0, Math.min(chart.height, y));
-    };
+btnReset.addEventListener("click", () => {
+  chipQuality.textContent = t("chart_quality");
+  chipConf.textContent = t("chart_conf");
+  rAcc.textContent = "—%";
+  volFactor.textContent = "—";
+  momFactor.textContent = "—";
+  liqFactor.textContent = "—";
+  setSignal("LONG-TREND", true);
+  stopCountdown();
+  refreshChartsVisual(true);
+});
 
-    const off = () => { cross.on = false; };
+btnAnalyze.addEventListener("click", runAnalysis);
 
-    chart.addEventListener("mousemove", (e) => set(e.clientX, e.clientY));
-    chart.addEventListener("mouseleave", off);
+assetBtn.addEventListener("click", openAssets);
+tfBtn.addEventListener("click", openTF);
+marketBtn.addEventListener("click", toggleMarket);
 
-    chart.addEventListener("touchstart", (e) => {
-      const t = e.touches?.[0];
-      if (!t) return;
-      set(t.clientX, t.clientY);
-    }, { passive:true });
+backdrop.addEventListener("click", () => {
+  closeModal(assetsModal);
+  closeModal(tfModal);
+  closeModal(langModal);
+});
+closeAssets.addEventListener("click", () => closeModal(assetsModal));
+closeTf.addEventListener("click", () => closeModal(tfModal));
+closeLang.addEventListener("click", () => closeModal(langModal));
 
-    chart.addEventListener("touchmove", (e) => {
-      const t = e.touches?.[0];
-      if (!t) return;
-      set(t.clientX, t.clientY);
-    }, { passive:true });
+// ---------- Boot ----------
+(async function boot(){
+  LANG = localStorage.getItem("lang") || "ru";
+  applyI18n();
 
-    chart.addEventListener("touchend", off, { passive:true });
-  }
+  await loadAssetsJson();
 
-  // =========================
-  // Events
-  // =========================
-  btnOpenReg.addEventListener("click", () => openURL(CONFIG.REG_URL));
-  btnGetAccess.addEventListener("click", () => enterApp());
+  setGateStatus(t("gate_status_na"), 18);
+  setSignal("LONG-TREND", true);
 
-  btnLangGate.addEventListener("click", openLangModal);
-  btnLangApp.addEventListener("click", openLangModal);
+  refreshChartsVisual(true);
 
-  btnMenu.addEventListener("click", openMenu);
-
-  btnNotifyClose.addEventListener("click", () => hide(notify));
-
-  btnCheckStatus.addEventListener("click", () => {
-    // no auth gating (по твоему требованию)
-    notifyPopup(
-      "STATUS",
-      "Terminal is running.\nRealtime render: ON",
-      "Open report",
-      () => openURL(CONFIG.REPORT_URL)
-    );
-  });
-
-  btnReset.addEventListener("click", () => {
-    chipQuality.textContent = t("chart_quality");
-    chipConf.textContent = t("chart_conf");
-    rAcc.textContent = "—%";
-    volFactor.textContent = "—";
-    momFactor.textContent = "—";
-    liqFactor.textContent = "—";
-    setSignal("LONG-TREND", true);
-    rebuildMarket("reset");
-  });
-
-  // SINGLE button: ABSOLUTE RANDOM
-  btnAnalyze.addEventListener("click", runAnalysis);
-
-  assetBtn.addEventListener("click", openAssets);
-  tfBtn.addEventListener("click", openTF);
-  marketBtn.addEventListener("click", toggleMarket);
-
-  backdrop.addEventListener("click", () => {
-    closeModal(assetsModal);
-    closeModal(tfModal);
-    closeModal(langModal);
-  });
-  closeAssets.addEventListener("click", () => closeModal(assetsModal));
-  closeTf.addEventListener("click", () => closeModal(tfModal));
-  closeLang.addEventListener("click", () => closeModal(langModal));
-
-  // =========================
-  // Boot
-  // =========================
-  (async function boot(){
-    applyI18n();
-
-    // Load assets/timeframes
-    await loadAssetsJson();
-
-    // defaults
-    if (!tfValue.textContent) tfValue.textContent = "30s";
-    if (!assetValue.textContent) assetValue.textContent = "EUR/USD";
-    if (!marketValue.textContent) marketValue.textContent = "OTC";
-
-    setSignal("LONG-TREND", true);
-    startCountdown(tfValue.textContent);
-
-    // gate status
-    if (gateStatusText) gateStatusText.textContent = t("gate_status_ok");
-
-    // click safety crosshair
-    bindCrosshair();
-
-    // show gate first
-    show(gate); hide(app);
-
-    // if user opens directly inside TG, still fine
-    // do nothing else until user taps “Get access”
-  })();
-
+  // mini-app friendly
+  try { tg?.expand?.(); } catch {}
 })();
