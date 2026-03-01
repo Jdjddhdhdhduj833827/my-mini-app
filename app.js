@@ -121,7 +121,7 @@ const I18N = {
   ru: {
     gate_sub: "AI Market Intelligence • Smart Trading System",
     gate_title: "Доступ к терминалу",
-    gate_text_main: "Чтобы открыть интерфейс, подтвердите статус аккаунта.",
+   gate_text_main: "Чтобы открыть интерфейс, подтвердите статус аккаунта.",
     gate_step1_t: "Регистрация",
     gate_step1_d: "Создайте новый аккаунт через кнопку ниже.",
     gate_step2_t: "Проверка статуса",
@@ -224,7 +224,7 @@ const I18N = {
     tf_title: "Select timeframe",
     lang_title: "Language",
 
-    footnote: "footnote: "AI Engine: Online • Market Scan: Active",
+    footnote: "AI Engine: Online • Market Scan: Active",
     notify_btn_ok: "Got it",
 
     popup_need_acc_title: "Create an account first",
