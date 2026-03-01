@@ -13,19 +13,13 @@
   <title>CRAFT ANALYTICS</title>
   <meta name="description" content="CRAFT ANALYTICS — Premium UI (Telegram Mini App)" />
 
-  <!-- (Optional but helpful for Telegram Web / strict environments) -->
-  <meta http-equiv="Content-Security-Policy" content="
-    default-src * data: blob: 'unsafe-inline' 'unsafe-eval';
-    connect-src *;
-    img-src * data: blob:;
-    style-src * 'unsafe-inline';
-    script-src * 'unsafe-inline' 'unsafe-eval';
-  ">
+  <!-- CSP (оставляю максимально совместимым; если захочешь — ужесточим позже) -->
+  <meta http-equiv="Content-Security-Policy" content="default-src * data: blob: 'unsafe-inline' 'unsafe-eval'; connect-src *; img-src * data: blob:; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval';">
 
-  <!-- Telegram WebApp SDK -->
+  <!-- Telegram WebApp SDK (один раз) -->
   <script src="https://telegram.org/js/telegram-web-app.js" crossorigin="anonymous"></script>
 
-  <!-- Your styles -->
+  <!-- Styles -->
   <link rel="stylesheet" href="./style.css?v=1" />
 </head>
 
@@ -341,6 +335,6 @@
   <div class="softLock hidden" id="softLock" aria-hidden="true"></div>
 
   <!-- App JS (only one!) -->
-  <script src="./app.js?v=1001"></script>
+  <script src="./app.js?v=1001" defer></script>
 </body>
 </html>
