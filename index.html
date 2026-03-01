@@ -1,4 +1,4 @@
-<!-- index.html — FULL CLEAN (works with the new app.js) -->
+<!-- index.html — IRONCLAD (Telegram Mini App) -->
 <!doctype html>
 <html lang="ru">
 <head>
@@ -13,14 +13,24 @@
   <title>CRAFT ANALYTICS</title>
   <meta name="description" content="CRAFT ANALYTICS — Premium UI (Telegram Mini App)" />
 
-  <!-- Telegram WebApp SDK (ONE TIME) -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- (Optional but helpful for Telegram Web / strict environments) -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src * data: blob: 'unsafe-inline' 'unsafe-eval';
+    connect-src *;
+    img-src * data: blob:;
+    style-src * 'unsafe-inline';
+    script-src * 'unsafe-inline' 'unsafe-eval';
+  ">
 
-  <link rel="stylesheet" href="./style.css" />
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js" crossorigin="anonymous"></script>
+
+  <!-- Your styles -->
+  <link rel="stylesheet" href="./style.css?v=1" />
 </head>
 
 <body>
-  <!-- Background (click-safe) -->
+  <!-- Background -->
   <div class="bg" aria-hidden="true">
     <div class="bgAura"></div>
     <div class="bgGrid"></div>
@@ -105,18 +115,14 @@
           <b id="gateStatusText" data-i="gate_status_na">не проверен</b>
         </div>
 
-        <div class="legal" data-i="gate_legal">
-          Demo UI. Not financial advice.
-        </div>
+        <div class="legal" data-i="gate_legal">Demo UI. Not financial advice.</div>
       </div>
 
       <footer class="gateFooter">
         <div class="meter" aria-label="Access meter">
           <div class="meterFill" id="gateMeter" style="width:14%"></div>
         </div>
-        <div class="meterText" id="gateMeterText" data-i="gate_meter">
-          SECURITY • initData required
-        </div>
+        <div class="meterText" id="gateMeterText" data-i="gate_meter">SECURITY • initData required</div>
       </footer>
     </div>
   </section>
@@ -263,22 +269,10 @@
             </div>
 
             <div class="miniMetrics">
-              <div class="m">
-                <div class="k" data-i="m_acc">Точность</div>
-                <div class="v" id="rAcc">—%</div>
-              </div>
-              <div class="m">
-                <div class="k" data-i="m_vol">Волатильность</div>
-                <div class="v" id="volFactor">—</div>
-              </div>
-              <div class="m">
-                <div class="k" data-i="m_mom">Импульс</div>
-                <div class="v" id="momFactor">—</div>
-              </div>
-              <div class="m">
-                <div class="k" data-i="m_liq">Ликвидность</div>
-                <div class="v" id="liqFactor">—</div>
-              </div>
+              <div class="m"><div class="k" data-i="m_acc">Точность</div><div class="v" id="rAcc">—%</div></div>
+              <div class="m"><div class="k" data-i="m_vol">Волатильность</div><div class="v" id="volFactor">—</div></div>
+              <div class="m"><div class="k" data-i="m_mom">Импульс</div><div class="v" id="momFactor">—</div></div>
+              <div class="m"><div class="k" data-i="m_liq">Ликвидность</div><div class="v" id="liqFactor">—</div></div>
             </div>
           </div>
 
@@ -303,7 +297,6 @@
   ========================== -->
   <div class="backdrop hidden" id="backdrop" aria-hidden="true"></div>
 
-  <!-- Assets modal -->
   <section class="modal hidden" id="assetsModal" role="dialog" aria-modal="true" aria-label="Assets modal">
     <div class="modalTop">
       <div class="modalTitle" data-i="assets_title">Выбор актива</div>
@@ -314,7 +307,6 @@
     <div class="list" id="assetList" aria-label="Assets list"></div>
   </section>
 
-  <!-- Timeframe modal -->
   <section class="modal hidden" id="tfModal" role="dialog" aria-modal="true" aria-label="Timeframe modal">
     <div class="modalTop">
       <div class="modalTitle" data-i="tf_title">Выбор таймфрейма</div>
@@ -323,7 +315,6 @@
     <div class="list" id="tfList" aria-label="Timeframes list"></div>
   </section>
 
-  <!-- Language modal -->
   <section class="modal hidden" id="langModal" role="dialog" aria-modal="true" aria-label="Language modal">
     <div class="modalTop">
       <div class="modalTitle" data-i="lang_title">Язык интерфейса</div>
@@ -332,7 +323,6 @@
     <div class="list" id="langList" aria-label="Languages list"></div>
   </section>
 
-  <!-- Smart Notify -->
   <div class="notify hidden" id="notify" role="dialog" aria-modal="true" aria-label="Notice">
     <div class="notifyCard">
       <div class="notifyTitle" id="notifyTitle">Notice</div>
@@ -348,10 +338,9 @@
     </div>
   </div>
 
-  <!-- SoftLock blur layer (kept, but deposit doesn't force lock anymore) -->
   <div class="softLock hidden" id="softLock" aria-hidden="true"></div>
 
-  <!-- App logic -->
-<script src="./app.js?v=777777" defer></script>
+  <!-- App JS (only one!) -->
+  <script src="./app.js?v=1001"></script>
 </body>
 </html>
