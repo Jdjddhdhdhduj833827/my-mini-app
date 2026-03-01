@@ -1,38 +1,23 @@
-// app.js — IRONCLAD (Gate + Analyze demo) for Telegram Mini App
 (() => {
   "use strict";
 
   // =========================
   // CONFIG
   // =========================
-  const CONFIG = {
-    API_BASE: "https://hidden-fog-c1f2craft-analytics-api.ashirkhanlogubekov-833.workers.dev",
-    AUTH_PATH: "/pb/auth",
+  const API_BASE = "https://hidden-fog-c1f2craft-analytics-api.ashirkhanlogubekov-833.workers.dev";
+  // ВАЖНО: если сделаешь кастомный домен — просто поменяй API_BASE на него.
+  const AUTH_URL = API_BASE + "/pb/auth";
+  const HEALTH_URL = API_BASE + "/health";
 
-    // ВСТАВЬ СВОИ ССЫЛКИ (если уже есть — просто замени)
-    REG_URL:
-      "https://u3.shortink.io/register?utm_campaign=838492&utm_source=affiliate&utm_medium=sr&a=M2nsxBfYsujho1&ac=craft_academy&code=WELCOME50",
-    DEPOSIT_URL:
-      "https://u3.shortink.io/register?utm_campaign=838492&utm_source=affiliate&utm_medium=sr&a=M2nsxBfYsujho1&ac=craft_academy&code=WELCOME50",
+  const DEBUG = true;
+  const TIMEOUT_MS = 12000;
+  const RETRIES = 2;
 
-    AUTH_TIMEOUT_MS: 12000,
-    DEBUG: true,
-  };
-
-  const AUTH_URL = CONFIG.API_BASE + CONFIG.AUTH_PATH;
   const tg = window.Telegram?.WebApp || null;
 
-  const log = (...a) => CONFIG.DEBUG && console.log("[APP]", ...a);
-  const warn = (...a) => CONFIG.DEBUG && console.warn("[APP]", ...a);
-  const error = (...a) => console.error("[APP]", ...a);
+  const log = (...a) => DEBUG && console.log("[APP]", ...a);
 
-  // =========================
-  // DOM helpers
-  // =========================
   const $ = (id) => document.getElementById(id);
-  const show = (el) => el && el.classList.remove("hidden");
-  const hide = (el) => el && el.classList.add("hidden");
-  const safeText = (el, v) => { if (el) el.textContent = String(v ?? ""); };
 
   function popup(title, message) {
     const msg = String(message ?? "");
@@ -50,115 +35,78 @@
     alert(`${title}\n\n${msg}`);
   }
 
-  function openURL(url) {
-    if (!url) return;
-    try {
-      if (tg?.openLink) tg.openLink(url);
-      else window.open(url, "_blank", "noopener,noreferrer");
-    } catch {
-      window.open(url, "_blank", "noopener,noreferrer");
-    }
+  function sleep(ms) {
+    return new Promise((r) => setTimeout(r, ms));
   }
 
-  // =========================
-  // Auth
-  // =========================
-  async function auth() {
-    if (!tg?.initData) {
-      return { ok: false, error: "NO_TELEGRAM", details: "Open inside Telegram" };
-    }
-
-    const payload = { initData: tg.initData };
+  async function fetchWithTimeout(url, options = {}, timeoutMs = TIMEOUT_MS) {
     const ctrl = new AbortController();
-    const tmr = setTimeout(() => ctrl.abort(), CONFIG.AUTH_TIMEOUT_MS);
-
+    const tmr = setTimeout(() => ctrl.abort(), timeoutMs);
     try {
-      const r = await fetch(AUTH_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify(payload),
-        credentials: "omit",
-        cache: "no-store",
-        signal: ctrl.signal,
-      });
-
+      const res = await fetch(url, { ...options, signal: ctrl.signal, cache: "no-store" });
       clearTimeout(tmr);
-
-      const text = await r.text();
-      let data;
-      try { data = text ? JSON.parse(text) : {}; }
-      catch { data = { ok: false, error: "BAD_JSON", raw: text.slice(0, 200) }; }
-
-      if (!r.ok) return { ok: false, error: "HTTP_" + r.status, details: data };
-      return data;
+      return res;
     } catch (e) {
       clearTimeout(tmr);
-      return { ok: false, error: "network_fail", details: String(e?.message || e) };
+      throw e;
     }
+  }
+
+  async function fetchJsonRetry(url, options = {}, retries = RETRIES) {
+    let lastErr;
+    for (let i = 0; i <= retries; i++) {
+      try {
+        const r = await fetchWithTimeout(url, options);
+        const text = await r.text();
+        let data = {};
+        try { data = text ? JSON.parse(text) : {}; }
+        catch { data = { ok: false, error: "BAD_JSON", raw: text.slice(0, 200) }; }
+
+        if (!r.ok) return { ok: false, error: "HTTP_" + r.status, details: data };
+        return data;
+      } catch (e) {
+        lastErr = e;
+        if (i < retries) await sleep(400 * (i + 1));
+      }
+    }
+    return { ok: false, error: "network_fail", details: String(lastErr?.message || lastErr) };
   }
 
   // =========================
-  // UI: Gate <-> App
+  // QUICK HEALTH CHECK
   // =========================
-  function enterApp(authData) {
-    hide($("gate"));
-    show($("app"));
-
-    // Чипы вверху (если есть)
-    const session = $("chipSession");
-    const access = $("chipAccess");
-    if (session) safeText(session, "SESSION: " + (authData?.telegram_id || "—"));
-    if (access) safeText(access, "ACCESS: " + (authData?.access ? "OK" : "—"));
-
-    // VIP
-    const isVip = !!authData?.vip;
-    if ($("pillVipTop")) isVip ? show($("pillVipTop")) : hide($("pillVipTop"));
-    if ($("pillVipGate")) isVip ? show($("pillVipGate")) : hide($("pillVipGate"));
-  }
-
-  function stayOnGate(statusText, meterPct) {
-    show($("gate"));
-    hide($("app"));
-    safeText($("gateStatusText"), statusText || "—");
-    const meter = $("gateMeter");
-    if (meter && typeof meterPct === "number") meter.style.width = `${meterPct}%`;
-  }
-
-  async function handleGetAccess() {
-    // 1) Telegram check
-    if (!tg?.initData) {
-      stayOnGate("Откройте внутри Telegram", 22);
-      popup("Откройте внутри Telegram", "Мини-приложение работает только внутри Telegram (нужен initData).");
-      return;
-    }
-
-    stayOnGate("Проверка…", 32);
-
-    // 2) auth
-    const a = await auth();
-    log("AUTH:", a);
-
-    if (!a?.ok) {
-      stayOnGate("Ошибка сети", 22);
-      popup("AUTH ERROR", `${a?.error || "unknown"}\n${JSON.stringify(a?.details || {}, null, 2).slice(0, 2000)}`);
-      return;
-    }
-
-    // 3) registered gate
-    const registered = Number(a?.flags?.registered ?? 0) === 1;
-    if (!registered) {
-      stayOnGate("Сначала регистрация", 24);
-      popup("Сначала регистрация", "Нажмите «Открыть регистрацию», создайте аккаунт и вернитесь.");
-      return;
-    }
-
-    // 4) ok
-    stayOnGate("Проверено", 62);
-    enterApp(a);
+  async function healthCheck() {
+    const h = await fetchJsonRetry(HEALTH_URL, { method: "GET" }, 0);
+    return h?.ok === true;
   }
 
   // =========================
-  // Analyze logic (demo, гарантированно работает)
+  // AUTH
+  // =========================
+  async function auth() {
+    if (!tg) {
+      return { ok: false, error: "NO_TG_OBJECT", details: "Telegram.WebApp not found" };
+    }
+    if (!tg.initData) {
+      return { ok: false, error: "NO_INITDATA", details: "Open inside Telegram mini app" };
+    }
+
+    // Берём telegram_id безопасно из initDataUnsafe (меньше шансов, чем парсить initData на бэке)
+    const telegram_id = String(tg?.initDataUnsafe?.user?.id || "");
+    const payload = telegram_id
+      ? { telegram_id, initData: tg.initData }
+      : { initData: tg.initData };
+
+    return await fetchJsonRetry(AUTH_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify(payload),
+      credentials: "omit",
+    });
+  }
+
+  // =========================
+  // DEMO ANALYSIS
   // =========================
   function demoResult() {
     const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
@@ -167,116 +115,67 @@
     return { dir, conf, ts: new Date().toLocaleTimeString() };
   }
 
-  function elementBlockingClick(btn) {
-    if (!btn) return null;
-    const r = btn.getBoundingClientRect();
-    const x = Math.floor(r.left + Math.min(20, r.width / 2));
-    const y = Math.floor(r.top + Math.min(20, r.height / 2));
-    const topEl = document.elementFromPoint(x, y);
-    if (!topEl) return null;
-    if (topEl === btn || btn.contains(topEl)) return null;
-    return topEl;
-  }
-
-  async function onAnalyzeClick(e) {
+  // =========================
+  // CLICK HANDLER
+  // =========================
+  async function onAnalyzeClick() {
     try {
       log("btnAnalyze clicked");
-      const btn = e?.currentTarget || $("btnAnalyze");
 
-      // Проверка перекрытия
-      const blocker = elementBlockingClick(btn);
-      if (blocker) {
-        const info =
-          `${blocker.tagName}` +
-          `${blocker.id ? "#" + blocker.id : ""}` +
-          `${blocker.className ? "." + String(blocker.className).replace(/\s+/g, ".") : ""}`;
-        warn("Click blocked by:", blocker);
+      // 0) Health check — если домен не грузится в iOS Telegram, сразу объясняем
+      const okHealth = await healthCheck();
+      if (!okHealth) {
         popup(
-          "Клик не доходит до кнопки",
-          `Кнопку перекрывает элемент:\n${info}\n\n` +
-          `Решение: скрыть overlay/backdrop/softLock или поставить этому слою pointer-events:none.`
+          "NETWORK BLOCK",
+          "iOS Telegram WebView не может загрузить ваш API домен.\n\n" +
+          "Это не баг кода, это блок/недоступность сети (часто workers.dev).\n\n" +
+          "РЕШЕНИЕ: подключить Worker к кастомному домену (api.yourdomain.com) или тестировать через VPN."
         );
         return;
       }
 
-      // auth (ещё раз, чтобы точно было действие и не зависело от прошлого)
+      // 1) Auth
       const a = await auth();
       log("AUTH:", a);
 
       if (!a?.ok) {
-        popup("AUTH ERROR", `${a?.error || "unknown"}\n${JSON.stringify(a?.details || {}, null, 2).slice(0, 2000)}`);
+        popup("AUTH ERROR", `${a?.error || "unknown"}\n${String(a?.details || "")}`.slice(0, 2000));
         return;
       }
 
       if (Number(a?.flags?.registered ?? 0) !== 1) {
-        popup("Нет доступа", "Пользователь не зарегистрирован. Открой регистрацию и вернись.");
+        popup("Нет доступа", "Пользователь не зарегистрирован (flags.registered != 1).");
         return;
       }
 
-      // (если позже захочешь депозит-гейт — раскомментируешь)
-      // if (Number(a?.flags?.dep_count ?? 0) <= 0) {
-      //   popup("Требуется депозит", "Открой пополнение и попробуй снова.");
-      //   openURL(CONFIG.DEPOSIT_URL);
-      //   return;
-      // }
-
+      // 2) Демо-результат (чтобы кнопка точно “жила”)
       const r = demoResult();
       popup("ANALYSIS (demo)", `Signal: ${r.dir}\nConfidence: ${r.conf}\nTime: ${r.ts}`);
-    } catch (ex) {
-      error(ex);
-      popup("JS ERROR", String(ex?.message || ex));
+    } catch (e) {
+      popup("JS ERROR", String(e?.message || e));
     }
   }
 
   // =========================
-  // Bind helpers (железобетон)
+  // BIND
   // =========================
-  function bindOnce(id, event, handler) {
-    const el = $(id);
-    if (!el) return false;
-    const key = `bound_${event}`;
-    if (el.dataset[key] === "1") return true;
-    el.dataset[key] = "1";
-    el.addEventListener(event, handler);
+  function bindAnalyzeButton() {
+    const btn = $("btnAnalyze");
+    if (!btn) return false;
+    if (btn.dataset.bound === "1") return true;
+    btn.dataset.bound = "1";
+    btn.addEventListener("click", onAnalyzeClick);
+    log("Bound #btnAnalyze ✅");
     return true;
   }
 
-  function bindAll() {
-    // Gate buttons
-    bindOnce("btnOpenReg", "click", () => openURL(CONFIG.REG_URL));
-    bindOnce("btnGetAccess", "click", () => handleGetAccess());
-
-    // App buttons
-    bindOnce("btnAnalyze", "click", onAnalyzeClick);
-
-    // Optional: “Проверить” в App — просто делает auth и показывает статус
-    bindOnce("btnCheckStatus", "click", async () => {
-      const a = await auth();
-      if (!a?.ok) {
-        popup("AUTH ERROR", `${a?.error || "unknown"}`);
-        return;
-      }
-      popup("STATUS", JSON.stringify(a, null, 2));
-    });
-
-    // Optional: “Сброс” — возвращает на Gate
-    bindOnce("btnReset", "click", () => {
-      stayOnGate("не проверен", 14);
-    });
-  }
-
   function boot() {
-    log("BOOT", Date.now());
     try { tg?.ready?.(); tg?.expand?.(); } catch {}
+    if (bindAnalyzeButton()) return;
 
-    // стартовый вид
-    stayOnGate("не проверен", 14);
-
-    // Привязки
-    bindAll();
-
-    // Если Telegram/WebView прогрузит DOM кусками — наблюдаем и довязываем
-    const obs = new MutationObserver(() => bindAll());
+    const obs = new MutationObserver(() => {
+      if (bindAnalyzeButton()) obs.disconnect();
+    });
     obs.observe(document.documentElement, { childList: true, subtree: true });
   }
 
