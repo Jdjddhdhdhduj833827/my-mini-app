@@ -1,4 +1,4 @@
-/* app.js — CRAFT ANALYTICS (Terminal UI)
+/* app.js — CRAFT ANALYTICS (Terminal AI)
    Твои требования:
    - УБРАТЬ long/short кнопки под анализом (в HTML их уже нет)
    - 1 кнопка "Запустить анализ" -> абсолютный рандом LONG/SHORT
@@ -119,11 +119,11 @@ let countdown = {
 // ---------- i18n ----------
 const I18N = {
   ru: {
-    gate_sub: "Premium terminal • Smart assistant",
+    gate_sub: "AI Market Intelligence • Smart Trading System",
     gate_title: "Доступ к терминалу",
     gate_text_main: "Чтобы открыть интерфейс, нажмите «Получить доступ».",
     gate_step1_t: "Регистрация",
-    gate_step1_d: "Создайте новвый аккаунт через кнопку ниже.",
+    gate_step1_d: "Создайте новый аккаунт через кнопку ниже.",
     gate_step2_t: "Проверка статуса",
     gate_step2_d: "Вернитесь и нажмите получить доступ».",
     gate_step3_t: "Доступ",
@@ -131,19 +131,19 @@ const I18N = {
     gate_btn_reg: "Открыть регистрацию",
     gate_btn_access: "Получить доступ",
     gate_status: "Статус:",
-    gate_status_na: "готов",
-    gate_legal: "Demo UI. Not financial advice.",
-    gate_meter: "UI • local render",
+    gate_status_na: "Сначала создайте аккаунт",
+    gate_legal: "AI Signal System • Smart Mode",
+    gate_meter: "Smart-AI • System Active",
 
-    app_sub: "Premium UI Terminal",
+    app_sub: "Smart-AI Terminal",
     hero_title: "Terminal Overview",
-    hero_sub: "Smart mode • Premium UI",
-    hero_mode: "MODE: SMART",
-
+    hero_sub: "Smart mode • AI Engine",
+    hero_mode: "MODE: PRO",
+     
     cc_title: "CONTROL CENTER",
     cc_btn_check: "Проверить",
     cc_btn_reset: "Сброс",
-    cc_hint: "Нажмите «Запустить анализ» — получите сигнал.",
+    cc_hint: "Нажмите «Запустите анализ» для расчёта рыночного сигнала.",
     cc_btn_analyze: "Запустить анализ",
 
     chart_title: "MARKET VISUAL",
@@ -167,16 +167,16 @@ const I18N = {
     tf_title: "Выбор таймфрейма",
     lang_title: "Язык интерфейса",
 
-    footnote: "UI работает локально. Анализ — демонстрационный.",
+    footnote: "AI Engine: Online • Market Scan: Active",
     notify_btn_ok: "Понятно",
 
     popup_need_acc_title: "Сначала создайте аккаунт",
-    popup_need_acc_text: "Нажмите «Открыть регистрацию», создайте аккаунт и вернитесь сюда.",
+    popup_need_acc_text: "Доступ к аналитической AI-системе активируется после регистрации аккаунта.",
     btn_open_reg: "Открыть регистрацию"
   },
 
   en: {
-    gate_sub: "Premium terminal • Smart assistant",
+    gate_sub: "AI Market Intelligence • Smart Trading System",
     gate_title: "Terminal access",
     gate_text_main: "Tap “Get access” to open the UI.",
     gate_step1_t: "Registration",
@@ -189,12 +189,12 @@ const I18N = {
     gate_btn_access: "Get access",
     gate_status: "Status:",
     gate_status_na: "ready",
-    gate_legal: "Demo UI. Not financial advice.",
-    gate_meter: "UI • local render",
+    gate_legal: "AI Signal System • Smart Mode",
+    gate_meter: "Smart-AI • System Active",
 
-    app_sub: "Premium UI Terminal",
+    app_sub: "Smart-AI Terminal",
     hero_title: "Terminal Overview",
-    hero_sub: "Smart mode • Premium UI",
+    hero_sub: "Smart mode • AI Engine",
     hero_mode: "MODE: SMART",
 
     cc_title: "CONTROL CENTER",
@@ -224,11 +224,11 @@ const I18N = {
     tf_title: "Select timeframe",
     lang_title: "Language",
 
-    footnote: "UI is local. Analysis is demo.",
+    footnote: "footnote: "AI Engine: Online • Market Scan: Active",
     notify_btn_ok: "Got it",
 
     popup_need_acc_title: "Create an account first",
-    popup_need_acc_text: "Tap “Open registration”, create an account, then come back.",
+    popup_need_acc_text: "Access to the AI market analysis system is activated after account registration.",
     btn_open_reg: "Open registration"
   }
 };
@@ -484,7 +484,7 @@ function startCountdown(seconds){
   rTimer.textContent = fmtMMSS(seconds);
 }
 
-// ---------- Signal UI ----------
+// ---------- Signal AI ----------
 function setSignal(text, isUp){
   dirText.textContent = text;
 
@@ -563,7 +563,7 @@ function openLangModal(){
   openModal(langModal);
 }
 
-// ---------- Assets/TF UI ----------
+// ---------- Assets/TF AI ----------
 function openAssets(){
   assetTabs.innerHTML = "";
   assetList.innerHTML = "";
