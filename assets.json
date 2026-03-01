@@ -1,64 +1,10 @@
+// assets.json (КАК ФАЙЛ, БЕЗ КОММЕНТАРИЕВ ВНУТРИ JSON)
 {
-  "version": 1,
-  "updated": "2026-01-01",
-
   "categories": {
-    "Forex": [
-      "EUR/USD",
-      "GBP/USD",
-      "USD/JPY",
-      "USD/CHF",
-      "AUD/USD",
-      "USD/CAD",
-      "NZD/USD",
-      "EUR/GBP",
-      "EUR/JPY",
-      "GBP/JPY"
-    ],
-
-    "Crypto": [
-      "BTC/USD",
-      "ETH/USD",
-      "BNB/USD",
-      "SOL/USD",
-      "XRP/USD",
-      "ADA/USD",
-      "DOGE/USD"
-    ],
-
-    "Stocks": [
-      "AAPL",
-      "TSLA",
-      "MSFT",
-      "AMZN",
-      "NVDA",
-      "META",
-      "GOOGL"
-    ],
-
-    "Commodities": [
-      "Gold",
-      "Silver",
-      "Oil",
-      "Brent",
-      "Natural Gas"
-    ],
-
-    "Indices": [
-      "S&P 500",
-      "NASDAQ 100",
-      "DAX 40",
-      "FTSE 100",
-      "Nikkei 225"
-    ]
+    "Forex": ["EUR/USD","GBP/USD","USD/JPY","USD/CHF","AUD/USD","USD/CAD","NZD/USD","EUR/GBP","EUR/JPY","GBP/JPY","EUR/CHF","AUD/JPY","CAD/JPY","CHF/JPY"],
+    "Crypto": ["BTC/USD","ETH/USD","SOL/USD","XRP/USD","BNB/USD","DOGE/USD","ADA/USD"],
+    "Stocks": ["AAPL","TSLA","AMZN","NVDA","MSFT","META","GOOGL"],
+    "Commodities": ["Gold","Silver","Oil","Natural Gas"]
   },
-
-  "timeframes": [
-    "15s",
-    "30s",
-    "45s",
-    "1m",
-    "2m",
-    "5m"
-  ]
+  "timeframes": ["5s","15s","30s","1m","2m","5m"]
 }
