@@ -1,39 +1,30 @@
 {
-  "version": 3,
+  "version": 2,
   "updated": "2026-03-01",
-
   "categories": {
     "Forex": [
       "EUR/USD","GBP/USD","USD/JPY","USD/CHF","AUD/USD","USD/CAD","NZD/USD",
       "EUR/GBP","EUR/JPY","GBP/JPY","EUR/CHF","AUD/JPY","CAD/JPY","CHF/JPY",
-      "GBP/AUD","EUR/AUD","AUD/CAD","NZD/JPY","NZD/CAD","GBP/CAD",
-      "USD/MXN","USD/TRY","USD/ZAR","USD/SGD","USD/HKD","USD/NOK","USD/SEK",
-      "EUR/NZD","EUR/CAD","EUR/SEK","EUR/NOK","GBP/NZD"
+      "EUR/AUD","EUR/CAD","EUR/NZD","GBP/AUD","GBP/CAD","GBP/CHF","GBP/NZD",
+      "AUD/CAD","AUD/CHF","AUD/NZD","NZD/JPY","NZD/CHF","NZD/CAD",
+      "USD/SGD","USD/HKD","USD/MXN","USD/ZAR","USD/TRY","USD/SEK","USD/NOK",
+      "XAU/USD","XAG/USD"
     ],
-
     "Crypto": [
       "BTC/USD","ETH/USD","BNB/USD","SOL/USD","XRP/USD","ADA/USD","DOGE/USD",
-      "LTC/USD","TRX/USD","DOT/USD","MATIC/USD","AVAX/USD","LINK/USD","ATOM/USD",
-      "UNI/USD","ETC/USD","BCH/USD","XLM/USD"
+      "TRX/USD","TON/USD","AVAX/USD","LINK/USD","DOT/USD","LTC/USD","BCH/USD",
+      "MATIC/USD","ATOM/USD","NEAR/USD"
     ],
-
     "Stocks": [
       "AAPL","TSLA","MSFT","AMZN","NVDA","META","GOOGL","NFLX","AMD","INTC",
-      "BABA","ORCL","IBM","ADBE","PYPL","QCOM","CSCO","CRM","UBER","BA"
+      "BABA","ORCL","UBER","COIN","BA","JPM","V","MA","DIS","NKE"
     ],
-
     "Commodities": [
-      "Gold","Silver","Oil","Brent","Natural Gas","Platinum","Palladium","Copper"
+      "Gold","Silver","Oil","Brent","Natural Gas","Copper","Wheat"
     ],
-
     "Indices": [
-      "S&P 500","NASDAQ 100","DAX 40","FTSE 100","Nikkei 225","Dow Jones","CAC 40"
+      "S&P 500","NASDAQ 100","DAX 40","FTSE 100","Nikkei 225","Dow Jones"
     ]
   },
-
-  "timeframes": [
-    "5s","10s","15s","30s",
-    "1m","3m","5m","30m",
-    "1h","3h","6h"
-  ]
+  "timeframes": ["5s","10s","15s","30s","1m","3m","5m","30m","1h","3h","6h"]
 }
