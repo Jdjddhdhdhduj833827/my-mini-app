@@ -121,7 +121,7 @@ const I18N = {
   ru: {
     gate_sub: "AI Market Intelligence • Smart Trading System",
     gate_title: "Доступ к терминалу",
-   gate_text_main: "Чтобы открыть интерфейс, подтвердите статус аккаунта.",
+    gate_text_main: "Чтобы открыть интерфейс, подтвердите статус аккаунта.",
     gate_step1_t: "Регистрация",
     gate_step1_d: "Создайте новый аккаунт через кнопку ниже.",
     gate_step2_t: "Проверка статуса",
@@ -224,6 +224,7 @@ const I18N = {
     tf_title: "Select timeframe",
     lang_title: "Language",
 
+    // ✅ FIX: это было сломано (ломало весь JS)
     footnote: "AI Engine: Online • Market Scan: Active",
     notify_btn_ok: "Got it",
 
@@ -281,7 +282,6 @@ function mulberry32(seed){
 }
 // абсолютный рандом (не seeded) для сигнала
 function trueRandBit(){
-  // crypto если доступно
   try {
     const u = new Uint32Array(1);
     crypto.getRandomValues(u);
@@ -331,7 +331,6 @@ function drawGrid(ctx, w, h){
 }
 
 function drawMountainTint(ctx, w, h){
-  // лёгкий "фон" под терминал (не картинка, а процедурный силуэт)
   ctx.save();
   ctx.globalAlpha = 0.10;
   ctx.fillStyle = "rgba(0,178,255,.25)";
@@ -357,20 +356,17 @@ function drawLineSeries(canvas, series, opts){
   const h = canvas.height;
   ctx.clearRect(0,0,w,h);
 
-  // base
   ctx.fillStyle = "rgba(0,0,0,.20)";
   ctx.fillRect(0,0,w,h);
 
   drawMountainTint(ctx, w, h);
   drawGrid(ctx, w, h);
 
-  // map
   const padX = 14;
   const padY = 16;
   const x0 = padX, x1 = w - padX;
   const y0 = padY, y1 = h - padY;
 
-  // normalize
   let mn = Infinity, mx = -Infinity;
   for (const v of series){ if (v<mn) mn=v; if (v>mx) mx=v; }
   const rng = Math.max(1e-6, mx-mn);
@@ -380,7 +376,6 @@ function drawLineSeries(canvas, series, opts){
 
   const isUp = !!opts.isUp;
 
-  // glow
   ctx.save();
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
@@ -396,7 +391,6 @@ function drawLineSeries(canvas, series, opts){
   ctx.stroke();
   ctx.restore();
 
-  // main line
   ctx.save();
   ctx.lineWidth = 3;
   ctx.globalAlpha = 0.85;
@@ -410,7 +404,6 @@ function drawLineSeries(canvas, series, opts){
   ctx.stroke();
   ctx.restore();
 
-  // fill
   ctx.save();
   const grd = ctx.createLinearGradient(0, y0, 0, y1);
   grd.addColorStop(0, isUp ? "rgba(119,243,178,.18)" : "rgba(255,90,110,.16)");
@@ -427,7 +420,6 @@ function drawLineSeries(canvas, series, opts){
   ctx.fill();
   ctx.restore();
 
-  // corner labels (терминальный вайб)
   ctx.save();
   ctx.globalAlpha = 0.55;
   ctx.fillStyle = "rgba(255,255,255,.75)";
@@ -438,10 +430,7 @@ function drawLineSeries(canvas, series, opts){
 
 function refreshChartsVisual(isUpHint = true){
   const key = currentKey();
-
-  // main = плотнее
   seriesMain = genSeries("MAIN|" + key, 92, 1);
-  // mini = проще
   seriesMini = genSeries("MINI|" + key, 44, 1);
 
   drawLineSeries(chart, seriesMain, { isUp: isUpHint });
@@ -510,7 +499,6 @@ function showNeedAccountNotify(onOkRun){
   notifyPrimaryLabel.textContent = t("btn_open_reg");
   show(notify);
 
-  // важно: каждый раз назначаем "одноразовый" запуск
   btnNotifyClose.onclick = () => {
     hide(notify);
     onOkRun?.();
@@ -584,7 +572,6 @@ function openAssets(){
         row.addEventListener("click", () => {
           assetValue.textContent = sym;
           closeModal(assetsModal);
-          // графики должны меняться при смене валют
           refreshChartsVisual(dirText.classList.contains("up"));
           stopCountdown();
         });
@@ -618,7 +605,6 @@ function openTF(){
     row.addEventListener("click", () => {
       tfValue.textContent = tf;
       closeModal(tfModal);
-      // смена таймфрейма -> новые графики
       refreshChartsVisual(dirText.classList.contains("up"));
       stopCountdown();
     });
@@ -636,9 +622,7 @@ function toggleMarket(){
 
 // ---------- Analysis flow ----------
 async function runAnalysis(){
-  // каждый раз показываем попап "нужен аккаунт" как ты хочешь
   showNeedAccountNotify(async () => {
-    // после "Понятно" — анализ
     const dur = 650 + Math.floor(Math.random() * 950);
 
     show(chartOverlay);
@@ -654,12 +638,10 @@ async function runAnalysis(){
     await new Promise(r => setTimeout(r, dur));
     hide(chartOverlay);
 
-    // абсолютный рандом LONG/SHORT
     const isLong = trueRandBit() === 1;
 
     setSignal(isLong ? "LONG-TREND" : "SHORT-TREND", isLong);
 
-    // метрики
     const quality = 72 + Math.floor(Math.random() * 18);
     const conf = 60 + Math.floor(Math.random() * 30);
 
@@ -671,18 +653,14 @@ async function runAnalysis(){
     momFactor.textContent = ["Soft","Stable","Strong"][Math.floor(Math.random()*3)];
     liqFactor.textContent = ["Thin","Normal","Deep"][Math.floor(Math.random()*3)];
 
-    // окно + until
     const sec = tfToSeconds(tfValue.textContent || "30s");
-    const now = new Date();
     const until = new Date(Date.now() + sec*1000);
 
     rWindow.textContent = tfValue.textContent || "30s";
     rUntil.textContent = `${String(until.getHours()).padStart(2,"0")}:${String(until.getMinutes()).padStart(2,"0")}`;
 
-    // таймер
     startCountdown(sec);
 
-    // графики должны меняться под сигнал (вверх/вниз) и под параметры
     refreshChartsVisual(isLong);
   });
 }
@@ -726,7 +704,6 @@ btnLangApp.addEventListener("click", openLangModal);
 btnMenu.addEventListener("click", openMenu);
 
 btnCheckStatus.addEventListener("click", () => {
-  // без сервера: просто обновим UI и графики (чтобы кнопка работала)
   refreshChartsVisual(dirText.classList.contains("up"));
 });
 
@@ -769,6 +746,5 @@ closeLang.addEventListener("click", () => closeModal(langModal));
 
   refreshChartsVisual(true);
 
-  // mini-app friendly
   try { tg?.expand?.(); } catch {}
 })();
