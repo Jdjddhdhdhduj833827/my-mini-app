@@ -1,3 +1,4 @@
+console.log("APP.JS VERSION =", "v_debug_001");
 /* app.js — FULL REWRITE (stable)
    ✅ ЛОГИКА КАК ТЫ ПРОСИЛ:
    1) Вход в интерфейс (Gate) — проверяем ТОЛЬКО регистрацию.
@@ -37,6 +38,7 @@
   // DOM helpers
   // =========================
   const $ = (id) => document.getElementById(id);
+   console.log("[BOOT] btnGetAccess exists?", !!document.getElementById("btnGetAccess"));
   const show = (el) => el && el.classList.remove("hidden");
   const hide = (el) => el && el.classList.add("hidden");
 
@@ -50,6 +52,13 @@
 
   const btnOpenReg = $("btnOpenReg");
   const btnGetAccess = $("btnGetAccess");
+   if (!btnGetAccess) {
+  console.warn("[UI] btnGetAccess not found in DOM");
+} else {
+  btnGetAccess.addEventListener("click", () => {
+    console.log("[CLICK] Get access clicked");
+  });
+}
   const gateStatusText = $("gateStatusText");
   const gateMeter = $("gateMeter");
   const pillVipGate = $("pillVipGate");
