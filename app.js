@@ -1,3 +1,4 @@
+console.log("APP.JS EXECUTED ✅", Date.now());
 (() => {
   "use strict";
 
